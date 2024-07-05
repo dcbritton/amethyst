@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
         std::ifstream input;
         std::stringstream s;
         std::string script;
-        input.open("../example.am");
+        input.open("../examples/example.am");
         s << input.rdbuf();
         input.close();
         script = s.str();

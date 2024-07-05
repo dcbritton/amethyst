@@ -13,7 +13,7 @@
 #include <bitset>
 #include "Token.hpp"
 
-// @TODO bitset for valid characters
+// @TODO: bitset for valid characters
 // const std::bitset<128> validMask("00000000000000000000000000000000111111111111111111111111111111100000001111111111011000000000000000000000000000000000000000000000");
 
 class InvalidSymbolException final : public std::exception {
@@ -39,50 +39,50 @@ private:
     const std::string& text;
     std::vector<Token> tokens = {};
     std::string::const_iterator it;
-    std::unordered_map<std::string, TokenType> keywordMap {
+    std::unordered_map<std::string, Token::Type> keywordMap {
         // // {"String", kwString},
         // // {"Symbol", kwSymbol},
         // // {"Hash", kwHash},
         // // {"Array", kwArray},
         // // {"_int32", kw_int32},
         // // {"_int32", kw_float32},
-        {"BEGIN", kwBEGIN},
-        {"END", kwEND},
+        {"BEGIN", Token::kwBEGIN},
+        {"END", Token::kwEND},
         // {"alias", kwAlias},
-        {"and", kwAnd},
-        {"begin", kwBegin},
-        {"break", kwBreak},
-        {"case", kwCase},
-        {"class", kwClass},
-        {"def", kwDef},
+        {"and", Token::kwAnd},
+        {"begin", Token::kwBegin},
+        {"break", Token::kwBreak},
+        {"case", Token::kwCase},
+        {"class", Token::kwClass},
+        {"def", Token::kwDef},
         // {"defined?", kwDefined?},
-        {"do", kwDo},
-        {"else", kwElse},
-        {"elsif", kwElsif},
-        {"end", kwEnd},
-        {"ensure", kwEnsure},
-        {"false", kwFalse},
-        {"for", kwFor},
-        {"if", kwIf},
-        {"in", kwIn},
+        {"do", Token::kwDo},
+        {"else", Token::kwElse},
+        {"elsif", Token::kwElsif},
+        {"end", Token::kwEnd},
+        {"ensure", Token::kwEnsure},
+        {"false", Token::kwFalse},
+        {"for", Token::kwFor},
+        {"if", Token::kwIf},
+        {"in", Token::kwIn},
         // {"module", kwModule},
-        {"next", kwNext},
-        {"nil", kwNil},
-        {"not", kwNot},
-        {"or", kwOr},
-        {"redo", kwRedo},
+        {"next", Token::kwNext},
+        {"nil", Token::kwNil},
+        {"not", Token::kwNot},
+        {"or", Token::kwOr},
+        {"redo", Token::kwRedo},
         // {"rescue", kwRescue},
         // {"retry", kwRetry},
-        {"return", kwReturn},
-        {"self", kwSelf},
+        {"return", Token::kwReturn},
+        {"self", Token::kwSelf},
         // {"super", kwSuper},
-        {"then", kwThen},
-        {"true", kwTrue},
+        {"then", Token::kwThen},
+        {"true", Token::kwTrue},
         // {"undef", kwUndef},
-        {"unless", kwUnless},
-        {"until", kwUntil},
-        {"when", kwWhen},
-        {"while", kwWhile},
+        {"unless", Token::kwUnless},
+        {"until", Token::kwUntil},
+        {"when", Token::kwWhen},
+        {"while", Token::kwWhile},
         // {"__FILE__", kw__FILE__},
         // {"__LINE__", kw__LINE__}
     };
@@ -102,7 +102,7 @@ public:
             if (isspace(*it)) {
                 if (*it == '\n') {
                     ++lineNumber;
-                    tokens.push_back(Token(terminator, "\\n", lineNumber));
+                    tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
                 }
                 ++it;
                 continue;
@@ -118,9 +118,9 @@ public:
                 std::string word = std::string(it, wordEnd);
 
                 // identifier found if not in keyword map
-                std::unordered_map<std::string, TokenType>::const_iterator possibleKeyword = keywordMap.find(word);
+                std::unordered_map<std::string, Token::Type>::const_iterator possibleKeyword = keywordMap.find(word);
                 if (possibleKeyword == keywordMap.end()) {
-                    tokens.push_back(Token(identifier, word, lineNumber));
+                    tokens.push_back(Token(Token::identifier, word, lineNumber));
                 }
                 // otherwise keyword
                 else {
@@ -132,7 +132,7 @@ public:
             }
 
             // global (restricting all globals to '$IDENTIFIER' for now)
-            // @TODO add option variables '$[-]any_char', listed at https://ruby-doc.org/docs/ruby-doc-bundle/Manual/man-1.4/variable.html#number
+            // @TODO: add option variables '$[-]any_char', listed at https://ruby-doc.org/docs/ruby-doc-bundle/Manual/man-1.4/variable.html#number
             else if (*it == '$') {
                 std::string::const_iterator wordEnd = it+1;
 
@@ -151,9 +151,9 @@ public:
                 std::string word = std::string(it, wordEnd);
 
                 // identifier found if not in keyword map
-                std::unordered_map<std::string, TokenType>::const_iterator possibleKeyword = keywordMap.find(word);
+                std::unordered_map<std::string, Token::Type>::const_iterator possibleKeyword = keywordMap.find(word);
                 if (possibleKeyword == keywordMap.end()) {
-                    tokens.push_back(Token(global, word, lineNumber));
+                    tokens.push_back(Token(Token::global, word, lineNumber));
                 }
                 // otherwise keyword
                 else {
@@ -186,7 +186,7 @@ public:
                             numberEnd++;
 
                         std::string number(it, numberEnd);
-                        tokens.push_back(Token(floatLiteral, number, lineNumber));
+                        tokens.push_back(Token(Token::floatLiteral, number, lineNumber));
                         it = numberEnd;
                     }
 
@@ -194,7 +194,7 @@ public:
                     else {
                         --numberEnd; // exclude the '.'
                         std::string number(it, numberEnd);
-                        tokens.push_back(Token(intLiteral, number, lineNumber));
+                        tokens.push_back(Token(Token::intLiteral, number, lineNumber));
                         it = numberEnd;
                     }
                     continue;
@@ -210,7 +210,7 @@ public:
                     exit(1);
                 }
 
-                tokens.push_back(Token(intLiteral, number, lineNumber));
+                tokens.push_back(Token(Token::intLiteral, number, lineNumber));
                 it = numberEnd;
                 continue;
             }
@@ -231,7 +231,7 @@ public:
                 
                 // discard the quotes
                 std::string string(it+1, string_end-1);
-                tokens.push_back(Token(doubleQuoteString, string, lineNumber));
+                tokens.push_back(Token(Token::doubleQuoteString, string, lineNumber));
                 it = string_end;
             }
 
@@ -239,17 +239,17 @@ public:
             else if (*it == '.') {
                 if (*(it+1) == '.') {
                     if(*(it+2) == '.') {
-                        tokens.push_back(Token(opRangeExcl, "...", lineNumber));
+                        tokens.push_back(Token(Token::opRangeExcl, "...", lineNumber));
                         it += 3;
                         continue;              
                     }
 
-                    tokens.push_back(Token(opRangeIncl, "..", lineNumber));
+                    tokens.push_back(Token(Token::opRangeIncl, "..", lineNumber));
                     it += 2;
                     continue;
                 }
 
-                tokens.push_back(Token(opDot, ".", lineNumber));
+                tokens.push_back(Token(Token::opDot, ".", lineNumber));
                 ++it;
                 continue;
             }
@@ -258,17 +258,17 @@ public:
             else if (*it == '=') {
                 if (*(it+1) == '=') {
                     if(*(it+2) == '=') {
-                        tokens.push_back(Token(opCaseEquality, "===", lineNumber));
+                        tokens.push_back(Token(Token::opCaseEquality, "===", lineNumber));
                         it += 3;
                         continue;              
                     }
 
-                    tokens.push_back(Token(opEquality, "==", lineNumber));
+                    tokens.push_back(Token(Token::opEquality, "==", lineNumber));
                     it += 2;
                     continue;
                 }
 
-                tokens.push_back(Token(opAssign, "=", lineNumber));
+                tokens.push_back(Token(Token::opAssign, "=", lineNumber));
                 ++it;
                 continue;
             }
@@ -277,11 +277,11 @@ public:
             // +, +=
             else if (*it == '+') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opPlusAssign, "+=", lineNumber));
+                    tokens.push_back(Token(Token::opPlusAssign, "+=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opPlus, "+", lineNumber));
+                tokens.push_back(Token(Token::opPlus, "+", lineNumber));
                 ++it;
                 continue;
             }
@@ -289,11 +289,11 @@ public:
             // -, -=
             else if (*it == '-') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opMinusAssign, "-=", lineNumber));
+                    tokens.push_back(Token(Token::opMinusAssign, "-=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opMinus, "-", lineNumber));
+                tokens.push_back(Token(Token::opMinus, "-", lineNumber));
                 ++it;
                 continue;
             }
@@ -301,11 +301,11 @@ public:
             // *, *=
             else if (*it == '*') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opMultiplyAssign, "*=", lineNumber));
+                    tokens.push_back(Token(Token::opMultiplyAssign, "*=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opMultiply, "*", lineNumber));
+                tokens.push_back(Token(Token::opMultiply, "*", lineNumber));
                 ++it;
                 continue;
             }
@@ -313,11 +313,11 @@ public:
             // /, /=
             else if (*it == '/') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opDivideAssign, "/=", lineNumber));
+                    tokens.push_back(Token(Token::opDivideAssign, "/=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opDivide, "/", lineNumber));
+                tokens.push_back(Token(Token::opDivide, "/", lineNumber));
                 ++it;
                 continue;
             }
@@ -325,11 +325,11 @@ public:
             // %, %=
             else if (*it == '%') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opModulusAssign, "%=", lineNumber));
+                    tokens.push_back(Token(Token::opModulusAssign, "%=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opModulus, "%", lineNumber));
+                tokens.push_back(Token(Token::opModulus, "%", lineNumber));
                 ++it;
                 continue;
             }
@@ -337,11 +337,11 @@ public:
             // &, &=
             else if (*it == '&') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opBitwiseAndAssign, "&=", lineNumber));
+                    tokens.push_back(Token(Token::opBitwiseAndAssign, "&=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opBitwiseAnd, "&", lineNumber));
+                tokens.push_back(Token(Token::opBitwiseAnd, "&", lineNumber));
                 ++it;
                 continue;
             }
@@ -349,11 +349,11 @@ public:
             // |, |=
             else if (*it == '|') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opBitwiseOrAssign, "|=", lineNumber));
+                    tokens.push_back(Token(Token::opBitwiseOrAssign, "|=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opBitwiseOr, "|", lineNumber));
+                tokens.push_back(Token(Token::opBitwiseOr, "|", lineNumber));
                 ++it;
                 continue;
             }
@@ -362,15 +362,15 @@ public:
             else if (*it == '|') {
                 if (*(it+1) == '|') {
                     if (*(it+2) == '=') {
-                        tokens.push_back(Token(opLogicalOrAssign, "||=", lineNumber));
+                        tokens.push_back(Token(Token::opLogicalOrAssign, "||=", lineNumber));
                         it += 3;
                         continue;
                     }
-                    tokens.push_back(Token(opLogicalOr, "||", lineNumber));
+                    tokens.push_back(Token(Token::opLogicalOr, "||", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opBitwiseOr, "|", lineNumber));
+                tokens.push_back(Token(Token::opBitwiseOr, "|", lineNumber));
                 ++it;
                 continue;
             }
@@ -379,15 +379,15 @@ public:
             else if (*it == '&') {
                 if (*(it+1) == '&') {
                     if (*(it+2) == '=') {
-                        tokens.push_back(Token(opLogicalAndAssign, "&&=", lineNumber));
+                        tokens.push_back(Token(Token::opLogicalAndAssign, "&&=", lineNumber));
                         it += 3;
                         continue;
                     }
-                    tokens.push_back(Token(opLogicalAnd, "&&", lineNumber));
+                    tokens.push_back(Token(Token::opLogicalAnd, "&&", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opBitwiseAnd, "&", lineNumber));
+                tokens.push_back(Token(Token::opBitwiseAnd, "&", lineNumber));
                 ++it;
                 continue;
             }
@@ -395,11 +395,11 @@ public:
             // ^, ^=
             else if (*it == '^') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opBitwiseXorAssign, "^=", lineNumber));
+                    tokens.push_back(Token(Token::opBitwiseXorAssign, "^=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opBitwiseXor, "^", lineNumber));
+                tokens.push_back(Token(Token::opBitwiseXor, "^", lineNumber));
                 ++it;
                 continue;
             }
@@ -407,21 +407,21 @@ public:
             // <, <=, <<, <<=
             else if (*it == '<') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opLessThanOrEqual, "<=", lineNumber));
+                    tokens.push_back(Token(Token::opLessThanOrEqual, "<=", lineNumber));
                     it += 2;
                     continue;
                 }
                 if (*(it+1) == '<') {
                     if (*(it+2) == '=') {
-                        tokens.push_back(Token(opLeftShiftAssign, "<<=", lineNumber));
+                        tokens.push_back(Token(Token::opLeftShiftAssign, "<<=", lineNumber));
                         it += 3;
                         continue;
                     }
-                    tokens.push_back(Token(opLeftShift, "<<", lineNumber));
+                    tokens.push_back(Token(Token::opLeftShift, "<<", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opLessThan, "<", lineNumber));
+                tokens.push_back(Token(Token::opLessThan, "<", lineNumber));
                 ++it;
                 continue;
             }
@@ -429,35 +429,35 @@ public:
             // >, >=, >>, >>=
             else if (*it == '>') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opGreaterThanOrEqual, ">=", lineNumber));
+                    tokens.push_back(Token(Token::opGreaterThanOrEqual, ">=", lineNumber));
                     it += 2;
                     continue;
                 }
                 if (*(it+1) == '>') {
                     if (*(it+2) == '=') {
-                        tokens.push_back(Token(opRightShiftAssign, ">>=", lineNumber));
+                        tokens.push_back(Token(Token::opRightShiftAssign, ">>=", lineNumber));
                         it += 3;
                         continue;
                     }
-                    tokens.push_back(Token(opRightShift, ">>", lineNumber));
+                    tokens.push_back(Token(Token::opRightShift, ">>", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(opGreaterThan, ">", lineNumber));
+                tokens.push_back(Token(Token::opGreaterThan, ">", lineNumber));
                 ++it;
                 continue;
             }
 
             // <=>
             else if (*it == '<' && *(it+1) == '=' && *(it+2) == '>') {
-                tokens.push_back(Token(opSpaceship, "<=>", lineNumber));
+                tokens.push_back(Token(Token::opSpaceship, "<=>", lineNumber));
                 it += 3;
                 continue;
             }
 
             // ?
             else if (*it == '?') {
-                tokens.push_back(Token(questionMark, "?", lineNumber));
+                tokens.push_back(Token(Token::questionMark, "?", lineNumber));
                 ++it;
                 continue;
             }
@@ -465,74 +465,74 @@ public:
             // !
             else if (*it == '!') {
                 if (*(it+1) == '=') {
-                    tokens.push_back(Token(opNotEquals, "!=", lineNumber));
+                    tokens.push_back(Token(Token::opNotEquals, "!=", lineNumber));
                     it += 2;
                     continue;
                 }
-                tokens.push_back(Token(exclamationPoint, "!", lineNumber));
+                tokens.push_back(Token(Token::exclamationPoint, "!", lineNumber));
                 ++it;
                 continue;
             }
 
             // ,
             else if (*it == ',') {
-                tokens.push_back(Token(comma, ",", lineNumber));
+                tokens.push_back(Token(Token::comma, ",", lineNumber));
                 ++it;
                 continue;         
             }
 
             // ;
             else if (*it == ';') {
-                tokens.push_back(Token(terminator, ";", lineNumber));
+                tokens.push_back(Token(Token::terminator, ";", lineNumber));
                 ++it;
                 continue;
             }
 
             // (
             else if (*it == '(') {
-                tokens.push_back(Token(openParen, "(", lineNumber));
+                tokens.push_back(Token(Token::openParen, "(", lineNumber));
                 ++it;
                 continue;
             }
 
             // )
             else if (*it == ')') {
-                tokens.push_back(Token(closeParen, ")", lineNumber));
+                tokens.push_back(Token(Token::closeParen, ")", lineNumber));
                 ++it;
                 continue;
             }
 
             // {
             else if (*it == '{') {
-                tokens.push_back(Token(openBrace, "{", lineNumber));
+                tokens.push_back(Token(Token::openBrace, "{", lineNumber));
                 ++it;
                 continue;
             }
 
             // }
             else if (*it == '}') {
-                tokens.push_back(Token(closeBrace, "}", lineNumber));
+                tokens.push_back(Token(Token::closeBrace, "}", lineNumber));
                 ++it;
                 continue;
             }
 
             // [
             else if (*it == '[') {
-                tokens.push_back(Token(openBracket, "[", lineNumber));
+                tokens.push_back(Token(Token::openBracket, "[", lineNumber));
                 ++it;
                 continue;
             }
 
             // ]
             else if (*it == ']') {
-                tokens.push_back(Token(closeBracket, "]", lineNumber));
+                tokens.push_back(Token(Token::closeBracket, "]", lineNumber));
                 ++it;
                 continue;
             }
 
             // :
             else if (*it == ':') {
-                tokens.push_back(Token(colon, ":", lineNumber));
+                tokens.push_back(Token(Token::colon, ":", lineNumber));
                 ++it;
                 continue;
             }
@@ -561,7 +561,7 @@ void print(const std::vector<Token>& tokens) {
     std::cout << "\n";
     std::cout << "Type names: ";
     for (auto x : tokens) 
-        std::cout << toString(x.type) << ' ';
+        std::cout << x.toString() << ' ';
     std::cout << "\n\n";
 }
 

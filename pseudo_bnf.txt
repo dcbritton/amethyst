@@ -3,33 +3,60 @@
 
 comp_stmt -  [stmt terminator]* stmt [terminator]
 
-stmt    -   var_def
-        |   expr
-        |   func_def
-        |   type_def
-        |   return expr
+stmt        -   var_def
+            |   expr
+            |   func_def
+            |   type_def
+            |   return expr
+            |   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end 
 
-var_def  -   identifier:typename = expr
+var_def     -   identifier:type_name = expr
 
-expr    -   expr op expr
-        |   call
-        |   literal
-        |   varname
-        |   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end 
+expr        -   eq_expr
 
-call    -   operation call_args
-        -   operation(call_args)
+eq_expr     -   rel_expr
+            |   eq_expr == rel_expr
+	        |   eq_expr != rel_expr
 
-call_args - [expr, ]* expr 
+rel_expr    -   shift_expr
+	        |   rel_expr < shift_expr
+	        |   rel_expr > shift_expr
+	        |   rel_expr <= shift_expr
+	        |   rel_expr >= shift_expr
 
-operation - identifier
-varname -  identifier
-typename - identifier
+shift_expr  -   add_expr
+	        |   shift_expr << add_expr
+	        |   shift_expr >> add_expr
 
-type_def -   type typename [func_def | member_def]* end
+add_expr    -   mult_expr
+	        |   add_expr + mult_expr
+	        |   add_expr - mult_expr  
 
-func_def  -   def identifier(param_list):typename terminator comp_stmt end
+mult_expr   -   primary
+            |   mult_expr * primary
+	        |   mult_expr / primary
+	        |   mult_expr % primary
 
-param_list - [identifier:typename, ]* identifier:typename
+primary     -   (expr)
+            |   call
+            |   literal
+            |   var_name
 
-member_def  - @identifier:typename = expr
+call        -   func_name call_args
+            -   func_name(call_args)
+
+call_args   -   [expr, ]* expr 
+
+func_name   -   identifier
+var_name    -   identifier
+type_name   -   identifier
+
+type_def    -   type identifier [func_def | member_def]* end
+
+member_def  -   @identifier:type_name = expr
+
+func_def    -   def identifier(param_list):type_name terminator comp_stmt end
+
+param_list  -   [parameter, ]* parameter
+
+parameter   -   identifier:type_name

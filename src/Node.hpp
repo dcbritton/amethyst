@@ -67,18 +67,23 @@ struct VariableDefn : Statement {
         : name(name), type(type), expression(expression) {}
 };
 
-// parameter list
-struct ParamList : Node {
-    struct Parameter {
+// parameter
+struct Parameter : Node {
         std::string name;
         std::string type;
-    };
 
-    std::vector<Parameter> parameters;
+        // constructor
+        Parameter(std::string name, std::string type)
+            : name(name), type(type) {}
+};
+
+// parameter list
+struct ParamList : Node {
+    std::vector<std::shared_ptr<Parameter>> parameters;
 
     // constructor
-    ParamList() 
-        : parameters({}) {}
+    ParamList(std::vector<std::shared_ptr<Parameter>> parameter) 
+        : parameters(parameters) {}
 };
 
 // function definition
@@ -96,11 +101,5 @@ struct FunctionDefn : Statement {
 struct TypeDefn : Statement {
 
 };
-
-
-
-
-
-
 
 #endif

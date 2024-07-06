@@ -73,8 +73,12 @@ struct Parser {
         discard(Token::kwDef);
         std::string name = consume(Token::identifier, functionName);
         discard(Token::openParen);
-        auto parameters = parseParamList();
+
+        std::shared_ptr<ParamList> parameters = nullptr;
+        if (*(it+1) != Token::openParen)
+            parameters = parseParamList();
         discard(Token::closeParen);
+
         discard(Token::colon);
         std::string returnType = consume(Token::identifier, dataType);
         discard(Token::terminator);
@@ -84,16 +88,29 @@ struct Parser {
         return std::make_shared<FunctionDefn>(name, returnType, parameters, functionBody);
     }
 
+    // [parameter, ]* parameter
+    std::shared_ptr<ParamList> parseParamList() {
+        currentContext = "parameter list";
 
-    ParamList::Parameter parseParameter() {
+        std::vector<std::shared_ptr<Parameter>> parameters;
+        while (*(it+3) == Token::comma) {
+            parameters.push_back(parseParameter());
+            consume(Token::comma);
+        }
+        parameters.push_back(parseParameter());
 
+        return std::make_shared<ParamList>(parameters);
     }
 
-    // [identifier:identifier, ]* identifier:identifier
-    std::shared_ptr<ParamList> parseParamList() {
-        while (*(it+3) == Token::comma) {
+    // identifier:typename
+    std::shared_ptr<Parameter> parseParameter() {
+        currentContext = "parameter";
 
-        }
+        std::string name = consume(Token::identifier, variableName);
+        discard(Token::colon);
+        std::string type = consume(Token::identifier, dataType);
+
+        return std::make_shared<Parameter>(name, type);
     }
 
     // @TODO: expand expression parsing
@@ -157,7 +174,7 @@ struct Parser {
             return (it-1)->value;
 
         // @TODO: remove placeholder
-        std::cout << "placeholder for consume(). exiting.";
+        std::cout << "placeholder for consume(Token::Type). exiting.\n";
         exit(1);
     }
 
@@ -177,16 +194,12 @@ struct Parser {
 
         ++it;
 
-        if (subtype == variableName || subtype == dataType) {
-            return it->value;
-        }
-
-        else if (subtype == functionName) {
-
+        if (subtype == variableName || subtype == dataType || subtype == functionName) {
+            return (it-1)->value;
         }
 
         // @TODO: remove placeholder
-        std::cout << "placeholder for consume(). exiting.";
+        std::cout << "placeholder for consume(Token::Type, IdentifierSubtype). exiting.\n";
         exit(1);
     }
 

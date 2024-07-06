@@ -19,7 +19,6 @@ struct Node : std::enable_shared_from_this<Node> {
 
 // compound statement
 struct CompStatement : Node {
-
     std::vector<std::shared_ptr<Statement>> statements;
 
     // constructor
@@ -39,9 +38,7 @@ struct Statement : Node {
 
 // expression
 struct Expression : Statement {
-
     std::string type;
-
     std::string first;
     std::string second;
 
@@ -54,6 +51,7 @@ struct Variable : Node {
     std::string name;
     std::string type;
 
+    // constructor
     Variable(std::string name, std::string type)
         : name(name), type(type) {}
 };
@@ -64,13 +62,35 @@ struct VariableDefn : Statement {
     std::string type;
     std::shared_ptr<Expression> expression;
 
+    // constructor
     VariableDefn(std::string name, std::string type, std::shared_ptr<Expression> expression)
         : name(name), type(type), expression(expression) {}
 };
 
-// function definition
-struct FuncDefn : Statement {
+// parameter list
+struct ParamList : Node {
+    struct Parameter {
+        std::string name;
+        std::string type;
+    };
 
+    std::vector<Parameter> parameters;
+
+    // constructor
+    ParamList() 
+        : parameters({}) {}
+};
+
+// function definition
+struct FunctionDefn : Statement {
+    std::string name;
+    std::string returnType;
+    std::shared_ptr<ParamList> paramList;
+    std::shared_ptr<CompStatement> functionBody;
+
+    // constuctor
+    FunctionDefn(std::string name, std::string returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<CompStatement> functionBody) 
+        : name(name), returnType(returnType), paramList(paramList), functionBody(functionBody) {}
 };
 
 struct TypeDefn : Statement {

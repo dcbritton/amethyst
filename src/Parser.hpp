@@ -34,8 +34,7 @@ struct Parser {
         };
 
     // main parsing loop
-    std::shared_ptr<CompStatement> parse() {
-        currentContext = "program";
+    std::shared_ptr<CompStatement> parseCompStatement() {
 
         std::vector<std::shared_ptr<Statement>> statements;
         while (it != tokens.end()) {
@@ -45,6 +44,8 @@ struct Parser {
                 statements.push_back(parseVariableDefn());
 
             // function definition
+            else if (it->type == Token::kwDef)
+                statements.push_back(parseFunctionDefn());
 
             // expression
 
@@ -57,15 +58,48 @@ struct Parser {
                 std::cout << "parse() couldn't classify token sequence starting with: " + it->toString() + ".\n";
                 exit(1);
             }
+
+            // require a terminator after every statement
+            discard(Token::terminator);
         }
 
         return std::make_shared<CompStatement>(statements);
     }
 
-    // @TODO:
+    // def identifier(param_list):typename terminator comp_stmt end
+    std::shared_ptr<FunctionDefn> parseFunctionDefn() {
+        currentContext = "function definition";
+
+        discard(Token::kwDef);
+        std::string name = consume(Token::identifier, functionName);
+        discard(Token::openParen);
+        auto parameters = parseParamList();
+        discard(Token::closeParen);
+        discard(Token::colon);
+        std::string returnType = consume(Token::identifier, dataType);
+        discard(Token::terminator);
+        auto functionBody = parseCompStatement();
+        discard(Token::kwEnd);
+
+        return std::make_shared<FunctionDefn>(name, returnType, parameters, functionBody);
+    }
+
+
+    ParamList::Parameter parseParameter() {
+
+    }
+
+    // [identifier:identifier, ]* identifier:identifier
+    std::shared_ptr<ParamList> parseParamList() {
+        while (*(it+3) == Token::comma) {
+
+        }
+    }
+
+    // @TODO: expand expression parsing
     // intLiteral opPlus intLiteral
     std::shared_ptr<Expression> parseExpression() {
-        currentContext = "Expression";
+        currentContext = "expression";
 
         std::string first = consume(Token::intLiteral);
         discard(Token::opPlus);
@@ -84,7 +118,6 @@ struct Parser {
         std::string type = consume(Token::identifier, dataType);
         discard(Token::opAssign);
         auto expression = parseExpression();
-        discard(Token::terminator);
 
         scopes.top().insert({name, type});
         return std::make_shared<VariableDefn>(name, type, expression);
@@ -97,7 +130,7 @@ struct Parser {
            // throw unexpected end of input
         }
 
-        if (it->type != expectedType) {
+        if (*it != expectedType) {
             std::cout << "Parser error in " + currentContext + " on line " + std::to_string(it->lineNumber)
                       +  ". Expected token: " + Token(expectedType).toString() + ". Got " + it->toString() + " " + it->value + " instead.\n";
             exit(1);

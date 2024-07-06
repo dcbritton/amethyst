@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 
         // parse
         Parser p(tokens);
-        auto ast = p.parse();
+        auto ast = p.parseCompStatement();
 
         // DOT output
         DotVisitor v;

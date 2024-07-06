@@ -1,7 +1,7 @@
 // pseudo_bnf.txt
 // contains a pseudo-bnf of amethyst syntax
 
-comp_stmt -  [stmt TERM]* stmt 
+comp_stmt -  [stmt terminator]* stmt [terminator]
 
 stmt    -   var_def
         |   expr
@@ -14,7 +14,7 @@ var_def  -   identifier:typename = expr
 expr    -   expr op expr
         |   call
         |   literal
-        |   variable
+        |   varname
         |   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end 
 
 call    -   operation call_args
@@ -23,12 +23,12 @@ call    -   operation call_args
 call_args - [expr, ]* expr 
 
 operation - identifier
-variable -  identifier
+varname -  identifier
 typename - identifier
 
 type_def -   type typename [func_def | member_def]* end
 
-func_def  -   def identifier(param_list):typename comp_stmt end
+func_def  -   def identifier(param_list):typename terminator comp_stmt end
 
 param_list - [identifier:typename, ]* identifier:typename
 

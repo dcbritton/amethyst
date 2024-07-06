@@ -60,11 +60,12 @@ struct Variable : Node {
 
 // variable definiton
 struct VariableDefn : Statement {
-    std::shared_ptr<Variable> variable;
+    std::string name;
+    std::string type;
     std::shared_ptr<Expression> expression;
 
-    VariableDefn(std::shared_ptr<Variable> variable, std::shared_ptr<Expression> expression)
-        : variable(variable), expression(expression) {}
+    VariableDefn(std::string name, std::string type, std::shared_ptr<Expression> expression)
+        : name(name), type(type), expression(expression) {}
 };
 
 // function definition

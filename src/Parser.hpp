@@ -14,9 +14,9 @@
 struct Parser {
 
     enum IdentifierSubtype {
-        variable,
-        type,
-        function
+        variableName,
+        dataType,
+        functionName
     };
     
     std::vector<Token> tokens = {};
@@ -74,19 +74,19 @@ struct Parser {
         return std::make_shared<Expression>(first, second);
     }
 
-    // varname:typename = expr
+    // identifier:identifier = expression
+    // or more accurately, variableName:dataType = expression
     std::shared_ptr<VariableDefn> parseVariableDefn() {
         currentContext = "variable definition";
         
-        std::string name = consume(Token::identifier, variable);
+        std::string name = consume(Token::identifier, variableName);
         discard(Token::colon);
-        std::string kind = consume(Token::identifier, type);
+        std::string type = consume(Token::identifier, dataType);
         discard(Token::opAssign);
         auto expression = parseExpression();
 
-        scopes.top().insert({name, kind});
-        auto variable = std::make_shared<Variable>(name, kind);
-        return std::make_shared<VariableDefn>(variable, expression);
+        scopes.top().insert({name, type});
+        return std::make_shared<VariableDefn>(name, type, expression);
     }
 
     // discard
@@ -104,7 +104,7 @@ struct Parser {
         ++it;
     }
 
-    // consume for generics
+    // generic consume
     std::string consume(Token::Type expectedType) {
         
         if (it == tokens.end()) {
@@ -121,26 +121,39 @@ struct Parser {
 
         if (expectedType == Token::identifier || expectedType == Token::intLiteral)
             return (it-1)->value;
+
+        // @TODO: remove placeholder
+        std::cout << "placeholder for consume(). exiting.";
+        exit(1);
     }
 
-    // consume for identifiers
+    // consume for declarations
     std::string consume(Token::Type expectedType, IdentifierSubtype subtype) {
 
         if (it == tokens.end()) {
             // throw unexpected end of input
         }
 
+        // @TODO: more descriptive error message
         if (*it != Token::identifier) {
             std::cout << "Parser error in " + currentContext + " on line " + std::to_string(it->lineNumber)
                       + "Expected an identifier (variable? function? typename?). Got " + it->toString() + " " + it->value + " instead.\n";;
             exit(1);
         }
 
-        
         ++it;
 
+        if (subtype == variableName || subtype == dataType) {
+            return it->value;
+        }
+
+        else if (subtype == functionName) {
+
+        }
+
         // @TODO: remove placeholder
-        return "placeholder";
+        std::cout << "placeholder for consume(). exiting.";
+        exit(1);
     }
 
 };

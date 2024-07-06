@@ -84,6 +84,7 @@ struct Parser {
         std::string type = consume(Token::identifier, dataType);
         discard(Token::opAssign);
         auto expression = parseExpression();
+        discard(Token::terminator);
 
         scopes.top().insert({name, type});
         return std::make_shared<VariableDefn>(name, type, expression);

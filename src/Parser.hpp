@@ -71,16 +71,16 @@ struct Parser {
         currentContext = "function definition";
 
         discard(Token::kwDef);
-        std::string name = consume(Token::identifier, functionName);
+        std::string name = consume(Token::identifier);
         discard(Token::openParen);
 
         std::shared_ptr<ParamList> parameters = nullptr;
-        if (*(it+1) != Token::openParen)
+        if (*(it) != Token::closeParen)
             parameters = parseParamList();
         discard(Token::closeParen);
-
+        
         discard(Token::colon);
-        std::string returnType = consume(Token::identifier, dataType);
+        std::string returnType = consume(Token::identifier);
         discard(Token::terminator);
         auto functionBody = parseCompStatement();
         discard(Token::kwEnd);
@@ -95,10 +95,9 @@ struct Parser {
         std::vector<std::shared_ptr<Parameter>> parameters;
         while (*(it+3) == Token::comma) {
             parameters.push_back(parseParameter());
-            consume(Token::comma);
+            discard(Token::comma);
         }
         parameters.push_back(parseParameter());
-
         return std::make_shared<ParamList>(parameters);
     }
 
@@ -106,9 +105,9 @@ struct Parser {
     std::shared_ptr<Parameter> parseParameter() {
         currentContext = "parameter";
 
-        std::string name = consume(Token::identifier, variableName);
+        std::string name = consume(Token::identifier);
         discard(Token::colon);
-        std::string type = consume(Token::identifier, dataType);
+        std::string type = consume(Token::identifier);
 
         return std::make_shared<Parameter>(name, type);
     }
@@ -130,9 +129,9 @@ struct Parser {
     std::shared_ptr<VariableDefn> parseVariableDefn() {
         currentContext = "variable definition";
         
-        std::string name = consume(Token::identifier, variableName);
+        std::string name = consume(Token::identifier);
         discard(Token::colon);
-        std::string type = consume(Token::identifier, dataType);
+        std::string type = consume(Token::identifier);
         discard(Token::opAssign);
         auto expression = parseExpression();
 
@@ -174,32 +173,7 @@ struct Parser {
             return (it-1)->value;
 
         // @TODO: remove placeholder
-        std::cout << "placeholder for consume(Token::Type). exiting.\n";
-        exit(1);
-    }
-
-    // consume for declarations
-    std::string consume(Token::Type expectedType, IdentifierSubtype subtype) {
-
-        if (it == tokens.end()) {
-            // throw unexpected end of input
-        }
-
-        // @TODO: more descriptive error message
-        if (*it != Token::identifier) {
-            std::cout << "Parser error in " + currentContext + " on line " + std::to_string(it->lineNumber)
-                      + "Expected an identifier (variable? function? typename?). Got " + it->toString() + " " + it->value + " instead.\n";;
-            exit(1);
-        }
-
-        ++it;
-
-        if (subtype == variableName || subtype == dataType || subtype == functionName) {
-            return (it-1)->value;
-        }
-
-        // @TODO: remove placeholder
-        std::cout << "placeholder for consume(Token::Type, IdentifierSubtype). exiting.\n";
+        std::cout << "Placeholder for consume(Token::Type).  Got a " + (it-1)->toString() + ":  " + (it-1)->value + ". Exiting.\n";
         exit(1);
     }
 

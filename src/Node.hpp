@@ -82,7 +82,7 @@ struct ParamList : Node {
     std::vector<std::shared_ptr<Parameter>> parameters;
 
     // constructor
-    ParamList(std::vector<std::shared_ptr<Parameter>> parameter) 
+    ParamList(std::vector<std::shared_ptr<Parameter>> parameters) 
         : parameters(parameters) {}
 };
 

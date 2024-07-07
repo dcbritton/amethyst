@@ -1,5 +1,5 @@
 // pseudo_bnf.txt
-// contains a pseudo-bnf of amethyst syntax
+// contains a tentative pseudo-bnf of amethyst syntax
 
 comp_stmt -  [stmt terminator]* stmt [terminator]
 

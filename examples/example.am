@@ -1,5 +1,6 @@
 testname:_int32 = 1 + 1
 testname2:Integer = 1 + 1
-def add(first:_int32, second:_int32)
+def add(first:_int32, second:_int32):_int32
+    testname2:Integer = 1 + 1
     testname2:Integer = 1 + 1
 end

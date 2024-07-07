@@ -17,6 +17,15 @@ struct Node : std::enable_shared_from_this<Node> {
     ~Node() = default;
 };
 
+// program
+struct Program : Node {
+    std::shared_ptr<CompStatement> compStatement;
+
+    // constructor
+    Program(std::shared_ptr<CompStatement> compStatement) 
+    : compStatement(compStatement) {}
+};
+
 // compound statement
 struct CompStatement : Node {
     std::vector<std::shared_ptr<Statement>> statements;

@@ -26,11 +26,11 @@ int main(int argc, char** argv) {
 
         // parse
         Parser p(tokens);
-        auto ast = p.parseCompStatement();
+        auto ast = p.parse();
 
         // DOT output
-        DotVisitor v;
-        ast->accept(std::make_shared<DotVisitor>(v));
+        // DotVisitor v;
+        // ast->accept(std::make_shared<DotVisitor>(v));
     }
     catch (InvalidSymbolException& e) {
         std::cerr << "Lexer error: " << e.what() << '\n';

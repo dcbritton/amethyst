@@ -33,6 +33,17 @@ struct Parser {
             scopes.push(std::unordered_map<std::string, std::string>({{"_uint32", "type_primitive"}, {"_float32", "type_primitive"}}));
         };
 
+    std::shared_ptr<Program> parse() {
+        auto programBody = parseCompStatement();
+
+        if (it != tokens.end()) {
+            std::cout << "Bad statement in global scope.\n";
+            exit(1);
+        }
+
+        return std::make_shared<Program>(programBody); 
+    }
+
     // main parsing loop
     std::shared_ptr<CompStatement> parseCompStatement() {
 
@@ -40,12 +51,16 @@ struct Parser {
         while (it != tokens.end()) {
             
             // variable definition
-            if (it->type == Token::identifier && (it+1)->type == Token::colon)
+            if (*it == Token::identifier && *(it+1) == Token::colon) {
                 statements.push_back(parseVariableDefn());
+                std::cout << "Variable defined.\n";
+            }
 
             // function definition
-            else if (it->type == Token::kwDef)
+            else if (*it == Token::kwDef) {
                 statements.push_back(parseFunctionDefn());
+                std::cout << "Function defined.\n";
+            }
 
             // expression
 
@@ -53,20 +68,17 @@ struct Parser {
 
             // return
 
-            // @TODO: throw a real error
+            // otherwise bad statement
             else {
-                std::cout << "parse() couldn't classify token sequence starting with: " + it->toString() + ".\n";
-                exit(1);
+                std::cout << "non-statement in comp statement.\n";
+                return std::make_shared<CompStatement>(statements);
             }
-
-            // require a terminator after every statement
-            discard(Token::terminator);
         }
 
         return std::make_shared<CompStatement>(statements);
     }
 
-    // def identifier(param_list):typename terminator comp_stmt end
+    // def identifier(param_list):typename comp_stmt end
     std::shared_ptr<FunctionDefn> parseFunctionDefn() {
         currentContext = "function definition";
 
@@ -81,7 +93,7 @@ struct Parser {
         
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
-        discard(Token::terminator);
+        // discard(Token::terminator);
         auto functionBody = parseCompStatement();
         discard(Token::kwEnd);
 
@@ -124,8 +136,7 @@ struct Parser {
         return std::make_shared<Expression>(first, second);
     }
 
-    // identifier:identifier = expression
-    // or more accurately, variableName:dataType = expression
+    // identifier:typename = expression
     std::shared_ptr<VariableDefn> parseVariableDefn() {
         currentContext = "variable definition";
         
@@ -144,6 +155,8 @@ struct Parser {
 
         if (it == tokens.end()) {
            // throw unexpected end of input
+           std::cout << "Unexpected end of input.\n";
+           exit(1);
         }
 
         if (*it != expectedType) {
@@ -151,14 +164,25 @@ struct Parser {
                       +  ". Expected token: " + Token(expectedType).toString() + ". Got " + it->toString() + " " + it->value + " instead.\n";
             exit(1);
         }
-        ++it;
+
+        // discard any number of sequential terminators
+        if (*it == Token::terminator) {
+            while (*(it) == Token::terminator) {
+                ++it;
+            }
+        }
+
+        else
+            ++it;
     }
 
-    // generic consume
+    // consume
     std::string consume(Token::Type expectedType) {
         
         if (it == tokens.end()) {
             // throw unexpected end of input
+            std::cout << "Unexpected end of input.\n";
+            exit(1);
         }
 
         if (*it != expectedType) {

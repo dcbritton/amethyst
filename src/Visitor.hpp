@@ -7,6 +7,7 @@
 
 struct Node;
 struct Statement;
+struct Program;
 struct CompStatement;
 struct Expression;
 struct Variable;

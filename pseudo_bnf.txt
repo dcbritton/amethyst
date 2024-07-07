@@ -1,7 +1,9 @@
 // pseudo_bnf.txt
 // contains a tentative pseudo-bnf of amethyst syntax
 
-comp_stmt -  [stmt terminator]* stmt [terminator]
+program     -   comp_stmt
+
+comp_stmt   -   [stmt]*
 
 stmt        -   var_def
             |   expr
@@ -55,7 +57,7 @@ type_def    -   type identifier [func_def | member_def]* end
 
 member_def  -   @identifier:type_name = expr
 
-func_def    -   def identifier(param_list):type_name terminator comp_stmt end
+func_def    -   def identifier(param_list):type_name comp_stmt end
 
 param_list  -   [parameter, ]* parameter
 

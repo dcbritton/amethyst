@@ -102,7 +102,7 @@ public:
             if (isspace(*it)) {
                 if (*it == '\n') {
                     ++lineNumber;
-                    tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
+                    // tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
                 }
                 ++it;
                 continue;

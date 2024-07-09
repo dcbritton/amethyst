@@ -12,13 +12,6 @@
 #include "Node.hpp"
 
 struct Parser {
-
-    enum IdentifierSubtype {
-        variableName,
-        dataType,
-        functionName
-    };
-    
     std::vector<Token> tokens = {};
     std::vector<Token>::const_iterator it;
     std::string currentContext = "program";
@@ -44,7 +37,7 @@ struct Parser {
         return std::make_shared<Program>(programBody); 
     }
 
-    // main parsing loop
+    // compound statement
     std::shared_ptr<CompStatement> parseCompStatement() {
 
         std::vector<std::shared_ptr<Statement>> statements;
@@ -53,13 +46,11 @@ struct Parser {
             // variable definition
             if (*it == Token::identifier && *(it+1) == Token::colon) {
                 statements.push_back(parseVariableDefn());
-                std::cout << "Variable defined.\n";
             }
 
             // function definition
             else if (*it == Token::kwDef) {
                 statements.push_back(parseFunctionDefn());
-                std::cout << "Function defined.\n";
             }
 
             // expression
@@ -68,9 +59,8 @@ struct Parser {
 
             // return
 
-            // otherwise bad statement
+            // unrecognized statement type
             else {
-                std::cout << "non-statement in comp statement.\n";
                 return std::make_shared<CompStatement>(statements);
             }
         }
@@ -124,16 +114,103 @@ struct Parser {
         return std::make_shared<Parameter>(name, type);
     }
 
-    // @TODO: expand expression parsing
     // intLiteral opPlus intLiteral
     std::shared_ptr<Expression> parseExpression() {
         currentContext = "expression";
 
-        std::string first = consume(Token::intLiteral);
-        discard(Token::opPlus);
-        std::string second = consume(Token::intLiteral);
+        auto expr = parseEqualityExpr();
 
-        return std::make_shared<Expression>(first, second);
+        return std::make_shared<Expression>(expr);
+    }
+
+    //
+    std::shared_ptr<Node> parseEqualityExpr() {
+
+        std::shared_ptr<Node> LHS = parseRelationExpr();
+        while (*it == Token::opEquality || *it == Token::opNotEquals) {
+            std::string op = (*it == Token::opEquality) ? consume(Token::opEquality) : consume(Token::opNotEquals);
+            auto RHS = parseRelationExpr();
+            LHS = std::make_shared<EqualityExpr>(LHS, op, RHS);
+        }
+
+        return LHS;
+    }
+
+    // parseRelationExpr
+    std::shared_ptr<Node> parseRelationExpr() {
+        std::shared_ptr<Node> LHS = parseShiftExpr();
+        while (*it == Token::opGreaterThan || *it == Token::opGreaterThanOrEqual ||
+            *it == Token::opLessThan || *it == Token::opLessThanOrEqual ||
+            *it == Token::opSpaceship) {
+            std::string op;
+            if (*it == Token::opGreaterThan) {
+                op = consume(Token::opGreaterThan);
+            } else if (*it == Token::opGreaterThanOrEqual) {
+                op = consume(Token::opGreaterThanOrEqual);
+            } else if (*it == Token::opLessThan) {
+                op = consume(Token::opLessThan);
+            } else if (*it == Token::opLessThanOrEqual) {
+                op = consume(Token::opLessThanOrEqual);
+            } else if (*it == Token::opSpaceship) {
+                op = consume(Token::opSpaceship);
+            }
+            auto RHS = parseShiftExpr();
+            LHS = std::make_shared<RelationExpr>(LHS, op, RHS);
+        }
+        return LHS;
+    }
+
+    // parseShiftExpr
+    std::shared_ptr<Node> parseShiftExpr() {
+        std::shared_ptr<Node> LHS = parseAdditionExpr();
+        while (*it == Token::opLeftShift || *it == Token::opRightShift) {
+            std::string op = (*it == Token::opLeftShift) ? consume(Token::opLeftShift) : consume(Token::opRightShift);
+            auto RHS = parseAdditionExpr();
+            LHS = std::make_shared<ShiftExpr>(LHS, op, RHS);
+        }
+        return LHS;
+    }
+
+    // parseAdditionExpr
+    std::shared_ptr<Node> parseAdditionExpr() {
+        std::shared_ptr<Node> LHS = parseMultiplicationExpr();
+        while (*it == Token::opPlus || *it == Token::opMinus) {
+            std::string op = (*it == Token::opPlus) ? consume(Token::opPlus) : consume(Token::opMinus);
+            auto RHS = parseMultiplicationExpr();
+            LHS = std::make_shared<AdditionExpr>(LHS, op, RHS);
+        }
+        return LHS;
+    }
+
+    // parseMultiplicationExpr
+    std::shared_ptr<Node> parseMultiplicationExpr() {
+        std::shared_ptr<Node> LHS = parsePrimary();
+        while (*it == Token::opMultiply || *it == Token::opDivide || *it == Token::opModulus) {
+            std::string op;
+            if (*it == Token::opMultiply) {
+                op = consume(Token::opMultiply);
+            }
+            else if (*it == Token::opDivide) {
+                op = consume(Token::opDivide);
+            }
+            else if (*it == Token::opModulus) {
+                op = consume(Token::opModulus);
+            }
+            auto RHS = parsePrimary();
+            LHS = std::make_shared<MultiplicationExpr>(LHS, op, RHS);
+        }
+        return LHS;
+    }
+
+    // parsePrimary
+    std::shared_ptr<Node> parsePrimary() {
+        if (*it == Token::intLiteral) {
+            return std::make_shared<IntLiteral>(consume(Token::intLiteral));
+        }
+        else {
+            std::cout << "Primaries are only allowed to be integers right now.\n";
+            exit(1);
+        }
     }
 
     // identifier:typename = expression
@@ -193,8 +270,8 @@ struct Parser {
 
         ++it;
 
-        if (expectedType == Token::identifier || expectedType == Token::intLiteral)
-            return (it-1)->value;
+        // if (expectedType == Token::identifier || expectedType == Token::intLiteral)
+        return (it-1)->value;
 
         // @TODO: remove placeholder
         std::cout << "Placeholder for consume(Token::Type).  Got a " + (it-1)->toString() + ":  " + (it-1)->value + ". Exiting.\n";

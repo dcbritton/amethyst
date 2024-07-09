@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include "Token.hpp"
 #include "Visitor.hpp"
 
 // node
@@ -47,16 +48,79 @@ struct Statement : Node {
 
 // expression
 struct Expression : Statement {
-    std::string type;
-    std::string first;
-    std::string second;
+    std::shared_ptr<Node> expr;
 
-    Expression(std::string first, std::string second) 
-        : first(first), second(second) {}
+    // constructor
+    Expression(std::shared_ptr<Node> expr)
+        : expr(expr) {}
+};
+
+struct EqualityExpr : Node {
+    std::shared_ptr<Node> LHS;
+    std::string op;
+    std::shared_ptr<Node> RHS;
+
+    // constructor
+    EqualityExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        : LHS(LHS), op(op), RHS(RHS) {}
+};
+
+struct RelationExpr : Node {
+    std::shared_ptr<Node> LHS;
+    std::string op;
+    std::shared_ptr<Node> RHS;
+
+    // constructor
+    RelationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        : LHS(LHS), op(op), RHS(RHS) {}
+};
+
+struct ShiftExpr : Node {
+    std::shared_ptr<Node> LHS;
+    std::string op;
+    std::shared_ptr<Node> RHS;
+
+    // constructor
+    ShiftExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        : LHS(LHS), op(op), RHS(RHS) {}
+};
+
+struct AdditionExpr : Node {
+    std::shared_ptr<Node> LHS;
+    std::string op;
+    std::shared_ptr<Node> RHS;
+
+    // constructor
+    AdditionExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        : LHS(LHS), op(op), RHS(RHS) {}
+};
+
+struct MultiplicationExpr : Node {
+    std::shared_ptr<Node> LHS;
+    std::string op;
+    std::shared_ptr<Node> RHS;
+
+    // constructor
+    MultiplicationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        : LHS(LHS), op(op), RHS(RHS) {}
+};
+
+// primary
+struct Primary : Node {
+
+};
+
+// int literal
+struct IntLiteral : Primary {
+    std::string value;
+
+    // constructor
+    IntLiteral(const std::string& value)
+        : value(value) {}
 };
 
 // variable
-struct Variable : Node {
+struct Variable : Primary {
     std::string name;
     std::string type;
 

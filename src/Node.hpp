@@ -125,7 +125,7 @@ struct Variable : Primary {
     std::string type;
 
     // constructor
-    Variable(std::string name, std::string type)
+    Variable(const std::string& name, const std::string& type)
         : name(name), type(type) {}
 };
 
@@ -136,7 +136,7 @@ struct VariableDefn : Statement {
     std::shared_ptr<Expression> expression;
 
     // constructor
-    VariableDefn(std::string name, std::string type, std::shared_ptr<Expression> expression)
+    VariableDefn(const std::string& name, const std::string& type, std::shared_ptr<Expression> expression)
         : name(name), type(type), expression(expression) {}
 };
 
@@ -146,7 +146,7 @@ struct Parameter : Node {
         std::string type;
 
         // constructor
-        Parameter(std::string name, std::string type)
+        Parameter(const std::string& name, const std::string& type)
             : name(name), type(type) {}
 };
 
@@ -167,7 +167,7 @@ struct FunctionDefn : Statement {
     std::shared_ptr<CompStatement> functionBody;
 
     // constuctor
-    FunctionDefn(std::string name, std::string returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<CompStatement> functionBody) 
+    FunctionDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<CompStatement> functionBody) 
         : name(name), returnType(returnType), paramList(paramList), functionBody(functionBody) {}
 };
 

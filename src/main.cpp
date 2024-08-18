@@ -24,13 +24,13 @@ int main(int argc, char** argv) {
         auto tokens = l.lex();
         print(tokens);
 
-        // parse
+        // parse 
         Parser p(tokens);
         auto ast = p.parse();
 
         // DOT output
-        // DotVisitor v;
-        // ast->accept(std::make_shared<DotVisitor>(v));
+        auto v = std::make_shared<DotVisitor>("AST.gv");
+        ast->accept(v);
     }
     catch (InvalidSymbolException& e) {
         std::cerr << "Lexer error: " << e.what() << '\n';

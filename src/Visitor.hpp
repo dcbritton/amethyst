@@ -10,10 +10,19 @@ struct Statement;
 struct Program;
 struct CompStatement;
 struct Expression;
+struct EqualityExpr;
+struct RelationExpr;
+struct ShiftExpr;
+struct AdditionExpr;
+struct MultiplicationExpr;
+struct Primary;
+struct IntLiteral;
 struct Variable;
 struct VariableDefn;
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
+
+    virtual void visit(std::shared_ptr<Program> n) {}
 
     virtual void visit(std::shared_ptr<Node> n) {}
 

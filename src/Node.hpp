@@ -10,25 +10,27 @@
 #include "Visitor.hpp"
 
 // node
-struct Node : std::enable_shared_from_this<Node> {
-    virtual void accept(std::shared_ptr<Visitor> v) {
-        v->visit(shared_from_this());
-    }
+struct Node {
+    virtual void accept(std::shared_ptr<Visitor> v) {}
 
     ~Node() = default;
 };
 
 // program
-struct Program : Node {
+struct Program : Node, std::enable_shared_from_this<Program> {
     std::shared_ptr<CompStatement> compStatement;
 
     // constructor
     Program(std::shared_ptr<CompStatement> compStatement) 
     : compStatement(compStatement) {}
+
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // compound statement
-struct CompStatement : Node {
+struct CompStatement : Node, std::enable_shared_from_this<CompStatement> {
     std::vector<std::shared_ptr<Statement>> statements;
 
     // constructor
@@ -130,7 +132,7 @@ struct Variable : Primary {
 };
 
 // variable definiton
-struct VariableDefn : Statement {
+struct VariableDefn : Statement, std::enable_shared_from_this<VariableDefn> {
     std::string name;
     std::string type;
     std::shared_ptr<Expression> expression;
@@ -138,6 +140,11 @@ struct VariableDefn : Statement {
     // constructor
     VariableDefn(const std::string& name, const std::string& type, std::shared_ptr<Expression> expression)
         : name(name), type(type), expression(expression) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // parameter

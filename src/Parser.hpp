@@ -123,7 +123,7 @@ struct Parser {
         return std::make_shared<Expression>(expr);
     }
 
-    //
+    // parseEqualityExpr
     std::shared_ptr<Node> parseEqualityExpr() {
 
         std::shared_ptr<Node> LHS = parseRelationExpr();

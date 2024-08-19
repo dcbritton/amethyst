@@ -20,7 +20,7 @@ struct Parser {
     std::stack<std::unordered_map<std::string, std::string>> scopes = {};
 
     // constructor
-    Parser(std::vector<Token> token_stream) 
+    Parser(const std::vector<Token>& token_stream) 
         : tokens(token_stream), it(tokens.begin()) {
             // add primitive datatypes to global scope before parsing
             scopes.push(std::unordered_map<std::string, std::string>({{"_uint32", "type_primitive"}, {"_float32", "type_primitive"}}));

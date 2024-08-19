@@ -34,7 +34,7 @@ struct CompStatement : Node, std::enable_shared_from_this<CompStatement> {
     std::vector<std::shared_ptr<Statement>> statements;
 
     // constructor
-    CompStatement(std::vector<std::shared_ptr<Statement>> statements) 
+    CompStatement(const std::vector<std::shared_ptr<Statement>>& statements) 
     : statements(statements) {}
 
     // accept
@@ -162,7 +162,7 @@ struct ParamList : Node {
     std::vector<std::shared_ptr<Parameter>> parameters;
 
     // constructor
-    ParamList(std::vector<std::shared_ptr<Parameter>> parameters) 
+    ParamList(const std::vector<std::shared_ptr<Parameter>>& parameters) 
         : parameters(parameters) {}
 };
 

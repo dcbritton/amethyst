@@ -32,6 +32,20 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Expression> n) {}
 
+    virtual void visit(std::shared_ptr<EqualityExpr> n) {}
+
+    virtual void visit(std::shared_ptr<RelationExpr> n) {}
+
+    virtual void visit(std::shared_ptr<ShiftExpr> n) {}
+
+    virtual void visit(std::shared_ptr<AdditionExpr> n) {}
+
+    virtual void visit(std::shared_ptr<MultiplicationExpr> n) {}
+
+    virtual void visit(std::shared_ptr<Primary> n) {}
+
+    virtual void visit(std::shared_ptr<IntLiteral> n) {}
+    
     virtual void visit(std::shared_ptr<Variable> n) {}
 
     virtual void visit(std::shared_ptr<VariableDefn> n) {}

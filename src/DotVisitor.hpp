@@ -58,11 +58,11 @@ struct DotVisitor : Visitor {
             substatementIds.push_back(nodeId);
             statement->accept(shared_from_this());
         }
-        std::cout << "This comp_stmt has " << std::to_string(substatementIds.size()) << " child(ren).\n";
+        // std::cout << "This comp_stmt has " << std::to_string(substatementIds.size()) << " child(ren).\n";
 
         // connect child(ren) to this node
         for (auto id : substatementIds) {
-            std::cout << "connecting to compstmt\n";
+            // std::cout << "connecting to compstmt\n";
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
     }
@@ -72,7 +72,7 @@ struct DotVisitor : Visitor {
         int thisId = nodeId;
         ++nodeId;
 
-        std::cout << "this is a variable definition\n";
+        // std::cout << "this is a variable definition\n";
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
@@ -80,14 +80,164 @@ struct DotVisitor : Visitor {
                 << "Define " << n->type << " " << n->name
                 << "\"];\n";
 
-        // // process child(ren)
-        // n->expression->accept(shared_from_this());
+        // process child(ren)
+        int exprId = nodeId;
+        n->expression->accept(shared_from_this());
 
         // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
     }
 
     // visit expression
     void visit(std::shared_ptr<Expression> n) override {
+        std::cout << "expression visited\n";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "dummy expr - remove?"
+                << "\"];\n";
+
+        // process child(ren)
+        int subExprId = nodeId;
+        n->expr->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(subExprId) << ";\n";
+    
+    }
+
+    // visit equality expression == !=
+    void visit(std::shared_ptr<EqualityExpr> n) override {
+        std::cout << "eqexpr visited";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->op
+                << "\"];\n";
+
+        // process child(ren)
+        int lhsId = nodeId;
+        n->LHS->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->RHS->accept(shared_from_this());
+        
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
+    }
+
+    void visit(std::shared_ptr<RelationExpr> n) override {
+        std::cout << "relexpr visited";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->op
+                << "\"];\n";
+
+        // process child(ren)
+        int lhsId = nodeId;
+        n->LHS->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->RHS->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
+    }
+
+    void visit(std::shared_ptr<ShiftExpr> n) override {
+        std::cout << "shiftexpr visited";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->op
+                << "\"];\n";
+
+        // process child(ren)
+        int lhsId = nodeId;
+        n->LHS->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->RHS->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
+    }
+
+    void visit(std::shared_ptr<AdditionExpr> n) override {
+        std::cout << "addexpr visited";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->op
+                << "\"];\n";
+
+        // process child(ren)
+        int lhsId = nodeId;
+        n->LHS->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->RHS->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
+    }
+
+    void visit(std::shared_ptr<MultiplicationExpr> n) override {
+        std::cout << "multexpr visited";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->op
+                << "\"];\n";
+
+        // process child(ren)
+        int lhsId = nodeId;
+        n->LHS->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->RHS->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
+    }
+
+    void visit(std::shared_ptr<Primary> n) override {
+
+    }
+
+    void visit(std::shared_ptr<IntLiteral> n) override {
+        std::cout << "intliteral visited";
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->value
+                << "\"];\n";
+    }
+    
+    void visit(std::shared_ptr<Variable> n) override {
 
     }
 };

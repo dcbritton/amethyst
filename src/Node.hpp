@@ -49,15 +49,20 @@ struct Statement : Node {
 };
 
 // expression
-struct Expression : Statement {
+struct Expression : Statement, std::enable_shared_from_this<Expression> {
     std::shared_ptr<Node> expr;
 
     // constructor
     Expression(std::shared_ptr<Node> expr)
         : expr(expr) {}
+    
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
-struct EqualityExpr : Node {
+struct EqualityExpr : Node, std::enable_shared_from_this<EqualityExpr> {
     std::shared_ptr<Node> LHS;
     std::string op;
     std::shared_ptr<Node> RHS;
@@ -65,9 +70,14 @@ struct EqualityExpr : Node {
     // constructor
     EqualityExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
         : LHS(LHS), op(op), RHS(RHS) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
-struct RelationExpr : Node {
+struct RelationExpr : Node, std::enable_shared_from_this<RelationExpr> {
     std::shared_ptr<Node> LHS;
     std::string op;
     std::shared_ptr<Node> RHS;
@@ -75,9 +85,14 @@ struct RelationExpr : Node {
     // constructor
     RelationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
         : LHS(LHS), op(op), RHS(RHS) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
-struct ShiftExpr : Node {
+struct ShiftExpr : Node, std::enable_shared_from_this<ShiftExpr> {
     std::shared_ptr<Node> LHS;
     std::string op;
     std::shared_ptr<Node> RHS;
@@ -85,9 +100,14 @@ struct ShiftExpr : Node {
     // constructor
     ShiftExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
         : LHS(LHS), op(op), RHS(RHS) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
-struct AdditionExpr : Node {
+struct AdditionExpr : Node, std::enable_shared_from_this<AdditionExpr> {
     std::shared_ptr<Node> LHS;
     std::string op;
     std::shared_ptr<Node> RHS;
@@ -95,9 +115,14 @@ struct AdditionExpr : Node {
     // constructor
     AdditionExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
         : LHS(LHS), op(op), RHS(RHS) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
-struct MultiplicationExpr : Node {
+struct MultiplicationExpr : Node, std::enable_shared_from_this<MultiplicationExpr> {
     std::shared_ptr<Node> LHS;
     std::string op;
     std::shared_ptr<Node> RHS;
@@ -105,6 +130,11 @@ struct MultiplicationExpr : Node {
     // constructor
     MultiplicationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
         : LHS(LHS), op(op), RHS(RHS) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // primary
@@ -113,12 +143,17 @@ struct Primary : Node {
 };
 
 // int literal
-struct IntLiteral : Primary {
+struct IntLiteral : Primary, std::enable_shared_from_this<IntLiteral> {
     std::string value;
 
     // constructor
     IntLiteral(const std::string& value)
         : value(value) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // variable

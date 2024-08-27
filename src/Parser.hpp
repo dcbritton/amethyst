@@ -207,8 +207,11 @@ struct Parser {
         if (*it == Token::intLiteral) {
             return std::make_shared<IntLiteral>(consume(Token::intLiteral));
         }
+        else if (*it == Token::identifier) {
+            return std::make_shared<Variable>(consume(Token::identifier));
+        }
         else {
-            std::cout << "Primaries are only allowed to be integers right now.\n";
+            std::cout << "Primaries are only allowed to be integers and non-global variables (identifiers) right now.\n";
             exit(1);
         }
     }

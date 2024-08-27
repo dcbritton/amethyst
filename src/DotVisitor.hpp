@@ -238,7 +238,15 @@ struct DotVisitor : Visitor {
     }
     
     void visit(std::shared_ptr<Variable> n) override {
+        std::cout << "variable visited";
+        int thisId = nodeId;
+        ++nodeId;
 
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->name
+                << "\"];\n";
     }
 };
 

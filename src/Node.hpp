@@ -157,13 +157,17 @@ struct IntLiteral : Primary, std::enable_shared_from_this<IntLiteral> {
 };
 
 // variable
-struct Variable : Primary {
+struct Variable : Primary, std::enable_shared_from_this<Variable> {
     std::string name;
-    std::string type;
 
     // constructor
-    Variable(const std::string& name, const std::string& type)
-        : name(name), type(type) {}
+    Variable(const std::string& name)
+        : name(name) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // variable definiton

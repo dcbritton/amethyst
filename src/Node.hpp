@@ -174,12 +174,12 @@ struct VariableDefn : Statement, std::enable_shared_from_this<VariableDefn> {
 
 // parameter
 struct Parameter : Node {
-        std::string name;
-        std::string type;
+    std::string name;
+    std::string type;
 
-        // constructor
-        Parameter(const std::string& name, const std::string& type)
-            : name(name), type(type) {}
+    // constructor
+    Parameter(const std::string& name, const std::string& type)
+        : name(name), type(type) {}
 };
 
 // parameter list

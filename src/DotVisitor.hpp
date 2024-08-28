@@ -25,6 +25,7 @@ struct DotVisitor : Visitor {
         dotFile.close();
     }
 
+    // visit node
     void visit(std::shared_ptr<Node> n) override {}
 
     // visit program
@@ -90,7 +91,6 @@ struct DotVisitor : Visitor {
 
     // visit equality expression == !=
     void visit(std::shared_ptr<EqualityExpr> n) override {
-        std::cout << "eqexpr visited";
         int thisId = nodeId;
         ++nodeId;
 
@@ -113,7 +113,6 @@ struct DotVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<RelationExpr> n) override {
-        std::cout << "relexpr visited";
         int thisId = nodeId;
         ++nodeId;
 
@@ -135,7 +134,6 @@ struct DotVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<ShiftExpr> n) override {
-        std::cout << "shiftexpr visited";
         int thisId = nodeId;
         ++nodeId;
 
@@ -157,7 +155,6 @@ struct DotVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<AdditionExpr> n) override {
-        std::cout << "addexpr visited";
         int thisId = nodeId;
         ++nodeId;
 
@@ -179,7 +176,6 @@ struct DotVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<MultiplicationExpr> n) override {
-        std::cout << "multexpr visited";
         int thisId = nodeId;
         ++nodeId;
 
@@ -205,7 +201,6 @@ struct DotVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<IntLiteral> n) override {
-        std::cout << "intliteral visited";
         int thisId = nodeId;
         ++nodeId;
 
@@ -217,7 +212,6 @@ struct DotVisitor : Visitor {
     }
     
     void visit(std::shared_ptr<Variable> n) override {
-        std::cout << "variable visited";
         int thisId = nodeId;
         ++nodeId;
 

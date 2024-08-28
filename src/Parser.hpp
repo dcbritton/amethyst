@@ -210,6 +210,13 @@ struct Parser {
         else if (*it == Token::identifier) {
             return std::make_shared<Variable>(consume(Token::identifier));
         }
+        else if (*it == Token::openParen) {
+            discard(Token::openParen);
+            auto subExpr = parseExpression();
+            discard(Token::closeParen);
+
+            return subExpr;
+        }
         else {
             std::cout << "Primaries are only allowed to be integers and non-global variables (identifiers) right now.\n";
             exit(1);

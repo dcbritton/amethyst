@@ -6,15 +6,20 @@ program     -   comp_stmt
 comp_stmt   -   [stmt]*
 
 stmt        -   var_def
-            |   expr
+            |   eq_expr
+            |   assignment
             |   func_def
             |   type_def
-            |   return expr
-            |   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end 
+            |   return_stmt
+            |   conditional
+
+conditional -   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
+            
+return_stmt -   return eq_expr
+
+assignment  -   identifier = expr
 
 var_def     -   identifier:type_name = expr
-
-expr        -   eq_expr
 
 eq_expr     -   rel_expr
             |   eq_expr == rel_expr

@@ -57,7 +57,15 @@ struct Parser {
 
             // type definition
 
-            // return
+            // return_stmt
+            else if (*it == Token::kwReturn) {
+                statements.push_back(parseReturn());
+            }
+
+            // assignment
+            else if (*it == Token::identifier) {
+                statements.push_back(parseAssignment());
+            }
 
             // unrecognized statement type
             else {
@@ -66,6 +74,23 @@ struct Parser {
         }
 
         return std::make_shared<CompStatement>(statements);
+    }
+
+    // identifier = expr
+    std::shared_ptr<Assignment> parseAssignment() {
+        std::string name = consume(Token::identifier);
+        discard(Token::opAssign);
+        auto expr = parseEqualityExpr();
+
+        return std::make_shared<Assignment>(name, expr);
+    }
+
+    // return expr
+    std::shared_ptr<Return> parseReturn() {
+        discard(Token::kwReturn);
+        auto expr = parseEqualityExpr();
+
+        return std::make_shared<Return>(expr);
     }
 
     // def identifier(param_list):typename comp_stmt end

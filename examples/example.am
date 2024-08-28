@@ -1,7 +1,9 @@
 
-testname1:_int32 = (1 + 4)
-testname2:_int32 = 1 > (1 == testname1) + 4 > 2
+    testname1:_int32 = (1 + 4)
+    testname2:_int32 = 1 > (1 == testname1) + 4 > 2
 
-def add(a:_int32, b:_int32):_int32
-    c:_int32 = a + b
-end
+    def func(a:_int32, b:_int32):_int32
+        c:_int32 = a
+        c = c + b
+        return c
+    end

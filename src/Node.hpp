@@ -222,4 +222,33 @@ struct TypeDefn : Statement {
 
 };
 
+// assignment
+struct Assignment : Statement, std::enable_shared_from_this<Assignment> {
+    std::string lhs;
+    std::shared_ptr<Node> expr;
+
+    // constuctor
+    Assignment(const std::string& lhs, std::shared_ptr<Node> expr) 
+        : lhs(lhs), expr(expr) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
+// return
+struct Return : Statement, std::enable_shared_from_this<Return> {
+    std::shared_ptr<Node> expr;
+
+    // constuctor
+    Return(std::shared_ptr<Node> expr) 
+        : expr(expr) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
 #endif

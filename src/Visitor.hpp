@@ -18,6 +18,9 @@ struct Primary;
 struct IntLiteral;
 struct Variable;
 struct VariableDefn;
+struct FunctionDefn;
+struct ParamList;
+struct Parameter;
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
 
@@ -46,6 +49,12 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Variable> n) {}
 
     virtual void visit(std::shared_ptr<VariableDefn> n) {}
+
+    virtual void visit(std::shared_ptr<FunctionDefn> n) {}
+
+    virtual void visit(std::shared_ptr<ParamList> n) {}
+
+    virtual void visit(std::shared_ptr<Parameter> n) {}
 };
 
 #endif

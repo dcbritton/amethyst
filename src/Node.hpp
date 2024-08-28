@@ -173,26 +173,36 @@ struct VariableDefn : Statement, std::enable_shared_from_this<VariableDefn> {
 };
 
 // parameter
-struct Parameter : Node {
+struct Parameter : Node, std::enable_shared_from_this<Parameter> {
     std::string name;
     std::string type;
 
     // constructor
     Parameter(const std::string& name, const std::string& type)
         : name(name), type(type) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // parameter list
-struct ParamList : Node {
+struct ParamList : Node, std::enable_shared_from_this<ParamList> {
     std::vector<std::shared_ptr<Parameter>> parameters;
 
     // constructor
     ParamList(const std::vector<std::shared_ptr<Parameter>>& parameters) 
         : parameters(parameters) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // function definition
-struct FunctionDefn : Statement {
+struct FunctionDefn : Statement, std::enable_shared_from_this<FunctionDefn> {
     std::string name;
     std::string returnType;
     std::shared_ptr<ParamList> paramList;
@@ -201,6 +211,11 @@ struct FunctionDefn : Statement {
     // constuctor
     FunctionDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<CompStatement> functionBody) 
         : name(name), returnType(returnType), paramList(paramList), functionBody(functionBody) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 struct TypeDefn : Statement {

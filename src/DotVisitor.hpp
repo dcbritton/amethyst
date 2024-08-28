@@ -112,6 +112,7 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
+    // visit relation expression
     void visit(std::shared_ptr<RelationExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -133,6 +134,7 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
+    // visit shift expression
     void visit(std::shared_ptr<ShiftExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -154,6 +156,7 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
+    // visit addition expression
     void visit(std::shared_ptr<AdditionExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -175,6 +178,7 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
+    // visit multiplication expression
     void visit(std::shared_ptr<MultiplicationExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -200,6 +204,7 @@ struct DotVisitor : Visitor {
 
     }
 
+    // visit int literal
     void visit(std::shared_ptr<IntLiteral> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -211,6 +216,7 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
     }
     
+    // visit variable
     void visit(std::shared_ptr<Variable> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -219,6 +225,64 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
                 << n->name
+                << "\"];\n";
+    }
+
+    // visit function defn
+    void visit(std::shared_ptr<FunctionDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "Define " << n->name << " " << n->returnType
+                << "\"];\n";
+
+        // process child(ren)
+        int paramListId = nodeId;
+        n->paramList->accept(shared_from_this());
+        int functionBodyId = nodeId;
+        n->functionBody->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramListId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(functionBodyId) << ";\n";
+    }
+
+    // visit parameter list
+    void visit(std::shared_ptr<ParamList> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "Parameters"
+                << "\"];\n";
+
+        // process child(ren)
+        std::vector<int> parameterIds = {};
+        for (auto parameter : n->parameters) {
+            parameterIds.push_back(nodeId);
+            parameter->accept(shared_from_this());
+        }
+
+        // connect child(ren) to this node
+        for (auto id : parameterIds) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
+        }
+    }
+
+    // visit parameter
+    void visit(std::shared_ptr<Parameter> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << n->name << " " << n->type
                 << "\"];\n";
     }
 };

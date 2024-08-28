@@ -9,7 +9,6 @@ struct Node;
 struct Statement;
 struct Program;
 struct CompStatement;
-struct Expression;
 struct EqualityExpr;
 struct RelationExpr;
 struct ShiftExpr;
@@ -29,8 +28,6 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Statement> n) {}
 
     virtual void visit(std::shared_ptr<CompStatement> n) {}
-
-    virtual void visit(std::shared_ptr<Expression> n) {}
 
     virtual void visit(std::shared_ptr<EqualityExpr> n) {}
 

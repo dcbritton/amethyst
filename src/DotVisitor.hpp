@@ -88,27 +88,6 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
     }
 
-    // visit expression
-    void visit(std::shared_ptr<Expression> n) override {
-        std::cout << "expression visited\n";
-        int thisId = nodeId;
-        ++nodeId;
-
-        // create this node
-        dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "dummy expr - remove?"
-                << "\"];\n";
-
-        // process child(ren)
-        int subExprId = nodeId;
-        n->expr->accept(shared_from_this());
-
-        // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(subExprId) << ";\n";
-    
-    }
-
     // visit equality expression == !=
     void visit(std::shared_ptr<EqualityExpr> n) override {
         std::cout << "eqexpr visited";

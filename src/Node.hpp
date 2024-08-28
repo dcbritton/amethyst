@@ -48,20 +48,6 @@ struct Statement : Node {
 
 };
 
-// expression
-struct Expression : Statement, std::enable_shared_from_this<Expression> {
-    std::shared_ptr<Node> expr;
-
-    // constructor
-    Expression(std::shared_ptr<Node> expr)
-        : expr(expr) {}
-    
-    // accept
-    void accept(std::shared_ptr<Visitor> v) override {
-        v->visit(shared_from_this());
-    }
-};
-
 struct EqualityExpr : Node, std::enable_shared_from_this<EqualityExpr> {
     std::shared_ptr<Node> LHS;
     std::string op;
@@ -174,10 +160,10 @@ struct Variable : Primary, std::enable_shared_from_this<Variable> {
 struct VariableDefn : Statement, std::enable_shared_from_this<VariableDefn> {
     std::string name;
     std::string type;
-    std::shared_ptr<Expression> expression;
+    std::shared_ptr<Node> expression;
 
     // constructor
-    VariableDefn(const std::string& name, const std::string& type, std::shared_ptr<Expression> expression)
+    VariableDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
         : name(name), type(type), expression(expression) {}
 
     // accept visitor

@@ -114,15 +114,6 @@ struct Parser {
         return std::make_shared<Parameter>(name, type);
     }
 
-    // intLiteral opPlus intLiteral
-    std::shared_ptr<Expression> parseExpression() {
-        currentContext = "expression";
-
-        auto expr = parseEqualityExpr();
-
-        return std::make_shared<Expression>(expr);
-    }
-
     // parseEqualityExpr
     std::shared_ptr<Node> parseEqualityExpr() {
 
@@ -212,7 +203,7 @@ struct Parser {
         }
         else if (*it == Token::openParen) {
             discard(Token::openParen);
-            auto subExpr = parseExpression();
+            auto subExpr = parseEqualityExpr();
             discard(Token::closeParen);
 
             return subExpr;
@@ -231,7 +222,7 @@ struct Parser {
         discard(Token::colon);
         std::string type = consume(Token::identifier);
         discard(Token::opAssign);
-        auto expression = parseExpression();
+        auto expression = parseEqualityExpr();
 
         scopes.top().insert({name, type});
         return std::make_shared<VariableDefn>(name, type, expression);

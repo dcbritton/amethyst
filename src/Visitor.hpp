@@ -23,6 +23,8 @@ struct ParamList;
 struct Parameter;
 struct Assignment;
 struct Return;
+struct TypeDefn;
+struct MemberDefn;
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
 
@@ -61,6 +63,10 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Assignment> n) {}
 
     virtual void visit(std::shared_ptr<Return> n) {}
+
+    virtual void visit(std::shared_ptr<TypeDefn> n) {}
+
+    virtual void visit(std::shared_ptr<MemberDefn> n) {}
 };
 
 #endif

@@ -539,7 +539,7 @@ public:
 
             // @
             else if (*it == '@') {
-                tokens.push_back(Token(Token::at, ":", lineNumber));
+                tokens.push_back(Token(Token::at, "@", lineNumber));
                 ++it;
                 continue;
             }

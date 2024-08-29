@@ -218,8 +218,35 @@ struct FunctionDefn : Statement, std::enable_shared_from_this<FunctionDefn> {
     }
 };
 
-struct TypeDefn : Statement {
+// type definition
+struct TypeDefn : Statement, std::enable_shared_from_this<TypeDefn> {
+    std::string name;
+    std::vector<std::shared_ptr<Node>> members;
 
+    // constuctor
+    TypeDefn(const std::string& name, const std::vector<std::shared_ptr<Node>>& members) 
+        : name(name), members(members) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
+// member definition
+struct MemberDefn : Statement, std::enable_shared_from_this<MemberDefn> {
+    std::string name;
+    std::string type;
+    std::shared_ptr<Node> expression;
+
+    // constructor
+    MemberDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
+        : name(name), type(type), expression(expression) {}
+
+    // accept visitor
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // assignment

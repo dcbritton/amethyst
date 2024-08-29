@@ -56,6 +56,9 @@ struct Parser {
             // expression
 
             // type definition
+            else if (*it == Token::kwClass) {
+                statements.push_back(parseTypeDefn());
+            }
 
             // return_stmt
             else if (*it == Token::kwReturn) {
@@ -91,6 +94,43 @@ struct Parser {
         auto expr = parseEqualityExpr();
 
         return std::make_shared<Return>(expr);
+    }
+
+    // type identifier [func_def | member_def]* end
+    std::shared_ptr<TypeDefn> parseTypeDefn() {
+        currentContext = "class definition";
+
+        discard(Token::kwClass);
+        std::string name = consume(Token::identifier);
+        std::vector<std::shared_ptr<Node>> members {};
+        while (*it == Token::at || *it == Token::kwDef) {
+            if (*it == Token::at) {
+                members.push_back(parseMemberDefn());
+            }
+            else if (*it == Token::kwDef) {
+                members.push_back(parseFunctionDefn());
+            }
+            else {
+                std::cout << "Parser error in definition of type " << name
+                          << ". Expecting tokens 'def' or '@'.\n";
+            }
+        }
+        discard(Token::kwEnd);
+
+        return std::make_shared<TypeDefn>(name, members);
+    }
+
+    // @identifier:type_name = expr
+    std::shared_ptr<MemberDefn> parseMemberDefn() {
+        
+        discard(Token::at);
+        std::string name = consume(Token::identifier);
+        discard(Token::colon);
+        std::string type = consume(Token::identifier);
+        discard(Token::opAssign);
+        auto expr = parseEqualityExpr();
+
+        return std::make_shared<MemberDefn>(name, type, expr);
     }
 
     // def identifier(param_list):typename comp_stmt end

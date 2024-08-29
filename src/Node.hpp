@@ -278,4 +278,34 @@ struct Return : Statement, std::enable_shared_from_this<Return> {
     }
 };
 
+struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlock> {
+
+    std::shared_ptr<Node> ifExpr;
+    std::shared_ptr<CompStatement> ifStmts;
+    std::vector<std::shared_ptr<Node>> elsifExprs;
+    std::vector<std::shared_ptr<CompStatement>> elsifStmts;
+    std::shared_ptr<CompStatement> elseStmts;
+
+    // constructor
+    ConditionalBlock(
+        std::shared_ptr<Node> ifExpr,
+        std::shared_ptr<CompStatement> ifStmts,
+        std::vector<std::shared_ptr<Node>> elsifExprs,
+        std::vector<std::shared_ptr<CompStatement>> elsifStmts,
+        std::shared_ptr<CompStatement> elseStmts
+    ) 
+        : ifExpr(ifExpr),
+          ifStmts(ifStmts),
+          elsifExprs(elsifExprs),
+          elsifStmts(elsifStmts),
+          elseStmts(elseStmts)
+    {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
+
 #endif

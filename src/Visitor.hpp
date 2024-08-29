@@ -25,6 +25,9 @@ struct Assignment;
 struct Return;
 struct TypeDefn;
 struct MemberDefn;
+struct ConditionalBlock;
+struct ForLoop;
+struct WhileLoop;
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
 
@@ -67,6 +70,12 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<TypeDefn> n) {}
 
     virtual void visit(std::shared_ptr<MemberDefn> n) {}
+
+    virtual void visit(std::shared_ptr<ConditionalBlock> n) {}
+
+    virtual void visit(std::shared_ptr<ForLoop> n) {}
+
+    virtual void visit(std::shared_ptr<WhileLoop> n) {}
 };
 
 #endif

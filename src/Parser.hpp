@@ -70,6 +70,13 @@ struct Parser {
                 statements.push_back(parseAssignment());
             }
 
+            // conditional block
+            else if (*it == Token::kwIf) {
+                statements.push_back(parseConditionalBlock());
+            }
+
+            // while loop
+
             // unrecognized statement type
             else {
                 return std::make_shared<CompStatement>(statements);
@@ -291,6 +298,33 @@ struct Parser {
 
         scopes.top().insert({name, type});
         return std::make_shared<VariableDefn>(name, type, expression);
+    }
+
+    // if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
+    std::shared_ptr<ConditionalBlock> parseConditionalBlock() {
+        currentContext = "conditional block";
+
+        discard(Token::kwIf);
+        auto ifExpr = parseEqualityExpr();
+        auto ifStmt = parseCompStatement();
+
+        std::vector<std::shared_ptr<Node>> elsifExprs;
+        std::vector<std::shared_ptr<CompStatement>> elsifStmts;
+        while(*it == Token::kwElsif) {
+            discard(Token::kwElsif);
+            elsifExprs.push_back(parseEqualityExpr());
+            elsifStmts.push_back(parseCompStatement());
+        }
+
+        std::shared_ptr<CompStatement> elseStmts; 
+        if (*it == Token::kwElse) {
+            discard(Token::kwElse);
+            elseStmts = parseCompStatement();
+        }
+
+        discard(Token::kwEnd);
+
+        return std::make_shared<ConditionalBlock>(ifExpr, ifStmt, elsifExprs, elsifStmts, elseStmts);
     }
 
     // discard

@@ -200,9 +200,7 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
-    void visit(std::shared_ptr<Primary> n) override {
-
-    }
+    void visit(std::shared_ptr<Primary> n) override {}
 
     // visit int literal
     void visit(std::shared_ptr<IntLiteral> n) override {
@@ -241,12 +239,16 @@ struct DotVisitor : Visitor {
 
         // process child(ren)
         int paramListId = nodeId;
-        n->paramList->accept(shared_from_this());
+        if (n->paramList) {
+            n->paramList->accept(shared_from_this());
+        }
         int functionBodyId = nodeId;
         n->functionBody->accept(shared_from_this());
 
         // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramListId) << ";\n";
+        if (n->paramList) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramListId) << ";\n";
+        }
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(functionBodyId) << ";\n";
     }
 
@@ -332,7 +334,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "Parameters"
+                << "define type\n " << n->name
                 << "\"];\n";
 
         // process child(ren)
@@ -366,6 +368,11 @@ struct DotVisitor : Visitor {
         // connect child(ren) to this node
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
 
+    }
+
+    // visit conditional block
+    void visit(std::shared_ptr<ConditionalBlock> n) override {
+        
     }
 };
 

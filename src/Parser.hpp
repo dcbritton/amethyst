@@ -76,6 +76,9 @@ struct Parser {
             }
 
             // while loop
+            else if (*it == Token::kwWhile) {
+                statements.push_back(parseWhileLoop());
+            }
 
             // unrecognized statement type
             else {
@@ -307,26 +310,35 @@ struct Parser {
         discard(Token::kwIf);
         auto ifExpr = parseEqualityExpr();
         auto ifStmt = parseCompStatement();
-
         std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs;
         while(*it == Token::kwElsif) {
             discard(Token::kwElsif);
             auto expr = parseEqualityExpr();
             auto stmts = parseCompStatement();
-
             // @TODO: come back to this and figure out why it wont work without std::move()
             elsifs.push_back(std::make_pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>(std::move(expr), std::move(stmts)));
         }
-
         std::shared_ptr<CompStatement> elseStmts; 
         if (*it == Token::kwElse) {
             discard(Token::kwElse);
             elseStmts = parseCompStatement();
         }
-
         discard(Token::kwEnd);
 
         return std::make_shared<ConditionalBlock>(ifExpr, ifStmt, elsifs, elseStmts);
+    }
+
+    // while expr do comp_stmt end
+    std::shared_ptr<WhileLoop> parseWhileLoop() {
+        currentContext = "while loop";
+
+        discard(Token::kwWhile);
+        auto expr = parseEqualityExpr();
+        discard(Token::kwDo);
+        auto stmts = parseCompStatement();
+        discard(Token::kwEnd);
+
+        return std::make_shared<WhileLoop>(expr, stmts);
     }
 
     // discard

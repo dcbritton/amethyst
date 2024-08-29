@@ -280,7 +280,6 @@ struct Return : Statement, std::enable_shared_from_this<Return> {
 };
 
 struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlock> {
-
     std::shared_ptr<Node> ifExpr;
     std::shared_ptr<CompStatement> ifStmts;
     std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs;
@@ -298,12 +297,21 @@ struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlo
           elsifs(elsifs),
           elseStmts(elseStmts)
     {}
+};
+
+// while loop
+struct WhileLoop : Statement, std::enable_shared_from_this<WhileLoop> {
+    std::shared_ptr<Node> expr;
+    std::shared_ptr<CompStatement> stmts;
+
+    // constructor
+    WhileLoop(std::shared_ptr<Node> expr, std::shared_ptr<CompStatement> stmts)
+        : expr(expr), stmts(stmts) {}
 
     // accept
     void accept(std::shared_ptr<Visitor> v) override {
         v->visit(shared_from_this());
     }
 };
-
 
 #endif

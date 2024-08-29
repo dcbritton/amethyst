@@ -20,3 +20,7 @@ elsif a * b
 else
     c = c
 end
+
+while a < 10 do
+    a = a + 1
+end

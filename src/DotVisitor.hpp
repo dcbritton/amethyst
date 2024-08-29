@@ -409,6 +409,14 @@ struct DotVisitor : Visitor {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
     }
+
+    // visit while loop
+    void visit (std::shared_ptr<WhileLoop> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        
+    }
 };
 
 #endif

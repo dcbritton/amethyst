@@ -537,6 +537,13 @@ public:
                 continue;
             }
 
+            // @
+            else if (*it == '@') {
+                tokens.push_back(Token(Token::at, ":", lineNumber));
+                ++it;
+                continue;
+            }
+
             else {
                 throw InvalidSymbolException(lineNumber, std::string(1, *it));
             }

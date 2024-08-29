@@ -67,6 +67,7 @@ struct Token {
         closeBrace,
         openBracket,
         closeBracket,
+        at,
 
         // reserved words
         // // kw_int32,

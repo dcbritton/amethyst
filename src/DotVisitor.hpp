@@ -367,7 +367,6 @@ struct DotVisitor : Visitor {
 
         // connect child(ren) to this node
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
-
     }
 
     // visit conditional block
@@ -415,7 +414,21 @@ struct DotVisitor : Visitor {
         int thisId = nodeId;
         ++nodeId;
 
-        
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "while"
+                << "\"];\n";
+
+        // process child(ren)
+        int exprId = nodeId;
+        n->expr->accept(shared_from_this());
+        int stmtsId = nodeId;
+        n->stmts->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(stmtsId) << ";\n";
     }
 };
 

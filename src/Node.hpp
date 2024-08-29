@@ -297,6 +297,11 @@ struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlo
           elsifs(elsifs),
           elseStmts(elseStmts)
     {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
 };
 
 // while loop

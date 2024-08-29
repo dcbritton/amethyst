@@ -324,6 +324,49 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
     }
 
+    // visit type defn
+    void visit(std::shared_ptr<TypeDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "Parameters"
+                << "\"];\n";
+
+        // process child(ren)
+        std::vector<int> parameterIds = {};
+        for (auto parameter : n->members) {
+            parameterIds.push_back(nodeId);
+            parameter->accept(shared_from_this());
+        }
+
+        // connect child(ren) to this node
+        for (auto id : parameterIds) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
+        }
+    }
+
+    // visit member defn
+    void visit(std::shared_ptr<MemberDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "member_defn\n" << n->name << " : " << n->type
+                << "\"];\n";
+
+        // process child(ren)
+        int exprId = nodeId;
+        n->expression->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
+
+    }
 };
 
 #endif

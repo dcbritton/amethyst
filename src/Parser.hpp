@@ -308,12 +308,14 @@ struct Parser {
         auto ifExpr = parseEqualityExpr();
         auto ifStmt = parseCompStatement();
 
-        std::vector<std::shared_ptr<Node>> elsifExprs;
-        std::vector<std::shared_ptr<CompStatement>> elsifStmts;
+        std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs;
         while(*it == Token::kwElsif) {
             discard(Token::kwElsif);
-            elsifExprs.push_back(parseEqualityExpr());
-            elsifStmts.push_back(parseCompStatement());
+            auto expr = parseEqualityExpr();
+            auto stmts = parseCompStatement();
+
+            // @TODO: come back to this and figure out why it wont work without std::move()
+            elsifs.push_back(std::make_pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>(std::move(expr), std::move(stmts)));
         }
 
         std::shared_ptr<CompStatement> elseStmts; 
@@ -324,7 +326,7 @@ struct Parser {
 
         discard(Token::kwEnd);
 
-        return std::make_shared<ConditionalBlock>(ifExpr, ifStmt, elsifExprs, elsifStmts, elseStmts);
+        return std::make_shared<ConditionalBlock>(ifExpr, ifStmt, elsifs, elseStmts);
     }
 
     // discard

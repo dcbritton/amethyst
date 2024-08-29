@@ -164,6 +164,7 @@ public:
                 continue;
             }
 
+            // @TODO fix bug here regarding - sign 
             // numeric
             else if (isdigit(*it) || *it == '-') {
                 if (*it == '-' && !isdigit(*(it+1))) {

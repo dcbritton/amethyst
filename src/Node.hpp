@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <map>
 #include "Token.hpp"
 #include "Visitor.hpp"
 
@@ -282,22 +283,19 @@ struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlo
 
     std::shared_ptr<Node> ifExpr;
     std::shared_ptr<CompStatement> ifStmts;
-    std::vector<std::shared_ptr<Node>> elsifExprs;
-    std::vector<std::shared_ptr<CompStatement>> elsifStmts;
+    std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs;
     std::shared_ptr<CompStatement> elseStmts;
 
     // constructor
     ConditionalBlock(
         std::shared_ptr<Node> ifExpr,
         std::shared_ptr<CompStatement> ifStmts,
-        std::vector<std::shared_ptr<Node>> elsifExprs,
-        std::vector<std::shared_ptr<CompStatement>> elsifStmts,
+        std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs,
         std::shared_ptr<CompStatement> elseStmts
     ) 
         : ifExpr(ifExpr),
           ifStmts(ifStmts),
-          elsifExprs(elsifExprs),
-          elsifStmts(elsifStmts),
+          elsifs(elsifs),
           elseStmts(elseStmts)
     {}
 

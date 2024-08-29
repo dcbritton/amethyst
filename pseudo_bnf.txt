@@ -12,6 +12,9 @@ stmt        -   var_def
             |   type_def
             |   return_stmt
             |   conditional
+            |   while_loop
+
+while_loop  -   while expr do comp_stmt end
 
 conditional -   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
             

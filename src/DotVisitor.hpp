@@ -224,6 +224,49 @@ struct DotVisitor : Visitor {
 
     void visit(std::shared_ptr<Primary> n) override {}
 
+    // visit call
+    virtual void visit(std::shared_ptr<Call> n) {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "call\n" << n->name
+                << "\"];\n";
+
+        // process child(ren)
+        int argsId = nodeId;
+        n->args->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(argsId) << ";\n";
+    }
+
+    // visit call args
+    virtual void visit(std::shared_ptr<CallArgs> n) {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "args\n"
+                << "\"];\n";
+
+        // process child(ren)
+        std::vector<int> argIds = {};
+        for (auto arg : n->exprs) {
+            argIds.push_back(nodeId);
+            arg->accept(shared_from_this());
+        }
+
+        // connect child(ren) to this node
+        for (auto id : argIds) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
+        }
+    }
+    
     // visit int literal
     void visit(std::shared_ptr<IntLiteral> n) override {
         int thisId = nodeId;

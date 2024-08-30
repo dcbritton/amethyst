@@ -29,6 +29,8 @@ struct ConditionalBlock;
 struct ForLoop;
 struct WhileLoop;
 struct DotExpr;
+struct CallArgs;
+struct Call;
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
 
@@ -50,11 +52,17 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<MultiplicationExpr> n) {}
 
+    virtual void visit(std::shared_ptr<DotExpr> n) {}
+
     virtual void visit(std::shared_ptr<Primary> n) {}
 
     virtual void visit(std::shared_ptr<IntLiteral> n) {}
     
     virtual void visit(std::shared_ptr<Variable> n) {}
+
+    virtual void visit(std::shared_ptr<CallArgs> n) {}
+
+    virtual void visit(std::shared_ptr<Call> n) {}
 
     virtual void visit(std::shared_ptr<VariableDefn> n) {}
 
@@ -77,8 +85,6 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<ForLoop> n) {}
 
     virtual void visit(std::shared_ptr<WhileLoop> n) {}
-
-    virtual void visit(std::shared_ptr<DotExpr> n) {}
 };
 
 #endif

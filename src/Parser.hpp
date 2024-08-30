@@ -26,6 +26,7 @@ struct Parser {
             scopes.push(std::unordered_map<std::string, std::string>({{"_uint32", "type_primitive"}, {"_float32", "type_primitive"}}));
         };
 
+    // program
     std::shared_ptr<Program> parse() {
         auto programBody = parseCompStatement();
 
@@ -292,6 +293,13 @@ struct Parser {
 
         // identifier, call
         else if (*it == Token::identifier) {
+
+            // call
+            if (*(it+1) == Token::openParen) {
+                return parseCall();
+            }
+
+            // identifier
             return std::make_shared<Variable>(consume(Token::identifier));
         }
 
@@ -308,6 +316,30 @@ struct Parser {
             std::cout << "Primaries are only allowed to be integers and non-global variables (identifiers) right now.\n";
             exit(1);
         }
+    }
+
+    // func_name(call_args)
+    std::shared_ptr<Call> parseCall() {
+        std::string name = consume(Token::identifier);
+        discard(Token::openParen);
+        auto callArgs = parseCallArgs();
+        discard(Token::closeParen);
+
+        return std::make_shared<Call>(name, callArgs);
+    }
+
+    // [expr, ]* expr 
+    std::shared_ptr<CallArgs> parseCallArgs() {
+
+        std::vector<std::shared_ptr<Node>> exprs = {};
+        while (*it != Token::closeParen) {
+            exprs.push_back(parseEqualityExpr());
+            if (*it == Token::closeParen)
+                break;
+            discard(Token::comma);
+        }
+
+        return std::make_shared<CallArgs>(exprs);
     }
 
     // identifier:typename = expression

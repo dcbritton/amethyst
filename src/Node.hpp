@@ -144,6 +144,35 @@ struct Primary : Node {
 
 };
 
+// call args
+struct CallArgs : Node, std::enable_shared_from_this<CallArgs> {
+    std::vector<std::shared_ptr<Node>> exprs;
+
+    // constructor
+    CallArgs(const std::vector<std::shared_ptr<Node>>& exprs)
+        : exprs(exprs) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
+// call
+struct Call : Primary, std::enable_shared_from_this<Call> {
+    std::string name;
+    std::shared_ptr<CallArgs> args;
+
+    // constructor
+    Call(const std::string& name, std::shared_ptr<CallArgs> args)
+        : name(name), args(args) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
 // int literal
 struct IntLiteral : Primary, std::enable_shared_from_this<IntLiteral> {
     std::string value;

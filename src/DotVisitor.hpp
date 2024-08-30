@@ -200,6 +200,28 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
+    // visit dot expression
+    void visit(std::shared_ptr<DotExpr> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "."
+                << "\"];\n";
+
+        // process child(ren)
+        int lhsId = nodeId;
+        n->lhs->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->rhs->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
+    }
+
     void visit(std::shared_ptr<Primary> n) override {}
 
     // visit int literal

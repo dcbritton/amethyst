@@ -42,10 +42,13 @@ add_expr    -   mult_expr
 	        |   add_expr + mult_expr
 	        |   add_expr - mult_expr  
 
-mult_expr   -   primary
-            |   mult_expr * primary
-	        |   mult_expr / primary
-	        |   mult_expr % primary
+mult_expr   -   dot_expr
+            |   mult_expr * dot_expr
+	        |   mult_expr / dot_expr
+	        |   mult_expr % dot_expr
+
+dot_expr    -   primary
+            |   dot_expr . primary
 
 primary     -   (expr)
             |   call

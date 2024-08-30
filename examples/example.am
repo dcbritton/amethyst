@@ -22,5 +22,5 @@ else
 end
 
 while a < 10 do
-    a = a + 1
+    a = a.b + 1
 end

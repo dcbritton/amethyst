@@ -250,7 +250,7 @@ struct Parser {
 
     // parseMultiplicationExpr
     std::shared_ptr<Node> parseMultiplicationExpr() {
-        std::shared_ptr<Node> LHS = parsePrimary();
+        std::shared_ptr<Node> LHS = parseDotExpr();
         while (*it == Token::opMultiply || *it == Token::opDivide || *it == Token::opModulus) {
             std::string op;
             if (*it == Token::opMultiply) {
@@ -262,20 +262,40 @@ struct Parser {
             else if (*it == Token::opModulus) {
                 op = consume(Token::opModulus);
             }
-            auto RHS = parsePrimary();
+            auto RHS = parseDotExpr();
             LHS = std::make_shared<MultiplicationExpr>(LHS, op, RHS);
         }
         return LHS;
     }
 
+    // parseDotExpr
+    std::shared_ptr<Node> parseDotExpr() {
+        auto lhs = parsePrimary();
+
+        while (*it == Token::opDot) {
+            discard(Token::opDot);
+            auto rhs = parsePrimary();
+
+            lhs = std::make_shared<DotExpr>(lhs, rhs);
+        }
+        // otherwise, lhs is the main node
+        return lhs;
+    }
+
     // parsePrimary
     std::shared_ptr<Node> parsePrimary() {
+
+        // int literal
         if (*it == Token::intLiteral) {
             return std::make_shared<IntLiteral>(consume(Token::intLiteral));
         }
+
+        // identifier, call
         else if (*it == Token::identifier) {
             return std::make_shared<Variable>(consume(Token::identifier));
         }
+
+        // ( expr )
         else if (*it == Token::openParen) {
             discard(Token::openParen);
             auto subExpr = parseEqualityExpr();
@@ -283,6 +303,7 @@ struct Parser {
 
             return subExpr;
         }
+
         else {
             std::cout << "Primaries are only allowed to be integers and non-global variables (identifiers) right now.\n";
             exit(1);

@@ -124,6 +124,21 @@ struct MultiplicationExpr : Node, std::enable_shared_from_this<MultiplicationExp
     }
 };
 
+// dot operator
+struct DotExpr : Node, std::enable_shared_from_this<DotExpr> {
+    std::shared_ptr<Node> lhs;
+    std::shared_ptr<Node> rhs;
+
+    // constructor
+    DotExpr(std::shared_ptr<Node> lhs, std::shared_ptr<Node> rhs)
+        : lhs(lhs), rhs(rhs) {}
+
+    // accept
+    void accept(std::shared_ptr<Visitor> v) override {
+        v->visit(shared_from_this());
+    }
+};
+
 // primary
 struct Primary : Node {
 

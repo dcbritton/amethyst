@@ -59,11 +59,9 @@ struct DotVisitor : Visitor {
             substatementIds.push_back(nodeId);
             statement->accept(shared_from_this());
         }
-        // std::cout << "This comp_stmt has " << std::to_string(substatementIds.size()) << " child(ren).\n";
 
         // connect child(ren) to this node
         for (auto id : substatementIds) {
-            // std::cout << "connecting to compstmt\n";
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
     }
@@ -72,8 +70,6 @@ struct DotVisitor : Visitor {
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
         int thisId = nodeId;
         ++nodeId;
-
-        // std::cout << "this is a variable definition\n";
 
         // create this node
         dotFile << "node" << std::to_string(thisId)

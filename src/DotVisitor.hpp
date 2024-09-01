@@ -26,10 +26,10 @@ struct DotVisitor : Visitor {
     }
 
     // visit node
-    void visit(std::shared_ptr<Node> n) override {}
+    void visit(std::shared_ptr<Node::Node> n) override {}
 
     // visit program
-    void visit(std::shared_ptr<Program> n) override {
+    void visit(std::shared_ptr<Node::Program> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -45,7 +45,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit compound statement
-    void visit(std::shared_ptr<CompStatement> n) override {
+    void visit(std::shared_ptr<Node::CompStatement> n) override {
         int thisId = nodeId;
         ++nodeId;
         
@@ -69,7 +69,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit variable definition
-    void visit(std::shared_ptr<VariableDefn> n) override {
+    void visit(std::shared_ptr<Node::VariableDefn> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -90,7 +90,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit equality expression == !=
-    void visit(std::shared_ptr<EqualityExpr> n) override {
+    void visit(std::shared_ptr<Node::EqualityExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -113,7 +113,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit relation expression
-    void visit(std::shared_ptr<RelationExpr> n) override {
+    void visit(std::shared_ptr<Node::RelationExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -135,7 +135,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit shift expression
-    void visit(std::shared_ptr<ShiftExpr> n) override {
+    void visit(std::shared_ptr<Node::ShiftExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -157,7 +157,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit addition expression
-    void visit(std::shared_ptr<AdditionExpr> n) override {
+    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -179,7 +179,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit multiplication expression
-    void visit(std::shared_ptr<MultiplicationExpr> n) override {
+    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -201,7 +201,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit dot expression
-    void visit(std::shared_ptr<DotExpr> n) override {
+    void visit(std::shared_ptr<Node::DotExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -222,10 +222,10 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
-    void visit(std::shared_ptr<Primary> n) override {}
+    void visit(std::shared_ptr<Node::Primary> n) override {}
 
     // visit call
-    virtual void visit(std::shared_ptr<Call> n) {
+    virtual void visit(std::shared_ptr<Node::Call> n) {
         int thisId = nodeId;
         ++nodeId;
 
@@ -244,7 +244,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit call args
-    virtual void visit(std::shared_ptr<CallArgs> n) {
+    virtual void visit(std::shared_ptr<Node::CallArgs> n) {
         int thisId = nodeId;
         ++nodeId;
 
@@ -268,7 +268,7 @@ struct DotVisitor : Visitor {
     }
     
     // visit int literal
-    void visit(std::shared_ptr<IntLiteral> n) override {
+    void visit(std::shared_ptr<Node::IntLiteral> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -280,7 +280,7 @@ struct DotVisitor : Visitor {
     }
     
     // visit variable
-    void visit(std::shared_ptr<Variable> n) override {
+    void visit(std::shared_ptr<Node::Variable> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -292,7 +292,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit function defn
-    void visit(std::shared_ptr<FunctionDefn> n) override {
+    void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -318,7 +318,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit parameter list
-    void visit(std::shared_ptr<ParamList> n) override {
+    void visit(std::shared_ptr<Node::ParamList> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -342,7 +342,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit parameter
-    void visit(std::shared_ptr<Parameter> n) override {
+    void visit(std::shared_ptr<Node::Parameter> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -354,7 +354,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit assignment
-    void visit(std::shared_ptr<Assignment> n) override {
+    void visit(std::shared_ptr<Node::Assignment> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -373,7 +373,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit return
-    void visit(std::shared_ptr<Return> n) override {
+    void visit(std::shared_ptr<Node::Return> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -392,7 +392,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit type defn
-    void visit(std::shared_ptr<TypeDefn> n) override {
+    void visit(std::shared_ptr<Node::TypeDefn> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -416,7 +416,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit member defn
-    void visit(std::shared_ptr<MemberDefn> n) override {
+    void visit(std::shared_ptr<Node::MemberDefn> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -435,7 +435,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit conditional block
-    void visit(std::shared_ptr<ConditionalBlock> n) override {
+    void visit(std::shared_ptr<Node::ConditionalBlock> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -475,7 +475,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit while loop
-    void visit (std::shared_ptr<WhileLoop> n) override {
+    void visit (std::shared_ptr<Node::WhileLoop> n) override {
         int thisId = nodeId;
         ++nodeId;
 

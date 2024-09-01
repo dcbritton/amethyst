@@ -6,6 +6,7 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "DotVisitor.hpp"
+#include "SemanticAnalyzerVisitor.hpp"
 
 int main(int argc, char** argv) {
     try {

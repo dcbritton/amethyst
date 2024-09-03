@@ -3,6 +3,7 @@
 #ifndef SEMANTICANALYZERVISITOR
 #define SEMANTICANALYZERVISITOR
 
+#include <iostream>
 #include <unordered_map>
 #include "Visitor.hpp"
 
@@ -20,17 +21,26 @@ struct SemanticAnalyzerVisitor : Visitor {
     struct Variable {
         std::string name;
         std::string type;
+
+        Variable(const std::string& name, const std::string& type)
+            : name(name), type(type) {}
     };
 
     struct Function {
-        std::string name;
+        std::string name; // types encoded for overloading
         std::vector<Variable> parameters;
+
+        Function(const std::string& name, const std::vector<Variable>& parameters) 
+            : name(name), parameters(parameters) {}
     };
 
     struct Type {
         std::string name;
         std::vector<Variable> members;
-        // @TODO: methods
+        std::vector<Function> methods;
+
+        Type(const std::string& name, const std::vector<Variable>& members, const std::vector<Function>& methods)
+            : name(name), members(members), methods(methods) {}
     };
 
     struct Scope {
@@ -87,6 +97,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     void visit(std::shared_ptr<Node::Program> n) override {
         symbolTable.push_back(Scope(global));
         // @TODO: predefined variables, functions, types may go here with addToScope()
+        addToScope(Type("_uint32", {}, {}));    
 
         n->compStatement->accept(shared_from_this());
     }
@@ -100,12 +111,52 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
         // name check
+        if (variables.find(n->name) != variables.end()) {
+            std::cout << "Variable " << n->name << " is defined more than once.\n";
+            exit(1);
+        }
+
+        // type check, match lhs, rhs
+
         // add
+        addToScope(Variable(n->name, n->type));
     }
 
+    // @TODO: functions should not capture variables from outside function scope?
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
-        // name check
-        // add
+        // process parameters
+        // @TODO: this violates visitor pattern. find a way to propagate the names and types up (return values)?
+        std::vector<Variable> parameters = {};
+        std::string mangledName = n->name + "!" + n->returnType;
+        for (const auto& parameter : n->paramList->parameters) {
+            parameters.push_back(Variable(parameter->name, parameter->type));
+            mangledName += "@" + parameter->type;
+        }
+
+        // name check 
+        if (functions.find(mangledName) != functions.end()) {
+            std::cout << "Function " << n->name << " is defined more than once with the same return type and parameter types.\n"
+                      << "(Mangled: " << mangledName << ")\n";
+            exit(1);    
+        }
+        
+        // make new scope
+        symbolTable.push_back(Scope(functionDefn));
+
+        // add itself and parameters to its own scope
+        addToScope(Function(mangledName, parameters));
+        for (const auto& parameter : parameters) {
+            addToScope(Variable(parameter.name, parameter.type));
+        }
+
+        // process function body
+        n->functionBody->accept(shared_from_this());
+
+        // end its own scope, remove itself & parameters
+        endScope();
+
+        // add function to scope outside itself
+        addToScope(Function(mangledName, parameters));
     }
 
     void visit(std::shared_ptr<Node::ParamList> n) override {}
@@ -125,6 +176,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
+    // @TODO determine expression type
     void visit(std::shared_ptr<Node::EqualityExpr> n) override {}
 
     void visit(std::shared_ptr<Node::RelationExpr> n) override {}
@@ -156,6 +208,11 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::TypeDefn> n) override {
         // name check
+        if (types.find(n->name) != types.end()) {
+            std::cout << "Type " << n->name << " is already defined.\n";
+            exit(1);
+        }
+        // process members
         // add
     }
 

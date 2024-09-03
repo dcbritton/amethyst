@@ -6,7 +6,11 @@ def func(a:_int32, b:_int32):_int32
     return c
 end
 
-class type
+def func(a:_int32, b:_int32):a
+
+end
+
+class test
     @a:_int32 = testname1
     def func():_int32
         return 2*c

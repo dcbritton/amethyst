@@ -30,8 +30,12 @@ int main(int argc, char** argv) {
         auto ast = p.parse();
 
         // DOT output
-        auto v = std::make_shared<DotVisitor>("AST.gv");
-        ast->accept(v);
+        auto d = std::make_shared<DotVisitor>("AST.gv");
+        ast->accept(d);
+
+        // semantic analysis
+        auto sa = std::make_shared<SemanticAnalyzerVisitor>();
+        ast->accept(sa);
     }
     catch (InvalidSymbolException& e) {
         std::cerr << "Lexer error: " << e.what() << '\n';

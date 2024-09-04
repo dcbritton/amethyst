@@ -27,12 +27,13 @@ struct SemanticAnalyzerVisitor : Visitor {
     };
 
     struct Function {
-        std::string name; // types encoded for overloading
+        std::string name;
+        std::string signature;
         std::string returnType;
         std::vector<Variable> parameters;
 
-        Function(const std::string& name, const std::string& returnType, const std::vector<Variable>& parameters) 
-            : name(name), returnType(returnType), parameters(parameters) {}
+        Function(const std::string& name, const std::string& signature, const std::string& returnType, const std::vector<Variable>& parameters) 
+            : name(name), signature(signature), returnType(returnType), parameters(parameters) {}
     };
 
     struct Type {
@@ -112,11 +113,35 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // @TODO: look back at scope, check for function defn
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
-        // name check
-        if (variables.find(n->name) != variables.end()) {
-            std::cout << "Variable " << n->name << " is defined more than once.\n";
-            exit(1);
+        // exists?; if in function, don't capture external variables, so check only most recent function scope
+        bool found = false;
+        auto functionCandidate = symbolTable.crbegin();
+        while (functionCandidate != symbolTable.crend()) {
+            if (functionCandidate->type == functionDefn) {
+                found = true;
+                break;
+            }
+            ++functionCandidate;
         }
+        // function scope is found, check only those
+        if (found) {
+            for (const auto& variable : functionCandidate->variables) {
+                if (n->name == variable.name) {
+                    std::cout << "Variable " << n->name
+                              << " is already defined in function " << functionCandidate->functions.back().name
+                              << ".\n";
+                    exit(1);
+                }
+            }
+        }
+        // otherwise, name check as normal
+        else {
+            if (variables.find(n->name) != variables.end()) {
+                std::cout << "Variable " << n->name << " is defined more than once.\n";
+                exit(1);
+            }
+        }
+
 
         // type check, match lhs, rhs
 
@@ -154,7 +179,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         symbolTable.push_back(Scope(functionDefn));
 
         // add itself and parameters to its own scope
-        addToScope(Function(mangledName, n->returnType, parameters));
+        addToScope(Function(n->name, mangledName, n->returnType, parameters));
         for (const auto& parameter : parameters) {
             addToScope(Variable(parameter.name, parameter.type));
         }
@@ -166,7 +191,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         endScope();
 
         // add function to scope outside itself
-        addToScope(Function(mangledName, n->returnType, parameters));
+        addToScope(Function(n->name, mangledName, n->returnType, parameters));
     }
 
     // never called with current implementation, handled by FunctionDefn
@@ -205,14 +230,13 @@ struct SemanticAnalyzerVisitor : Visitor {
     void visit(std::shared_ptr<Node::IntLiteral> n) override {}
     
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // name check
-        // type check
-        
-        // add
+        // exists?
+        // expression stack
     }
 
     void visit(std::shared_ptr<Node::Call> n) override {
         // ensure that call's type, number of args, call's args' types match the definition
+        // expression stack
     }
 
     void visit(std::shared_ptr<Node::CallArgs> n) override {}

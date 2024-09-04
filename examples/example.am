@@ -1,16 +1,15 @@
-a:_int32 = 1 > (1 == testname1) + 4 > 2
+a:_int32 = 1
 
-class a
-end 
+class T
+end
 
-
-def func(d:_int32, b:_int32):_uint32  
-    c:_int32 = a
+def func(a:_int32, d:_int32):_uint32  
+    a:_int32 = a
     c = c + b
     return b
 end
 
-def func(a:_int32, b:_int32):a
+def func(a:_int32, b:_int32):T
 
 end
 

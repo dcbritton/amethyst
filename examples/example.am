@@ -1,9 +1,13 @@
 a:_int32 = 1 > (1 == testname1) + 4 > 2
 
-def func(a:_int32, b:_int32):_int32  
+class a
+end 
+
+
+def func(d:_int32, b:_int32):_uint32  
     c:_int32 = a
     c = c + b
-    return c
+    return b
 end
 
 def func(a:_int32, b:_int32):a

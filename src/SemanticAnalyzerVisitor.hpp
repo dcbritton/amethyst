@@ -28,10 +28,11 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     struct Function {
         std::string name; // types encoded for overloading
+        std::string returnType;
         std::vector<Variable> parameters;
 
-        Function(const std::string& name, const std::vector<Variable>& parameters) 
-            : name(name), parameters(parameters) {}
+        Function(const std::string& name, const std::string& returnType, const std::vector<Variable>& parameters) 
+            : name(name), returnType(returnType), parameters(parameters) {}
     };
 
     struct Type {
@@ -109,6 +110,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
     }
 
+    // @TODO: look back at scope, check for function defn
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
         // name check
         if (variables.find(n->name) != variables.end()) {
@@ -133,6 +135,14 @@ struct SemanticAnalyzerVisitor : Visitor {
             mangledName += "@" + parameter->type;
         }
 
+        // return type check
+        if (types.find(n->returnType) == types.end()) {
+            std::cout << "Return type " << n->returnType
+                      << " of function " << n->name
+                      << " has not yet been defined.\n";
+            exit(1);
+        }
+
         // name check 
         if (functions.find(mangledName) != functions.end()) {
             std::cout << "Function " << n->name << " is defined more than once with the same return type and parameter types.\n"
@@ -144,7 +154,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         symbolTable.push_back(Scope(functionDefn));
 
         // add itself and parameters to its own scope
-        addToScope(Function(mangledName, parameters));
+        addToScope(Function(mangledName, n->returnType, parameters));
         for (const auto& parameter : parameters) {
             addToScope(Variable(parameter.name, parameter.type));
         }
@@ -156,14 +166,14 @@ struct SemanticAnalyzerVisitor : Visitor {
         endScope();
 
         // add function to scope outside itself
-        addToScope(Function(mangledName, parameters));
+        addToScope(Function(mangledName, n->returnType, parameters));
     }
 
+    // never called with current implementation, handled by FunctionDefn
     void visit(std::shared_ptr<Node::ParamList> n) override {}
 
-    void visit(std::shared_ptr<Node::Parameter> n) override {
-        // add parameters to function's scope
-    }
+    // never called with current implementation, handled by FunctionDefn
+    void visit(std::shared_ptr<Node::Parameter> n) override {}
 
     void visit(std::shared_ptr<Node::Assignment> n) override {
         // name check lhs
@@ -172,6 +182,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Return> n) override {
         // type check
+        std::string functionType = symbolTable.back().functions.back().returnType;
     }
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
@@ -213,7 +224,10 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
         // process members
+
         // add
+        // @TODO: process members
+        addToScope(Type(n->name, {}, {}));
     }
 
     void visit(std::shared_ptr<Node::MemberDefn> n) override {

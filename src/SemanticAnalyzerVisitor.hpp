@@ -55,39 +55,52 @@ struct SemanticAnalyzerVisitor : Visitor {
             : type(type) {}
     };
 
-    std::unordered_map<std::string, Variable*> variables;
-    std::unordered_map<std::string, Function*> functions;
-    std::unordered_map<std::string, Type*> types;
     std::vector<Scope> symbolTable;
+    std::vector<std::string> exprTypes;
 
-    void addToScope(Variable&& variable) {
-        symbolTable.back().variables.push_back(std::move(variable));
-        Variable& variableRef = symbolTable.back().variables.back();
-        variables.emplace(variableRef.name, &variableRef);
+    bool findVariable(const std::string& name) {
+        for (const auto& scope : symbolTable) {
+            for (const auto& variable : scope.variables) {
+                if (name == variable.name)
+                    return true;
+            }
+        }
+        return false;
     }
 
-    void addToScope(Function&& function) {
-        symbolTable.back().functions.push_back(std::move(function));
-        Function& functionRef = symbolTable.back().functions.back();
-        functions.emplace(functionRef.name, &functionRef);
+    bool findFunction(const std::string& name) {
+        for (const auto& scope : symbolTable) {
+            for (const auto& function : scope.functions) {
+                if (name == function.signature)
+                    return true;
+            }
+        }
+        return false;
     }
 
-    void addToScope(Type&& type) {
-        symbolTable.back().types.push_back(std::move(type));
-        Type& typeRef = symbolTable.back().types.back();
-        types.emplace(typeRef.name, &typeRef);
+    bool findType(const std::string& name) {
+        for (const auto& scope : symbolTable) {
+            for (const auto& type : scope.types) {
+                if (name == type.name)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    void addToScope(Variable variable) {
+        symbolTable.back().variables.push_back(variable);
+    }
+
+    void addToScope(Function function) {
+        symbolTable.back().functions.push_back(function);
+    }
+
+    void addToScope(Type type) {
+        symbolTable.back().types.push_back(type);
     }
 
     void endScope() {
-        for (auto& variable : symbolTable.back().variables) {
-            variables.erase(variable.name);
-        }
-        for (auto& function : symbolTable.back().functions) {
-            functions.erase(function.name);
-        }
-        for (auto& type : symbolTable.back().types) {
-            types.erase(type.name);
-        }
         symbolTable.pop_back();
     }
 
@@ -104,14 +117,14 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->compStatement->accept(shared_from_this());
     }
 
-    // compstatement
+    // compound statement
     void visit(std::shared_ptr<Node::CompStatement> n) override {
         for (auto stmt : n->statements) {
             stmt->accept(shared_from_this());
         }
     }
-
-    // @TODO: look back at scope, check for function defn
+    
+    // variable definition
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
         // exists?; if in function, don't capture external variables, so check only most recent function scope
         bool found = false;
@@ -136,19 +149,29 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
         // otherwise, name check as normal
         else {
-            if (variables.find(n->name) != variables.end()) {
+            if (findVariable(n->name)) {
                 std::cout << "Variable " << n->name << " is defined more than once.\n";
                 exit(1);
             }
         }
 
-
-        // type check, match lhs, rhs
+        // type check, match lhs and rhs
+        n->expression->accept(shared_from_this());
+        if (exprTypes.back() != n->type) {
+            std::cout << "In the definition of variable " << n->name
+                      << ", the given type " << n->type
+                      << " does not match the expression type " << exprTypes.back()
+                      << ".\n";
+            exit(1);
+        }
+        // empty the stack
+        exprTypes.pop_back();
 
         // add
         addToScope(Variable(n->name, n->type));
     }
 
+    // function definition
     // @TODO: functions should not capture variables from outside function scope?
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
@@ -161,7 +184,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // return type check
-        if (types.find(n->returnType) == types.end()) {
+        if (!findType(n->returnType)) {
             std::cout << "Return type " << n->returnType
                       << " of function " << n->name
                       << " has not yet been defined.\n";
@@ -169,7 +192,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // name check 
-        if (functions.find(mangledName) != functions.end()) {
+        if (findFunction(mangledName)) {
             std::cout << "Function " << n->name << " is defined more than once with the same return type and parameter types.\n"
                       << "(Mangled: " << mangledName << ")\n";
             exit(1);    
@@ -200,11 +223,13 @@ struct SemanticAnalyzerVisitor : Visitor {
     // never called with current implementation, handled by FunctionDefn
     void visit(std::shared_ptr<Node::Parameter> n) override {}
 
+    // assignment
     void visit(std::shared_ptr<Node::Assignment> n) override {
         // name check lhs
         // type check, match lhs & rhs
     }
 
+    // return
     void visit(std::shared_ptr<Node::Return> n) override {
         // type check
         std::string functionType = symbolTable.back().functions.back().returnType;
@@ -213,25 +238,76 @@ struct SemanticAnalyzerVisitor : Visitor {
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
     // @TODO determine expression type
-    void visit(std::shared_ptr<Node::EqualityExpr> n) override {}
+    void visit(std::shared_ptr<Node::EqualityExpr> n) override {
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+    }
 
-    void visit(std::shared_ptr<Node::RelationExpr> n) override {}
+    void visit(std::shared_ptr<Node::RelationExpr> n) override {
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+    }
 
-    void visit(std::shared_ptr<Node::ShiftExpr> n) override {}
+    void visit(std::shared_ptr<Node::ShiftExpr> n) override {
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+    }
 
-    void visit(std::shared_ptr<Node::AdditionExpr> n) override {}
+    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+    }
 
-    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {}
+    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
 
-    void visit(std::shared_ptr<Node::DotExpr> n) override {}
+        std::string rhsType = exprTypes.back();
+        exprTypes.pop_back();
+        std::string lhsType = exprTypes.back();
+        exprTypes.pop_back();
+
+        // @TODO: check implicit conversions
+        if (lhsType != rhsType) {
+            std::cout << "Type error in expression. Could not convert "
+                      << rhsType << " to type " << lhsType << ".\n";
+            exit(1);
+        }
+
+        exprTypes.push_back(lhsType);
+    }
+
+    void visit(std::shared_ptr<Node::DotExpr> n) override {
+        n->lhs->accept(shared_from_this());
+        n->rhs->accept(shared_from_this());
+    }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
-    void visit(std::shared_ptr<Node::IntLiteral> n) override {}
+    void visit(std::shared_ptr<Node::IntLiteral> n) override {
+        // expression stack
+        exprTypes.push_back("_uint32");
+    }
     
     void visit(std::shared_ptr<Node::Variable> n) override {
         // exists?
+        if (!findVariable(n->name)) {
+            std::cout << "Variable " << n->name
+                      << " has not been defined.\n";
+            exit(1);
+        }
+
+        // find type
+        std::string type;
+        for (const auto& scope : symbolTable) {
+            for (const auto& variable : scope.variables) {
+                if (n->name == variable.name)
+                    type = variable.type;
+            }
+        }
+
         // expression stack
+        exprTypes.push_back(type);
     }
 
     void visit(std::shared_ptr<Node::Call> n) override {
@@ -243,7 +319,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::TypeDefn> n) override {
         // name check
-        if (types.find(n->name) != types.end()) {
+        if (findType(n->name)) {
             std::cout << "Type " << n->name << " is already defined.\n";
             exit(1);
         }

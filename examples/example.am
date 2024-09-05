@@ -1,33 +1,4 @@
-a:_int32 = 1
+a:_uint32 = 1 * 1
+b:_uint32 = 1 * 1
 
-class T
-end
-
-def func(a:_int32, d:_int32):_uint32  
-    a:_int32 = a
-    c = c + b
-    return b
-end
-
-def func(a:_int32, b:_int32):T
-
-end
-
-class test
-    @a:_int32 = testname1
-    def func():_int32
-        return 2*c
-    end
-end
-
-if a + b
-    c = a
-elsif a * b
-    c = b
-else
-    c = c
-end
-
-while a < 10 do
-    a = a.b(1+2, b(1+2)) + 1
-end
+c:_uint32 = 1 * a * b

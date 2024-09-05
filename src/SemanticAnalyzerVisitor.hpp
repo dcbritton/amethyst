@@ -220,7 +220,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     // never called with current implementation, handled by FunctionDefn
     void visit(std::shared_ptr<Node::ParamList> n) override {}
 
-    // never called with current implementation, handled by FunctionDefn
+    // @TODO: verify types
     void visit(std::shared_ptr<Node::Parameter> n) override {}
 
     // assignment
@@ -289,12 +289,40 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back("_uint32");
     }
     
+    // check only functions scope if in function
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // exists?
-        if (!findVariable(n->name)) {
-            std::cout << "Variable " << n->name
-                      << " has not been defined.\n";
-            exit(1);
+        // exists?; if in function, don't capture external variables, so check only most recent function scope
+        bool functionFound = false;
+        auto functionCandidate = symbolTable.crbegin();
+        while (functionCandidate != symbolTable.crend()) {
+            if (functionCandidate->type == functionDefn) {
+                functionFound = true;
+                break;
+            }
+            ++functionCandidate;
+        }
+        // function scope is found, check only those
+        if (functionFound) {
+            bool variableFound = false;
+            for (const auto& variable : functionCandidate->variables) {
+                if (n->name == variable.name) {
+                    variableFound = true;
+                    break;
+                }
+            }
+            if (!variableFound) {
+                std::cout << "Variable " << n->name
+                        << " in function " << functionCandidate->functions.back().name
+                        << " has not been defined in function scope.\n";
+                exit(1);
+            }
+        }
+        // otherwise, name check as normal
+        else {
+            if (!findVariable(n->name)) {
+                std::cout << "Variable " << n->name << " has not been defined.\n";
+                exit(1);
+            }
         }
 
         // find type

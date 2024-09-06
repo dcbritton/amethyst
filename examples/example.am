@@ -2,8 +2,8 @@ a:_uint32 = 1 + 1
 
 class T end
 
-def func(c:_uint32, d:_uint32):_uint32  
-    b:_uint32 = d * a
+def func(c:_uint32, d:_uint32):_uint32
+    b:_uint32 = c + d * c
     return b
 end
 

@@ -172,10 +172,9 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // function definition
-    // @TODO: functions should not capture variables from outside function scope?
+    // @TODO: this violates visitor pattern. find a way to propagate the names and types up (return values)?
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
-        // @TODO: this violates visitor pattern. find a way to propagate the names and types up (return values)?
         std::vector<Variable> parameters = {};
         std::string mangledName = n->name + "!" + n->returnType;
         for (const auto& parameter : n->paramList->parameters) {
@@ -217,11 +216,13 @@ struct SemanticAnalyzerVisitor : Visitor {
         addToScope(Function(n->name, mangledName, n->returnType, parameters));
     }
 
-    // never called with current implementation, handled by FunctionDefn
+    // parameter list
     void visit(std::shared_ptr<Node::ParamList> n) override {}
 
-    // @TODO: verify types
-    void visit(std::shared_ptr<Node::Parameter> n) override {}
+    // parameter
+    void visit(std::shared_ptr<Node::Parameter> n) override {
+        // @TODO: verify types
+    }
 
     // assignment
     void visit(std::shared_ptr<Node::Assignment> n) override {
@@ -237,28 +238,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
-    // @TODO determine expression type
-    void visit(std::shared_ptr<Node::EqualityExpr> n) override {
-        n->LHS->accept(shared_from_this());
-        n->RHS->accept(shared_from_this());
-    }
-
-    void visit(std::shared_ptr<Node::RelationExpr> n) override {
-        n->LHS->accept(shared_from_this());
-        n->RHS->accept(shared_from_this());
-    }
-
-    void visit(std::shared_ptr<Node::ShiftExpr> n) override {
-        n->LHS->accept(shared_from_this());
-        n->RHS->accept(shared_from_this());
-    }
-
-    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
-        n->LHS->accept(shared_from_this());
-        n->RHS->accept(shared_from_this());
-    }
-
-    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+    void exprHelper(std::shared_ptr<Node::Expr> n) {
         n->LHS->accept(shared_from_this());
         n->RHS->accept(shared_from_this());
 
@@ -277,19 +257,39 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back(lhsType);
     }
 
+    void visit(std::shared_ptr<Node::EqualityExpr> n) override {
+        exprHelper(n);
+    }
+
+    void visit(std::shared_ptr<Node::RelationExpr> n) override {
+        exprHelper(n);
+    }
+
+    void visit(std::shared_ptr<Node::ShiftExpr> n) override {
+        exprHelper(n);
+    }
+
+    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
+        exprHelper(n);
+    }
+
+    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+        exprHelper(n);
+    }
+
     void visit(std::shared_ptr<Node::DotExpr> n) override {
-        n->lhs->accept(shared_from_this());
-        n->rhs->accept(shared_from_this());
+        exprHelper(n);
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
+    // int literal
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
         // expression stack
         exprTypes.push_back("_uint32");
     }
     
-    // check only functions scope if in function
+    // variable
     void visit(std::shared_ptr<Node::Variable> n) override {
         // exists?; if in function, don't capture external variables, so check only most recent function scope
         bool functionFound = false;
@@ -338,13 +338,16 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back(type);
     }
 
+    // call
     void visit(std::shared_ptr<Node::Call> n) override {
         // ensure that call's type, number of args, call's args' types match the definition
         // expression stack
     }
 
+    // call arguments
     void visit(std::shared_ptr<Node::CallArgs> n) override {}
 
+    // type definition
     void visit(std::shared_ptr<Node::TypeDefn> n) override {
         // name check
         if (findType(n->name)) {

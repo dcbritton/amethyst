@@ -277,7 +277,7 @@ struct Parser {
             discard(Token::opDot);
             auto rhs = parsePrimary();
 
-            lhs = std::make_shared<Node::DotExpr>(lhs, rhs);
+            lhs = std::make_shared<Node::DotExpr>(lhs, ".", rhs);
         }
         // otherwise, lhs is the main node
         return lhs;

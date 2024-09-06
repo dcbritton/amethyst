@@ -50,14 +50,21 @@ namespace Node {
 
     };
 
-    struct EqualityExpr : Node, std::enable_shared_from_this<EqualityExpr> {
+    struct Expr : Node {
         std::shared_ptr<Node> LHS;
         std::string op;
         std::shared_ptr<Node> RHS;
+
+        // constructor
+        Expr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+            : LHS(LHS), op(op), RHS(RHS) {}
+    };
+
+    struct EqualityExpr : Expr, std::enable_shared_from_this<EqualityExpr> {
 
         // constructor
         EqualityExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
-            : LHS(LHS), op(op), RHS(RHS) {}
+            : Expr(LHS, op, RHS) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
@@ -65,14 +72,11 @@ namespace Node {
         }
     };
 
-    struct RelationExpr : Node, std::enable_shared_from_this<RelationExpr> {
-        std::shared_ptr<Node> LHS;
-        std::string op;
-        std::shared_ptr<Node> RHS;
+    struct RelationExpr : Expr, std::enable_shared_from_this<RelationExpr> {
 
         // constructor
         RelationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
-            : LHS(LHS), op(op), RHS(RHS) {}
+            : Expr(LHS, op, RHS) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
@@ -80,14 +84,11 @@ namespace Node {
         }
     };
 
-    struct ShiftExpr : Node, std::enable_shared_from_this<ShiftExpr> {
-        std::shared_ptr<Node> LHS;
-        std::string op;
-        std::shared_ptr<Node> RHS;
+    struct ShiftExpr : Expr, std::enable_shared_from_this<ShiftExpr> {
 
         // constructor
         ShiftExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
-            : LHS(LHS), op(op), RHS(RHS) {}
+            : Expr(LHS, op, RHS) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
@@ -95,14 +96,11 @@ namespace Node {
         }
     };
 
-    struct AdditionExpr : Node, std::enable_shared_from_this<AdditionExpr> {
-        std::shared_ptr<Node> LHS;
-        std::string op;
-        std::shared_ptr<Node> RHS;
+    struct AdditionExpr : Expr, std::enable_shared_from_this<AdditionExpr> {
 
         // constructor
         AdditionExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
-            : LHS(LHS), op(op), RHS(RHS) {}
+            : Expr(LHS, op, RHS) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
@@ -110,14 +108,11 @@ namespace Node {
         }
     };
 
-    struct MultiplicationExpr : Node, std::enable_shared_from_this<MultiplicationExpr> {
-        std::shared_ptr<Node> LHS;
-        std::string op;
-        std::shared_ptr<Node> RHS;
+    struct MultiplicationExpr : Expr, std::enable_shared_from_this<MultiplicationExpr> {
 
         // constructor
         MultiplicationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
-            : LHS(LHS), op(op), RHS(RHS) {}
+            : Expr(LHS, op, RHS) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
@@ -126,13 +121,11 @@ namespace Node {
     };
 
     // dot operator
-    struct DotExpr : Node, std::enable_shared_from_this<DotExpr> {
-        std::shared_ptr<Node> lhs;
-        std::shared_ptr<Node> rhs;
+    struct DotExpr : Expr, std::enable_shared_from_this<DotExpr> {
 
         // constructor
-        DotExpr(std::shared_ptr<Node> lhs, std::shared_ptr<Node> rhs)
-            : lhs(lhs), rhs(rhs) {}
+        DotExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+            : Expr(LHS, op, RHS) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {

@@ -17,6 +17,8 @@ namespace Node {
     struct MultiplicationExpr;
     struct Primary;
     struct IntLiteral;
+    struct FloatLiteral;
+    struct StringLiteral;
     struct Variable;
     struct VariableDefn;
     struct FunctionDefn;
@@ -59,6 +61,10 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Primary> n) {}
 
     virtual void visit(std::shared_ptr<Node::IntLiteral> n) {}
+
+    virtual void visit(std::shared_ptr<Node::FloatLiteral> n) {}
+
+    virtual void visit(std::shared_ptr<Node::StringLiteral> n) {}
     
     virtual void visit(std::shared_ptr<Node::Variable> n) {}
 

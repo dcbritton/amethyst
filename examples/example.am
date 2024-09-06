@@ -1,4 +1,6 @@
 a:_uint32 = 1 + 1
+b:_float32 = 1.2 + 1.23
+c:_string = "" + "a"
 
 class T end
 

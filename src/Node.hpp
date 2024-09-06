@@ -180,6 +180,34 @@ namespace Node {
             v->visit(shared_from_this());
         }
     };
+    
+    // float literal
+    struct FloatLiteral : Primary, std::enable_shared_from_this<FloatLiteral> {
+        std::string value;
+
+        // constructor
+        FloatLiteral(const std::string& value)
+            : value(value) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
+    // string literal
+    struct StringLiteral : Primary, std::enable_shared_from_this<StringLiteral> {
+        std::string value;
+
+        // constructor
+        StringLiteral(const std::string& value)
+            : value(value) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
 
     // variable
     struct Variable : Primary, std::enable_shared_from_this<Variable> {

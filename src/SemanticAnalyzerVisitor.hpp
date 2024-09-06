@@ -108,16 +108,18 @@ struct SemanticAnalyzerVisitor : Visitor {
         
     }
 
-    // program
+    // visit program
     void visit(std::shared_ptr<Node::Program> n) override {
         symbolTable.push_back(Scope(global));
         // @TODO: predefined variables, functions, types may go here with addToScope()
-        addToScope(Type("_uint32", {}, {}));    
+        addToScope(Type("_uint32", {}, {}));
+        addToScope(Type("_float32", {}, {}));
+        addToScope(Type("_string", {}, {}));
 
         n->compStatement->accept(shared_from_this());
     }
 
-    // compound statement
+    // visit compound statement
     void visit(std::shared_ptr<Node::CompStatement> n) override {
         for (auto stmt : n->statements) {
             stmt->accept(shared_from_this());
@@ -171,7 +173,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         addToScope(Variable(n->name, n->type));
     }
 
-    // function definition
+    // visit function definition
     // @TODO: this violates visitor pattern. find a way to propagate the names and types up (return values)?
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
@@ -216,21 +218,21 @@ struct SemanticAnalyzerVisitor : Visitor {
         addToScope(Function(n->name, mangledName, n->returnType, parameters));
     }
 
-    // parameter list
+    // visit parameter list
     void visit(std::shared_ptr<Node::ParamList> n) override {}
 
-    // parameter
+    // visit parameter
     void visit(std::shared_ptr<Node::Parameter> n) override {
         // @TODO: verify types
     }
 
-    // assignment
+    // visit assignment
     void visit(std::shared_ptr<Node::Assignment> n) override {
         // name check lhs
         // type check, match lhs & rhs
     }
 
-    // return
+    // visit return
     void visit(std::shared_ptr<Node::Return> n) override {
         // type check
         std::string functionType = symbolTable.back().functions.back().returnType;
@@ -238,7 +240,8 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
-    void exprHelper(std::shared_ptr<Node::Expr> n) {
+    // a for common expression functionality
+    void process(std::shared_ptr<Node::Expr> n) {
         n->LHS->accept(shared_from_this());
         n->RHS->accept(shared_from_this());
 
@@ -258,38 +261,50 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::EqualityExpr> n) override {
-        exprHelper(n);
+        process(n);
     }
 
     void visit(std::shared_ptr<Node::RelationExpr> n) override {
-        exprHelper(n);
+        process(n);
     }
 
     void visit(std::shared_ptr<Node::ShiftExpr> n) override {
-        exprHelper(n);
+        process(n);
     }
 
     void visit(std::shared_ptr<Node::AdditionExpr> n) override {
-        exprHelper(n);
+        process(n);
     }
 
     void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
-        exprHelper(n);
+        process(n);
     }
 
     void visit(std::shared_ptr<Node::DotExpr> n) override {
-        exprHelper(n);
+        process(n);
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
-    // int literal
+    // visit int literal
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
         // expression stack
         exprTypes.push_back("_uint32");
     }
+
+    // visit float literal
+    void visit(std::shared_ptr<Node::FloatLiteral> n) override {
+        // expression stack
+        exprTypes.push_back("_float32");
+    }
+
+    // visit string literal
+    void visit(std::shared_ptr<Node::StringLiteral> n) override {
+        // expression stack
+        exprTypes.push_back("_string");
+    }
     
-    // variable
+    // visit variable
     void visit(std::shared_ptr<Node::Variable> n) override {
         // exists?; if in function, don't capture external variables, so check only most recent function scope
         bool functionFound = false;
@@ -338,16 +353,16 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back(type);
     }
 
-    // call
+    // visit call
     void visit(std::shared_ptr<Node::Call> n) override {
         // ensure that call's type, number of args, call's args' types match the definition
         // expression stack
     }
 
-    // call arguments
+    // visit call arguments
     void visit(std::shared_ptr<Node::CallArgs> n) override {}
 
-    // type definition
+    // visit type definition
     void visit(std::shared_ptr<Node::TypeDefn> n) override {
         // name check
         if (findType(n->name)) {

@@ -291,6 +291,16 @@ struct Parser {
             return std::make_shared<Node::IntLiteral>(consume(Token::intLiteral));
         }
 
+        // float literal
+        else if (*it == Token::floatLiteral) {
+            return std::make_shared<Node::FloatLiteral>(consume(Token::floatLiteral));
+        }
+
+        // string literal
+        else if (*it == Token::doubleQuoteString) {
+            return std::make_shared<Node::StringLiteral>(consume(Token::doubleQuoteString));
+        }
+
         // identifier, call
         else if (*it == Token::identifier) {
 
@@ -303,6 +313,7 @@ struct Parser {
             return std::make_shared<Node::Variable>(consume(Token::identifier));
         }
 
+        // @TODO: disallow paren expressions after dot operator. maybe in semantic analyzer?
         // ( expr )
         else if (*it == Token::openParen) {
             discard(Token::openParen);
@@ -313,7 +324,7 @@ struct Parser {
         }
 
         else {
-            std::cout << "Primaries are only allowed to be integers and non-global variables (identifiers) right now.\n";
+            std::cout << "Primaries are only allowed to be variables, calls, and literals.\n";
             exit(1);
         }
     }

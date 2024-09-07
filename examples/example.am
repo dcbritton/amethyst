@@ -14,7 +14,7 @@ def func(a:_int32, b:_int32):T
 end
 
 class test
-    @a:_int32 = testname1
+    a:_int32 = testname1
     def func():_int32
         return 2*c
     end

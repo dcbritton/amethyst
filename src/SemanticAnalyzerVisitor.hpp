@@ -384,10 +384,6 @@ struct SemanticAnalyzerVisitor : Visitor {
         addToScope(Type(n->name, {}, {}));
     }
 
-    void visit(std::shared_ptr<Node::MemberDefn> n) override {
-
-    }
-
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
 
     void visit(std::shared_ptr<Node::WhileLoop> n) override {}

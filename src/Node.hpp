@@ -300,22 +300,6 @@ namespace Node {
         }
     };
 
-    // member definition
-    struct MemberDefn : Statement, std::enable_shared_from_this<MemberDefn> {
-        std::string name;
-        std::string type;
-        std::shared_ptr<Node> expression;
-
-        // constructor
-        MemberDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
-            : name(name), type(type), expression(expression) {}
-
-        // accept visitor
-        void accept(std::shared_ptr<Visitor> v) override {
-            v->visit(shared_from_this());
-        }
-    };
-
     // assignment
     struct Assignment : Statement, std::enable_shared_from_this<Assignment> {
         std::string lhs;

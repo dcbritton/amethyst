@@ -107,16 +107,16 @@ struct Parser {
         return std::make_shared<Node::Return>(expr);
     }
 
-    // type identifier [func_def | member_def]* end
+    // type identifier [var_def | func_def]* end
     std::shared_ptr<Node::TypeDefn> parseTypeDefn() {
         currentContext = "class definition";
 
         discard(Token::kwClass);
         std::string name = consume(Token::identifier);
         std::vector<std::shared_ptr<Node::Node>> members {};
-        while (*it == Token::at || *it == Token::kwDef) {
-            if (*it == Token::at) {
-                members.push_back(parseMemberDefn());
+        while (*it == Token::identifier || *it == Token::kwDef) {
+            if (*it == Token::identifier) {
+                members.push_back(parseVariableDefn());
             }
             else if (*it == Token::kwDef) {
                 members.push_back(parseFunctionDefn());
@@ -129,19 +129,6 @@ struct Parser {
         discard(Token::kwEnd);
 
         return std::make_shared<Node::TypeDefn>(name, members);
-    }
-
-    // @identifier:type_name = expr
-    std::shared_ptr<Node::MemberDefn> parseMemberDefn() {
-        
-        discard(Token::at);
-        std::string name = consume(Token::identifier);
-        discard(Token::colon);
-        std::string type = consume(Token::identifier);
-        discard(Token::opAssign);
-        auto expr = parseEqualityExpr();
-
-        return std::make_shared<Node::MemberDefn>(name, type, expr);
     }
 
     // def identifier(param_list):typename comp_stmt end

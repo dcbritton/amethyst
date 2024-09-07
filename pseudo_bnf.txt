@@ -64,9 +64,7 @@ func_name   -   identifier
 var_name    -   identifier
 type_name   -   identifier
 
-type_def    -   type identifier [func_def | member_def]* end
-
-member_def  -   @identifier:type_name = expr
+type_def    -   type identifier [var_def | func_def]* end
 
 func_def    -   def identifier(param_list):type_name comp_stmt end
 

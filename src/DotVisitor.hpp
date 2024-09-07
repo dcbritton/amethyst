@@ -435,25 +435,6 @@ struct DotVisitor : Visitor {
         }
     }
 
-    // visit member defn
-    void visit(std::shared_ptr<Node::MemberDefn> n) override {
-        int thisId = nodeId;
-        ++nodeId;
-
-        // create this node
-        dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "member_defn\n" << n->name << " : " << n->type
-                << "\"];\n";
-
-        // process child(ren)
-        int exprId = nodeId;
-        n->expression->accept(shared_from_this());
-
-        // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
-    }
-
     // visit conditional block
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {
         int thisId = nodeId;

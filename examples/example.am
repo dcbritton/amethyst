@@ -7,6 +7,8 @@ end
 
 def func(c:_int32, d:_int32):_int32
     b:_int32 = c + d * c
+    e:_float32 = 1.34
+    d = e
     return b
 end
 

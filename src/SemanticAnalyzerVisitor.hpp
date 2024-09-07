@@ -248,8 +248,61 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // visit assignment
     void visit(std::shared_ptr<Node::Assignment> n) override {
-        // name check lhs
-        // type check, match lhs & rhs
+
+        // exists?; if in function, don't capture external variables, so check only most recent function scope
+        bool functionFound = false;
+        auto functionCandidate = symbolTable.crbegin();
+        while (functionCandidate != symbolTable.crend()) {
+            if (functionCandidate->type == functionDefn) {
+                functionFound = true;
+                break;
+            }
+            ++functionCandidate;
+        }
+        // function scope is found, check only those
+        if (functionFound) {
+            bool variableFound = false;
+            for (const auto& variable : functionCandidate->variables) {
+                if (n->lhs == variable.name) {
+                    variableFound = true;
+                    break;
+                }
+            }
+            if (!variableFound) {
+                std::cout << "Variable " << n->lhs
+                        << " in function " << functionCandidate->functions.back().name
+                        << " has not been defined in function scope, and cannot be assigned.\n";
+                exit(1);
+            }
+        }
+        // otherwise, lhs check as normal
+        else {
+            if (!findVariable(n->lhs)) {
+                std::cout << "Variable " << n->lhs << " has not been defined.\n";
+                exit(1);
+            }
+        }
+
+        // find type
+        std::string type;
+        for (const auto& scope : symbolTable) {
+            for (const auto& variable : scope.variables) {
+                if (n->lhs == variable.name)
+                    type = variable.type;
+            }
+        }
+
+       // match lhs and rhs type
+        n->expr->accept(shared_from_this());
+        if (exprTypes.back() != type) {
+            std::cout << "In an assignment of variable " << n->lhs
+                      << ", the given type " << type
+                      << " does not match the expression type " << exprTypes.back()
+                      << ".\n";
+            exit(1);
+        }
+        // empty the stack
+        exprTypes.pop_back();
     }
 
     // visit return
@@ -277,7 +330,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
-    // a for common expression functionality
+    // a method for common expression functionality
     void process(std::shared_ptr<Node::Expr> n) {
         n->LHS->accept(shared_from_this());
         n->RHS->accept(shared_from_this());

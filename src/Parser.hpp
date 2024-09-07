@@ -138,12 +138,9 @@ struct Parser {
         discard(Token::kwDef);
         std::string name = consume(Token::identifier);
         discard(Token::openParen);
-
         std::shared_ptr<Node::ParamList> parameters = nullptr;
-        if (*(it) != Token::closeParen)
-            parameters = parseParamList();
+        parameters = parseParamList();
         discard(Token::closeParen);
-        
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
         // discard(Token::terminator);
@@ -158,11 +155,13 @@ struct Parser {
         currentContext = "parameter list";
 
         std::vector<std::shared_ptr<Node::Parameter>> parameters;
-        while (*(it+3) == Token::comma) {
+        while (*it != Token::closeParen) {
             parameters.push_back(parseParameter());
+            if (*it == Token::closeParen)
+                break;
             discard(Token::comma);
         }
-        parameters.push_back(parseParameter());
+
         return std::make_shared<Node::ParamList>(parameters);
     }
 

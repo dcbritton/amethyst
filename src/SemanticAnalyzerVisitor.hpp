@@ -113,6 +113,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         symbolTable.push_back(Scope(global));
         // @TODO: predefined variables, functions, types may go here with addToScope()
         addToScope(Type("_int32", {}, {}));
+        addToScope(Function("main", "main!_int32", "_int32", {}));
         addToScope(Type("_float32", {}, {}));
         addToScope(Type("_string", {}, {}));
 
@@ -185,6 +186,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     // @TODO: this violates visitor pattern. find a way to propagate the names and types up (return values)?
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
+        n->paramList->accept(shared_from_this());
         std::vector<Variable> parameters = {};
         std::string mangledName = n->name + "!" + n->returnType;
         for (const auto& parameter : n->paramList->parameters) {
@@ -227,11 +229,21 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit parameter list
-    void visit(std::shared_ptr<Node::ParamList> n) override {}
+    void visit(std::shared_ptr<Node::ParamList> n) override {
+        for (const auto& parameter : n->parameters) {
+            parameter->accept(shared_from_this());
+        }
+    }
 
     // visit parameter
     void visit(std::shared_ptr<Node::Parameter> n) override {
-        // @TODO: verify types
+        // type exists?
+        if (!findType(n->type)) {
+            std::cout << "The given type " << n->type
+                      << " of parameter " << n->name
+                      << " has not yet been defined.\n";
+            exit(1);
+        }
     }
 
     // visit assignment
@@ -242,8 +254,25 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // visit return
     void visit(std::shared_ptr<Node::Return> n) override {
-        // type check
+
+        // process expression
+        n->expr->accept(shared_from_this());
+        
+        // @TODO: this assumes there are no function definitions allowed in functions
+        // add a current function stack & redo functionCandidate when done
+
+        // match return type to expression type
         std::string functionType = symbolTable.back().functions.back().returnType;
+        if (functionType != exprTypes.back()) {
+            std::cout << "In a return in the function " << symbolTable.back().functions.back().name
+                        << ", the function's return type " << functionType
+                        << " does not match the expression type " << exprTypes.back()
+                        << ".\n";
+            exit(1);
+        }
+
+        // empty the stack
+        exprTypes.pop_back();
     }
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
@@ -377,10 +406,11 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::cout << "Type " << n->name << " is already defined.\n";
             exit(1);
         }
-        // process members
+
+        // @TODO: process members
+        // @TODO: process methods
 
         // add
-        // @TODO: process members
         addToScope(Type(n->name, {}, {}));
     }
 

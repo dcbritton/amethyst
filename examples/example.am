@@ -2,7 +2,8 @@ a:_int32 = 1 + 1
 b:_float32 = 1.2 + 1.23
 c:_string = "" + "a"
 
-class T end
+class T
+end
 
 def func(c:_int32, d:_int32):_int32
     b:_int32 = c + d * c
@@ -15,9 +16,7 @@ end
 
 class test
     a:_int32 = testname1
-    def func():_int32
-        return 2*c
-    end
+
 end
 
 if a + b

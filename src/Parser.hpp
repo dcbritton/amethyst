@@ -260,11 +260,21 @@ struct Parser {
     std::shared_ptr<Node::Node> parseDotExpr() {
         auto lhs = parsePrimary();
 
-        while (*it == Token::opDot) {
-            discard(Token::opDot);
-            auto rhs = parsePrimary();
-
-            lhs = std::make_shared<Node::DotExpr>(lhs, ".", rhs);
+        while (true) {
+            if (*it == Token::opDot) {
+                discard(Token::opDot);
+                auto rhs = parsePrimary();
+                lhs = std::make_shared<Node::DotExpr>(lhs, ".", rhs);
+            }
+            else if (*it == Token::openBracket) {
+                discard(Token::openBracket);
+                auto rhs = parseEqualityExpr();
+                lhs = std::make_shared<Node::DotExpr>(lhs, "[]", rhs);
+                discard(Token::closeBracket);
+            }
+            else {
+                break;
+            }
         }
         // otherwise, lhs is the main node
         return lhs;

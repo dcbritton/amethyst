@@ -24,36 +24,37 @@ assignment  -   identifier = expr
 
 var_def     -   identifier:type_name = expr
 
-eq_expr     -   rel_expr
-            |   eq_expr == rel_expr
-	        |   eq_expr != rel_expr
+    eq_expr     -   rel_expr
+                |   eq_expr == rel_expr
+                |   eq_expr != rel_expr
 
-rel_expr    -   shift_expr
-	        |   rel_expr < shift_expr
-	        |   rel_expr > shift_expr
-	        |   rel_expr <= shift_expr
-	        |   rel_expr >= shift_expr
+    rel_expr    -   shift_expr
+                |   rel_expr < shift_expr
+                |   rel_expr > shift_expr
+                |   rel_expr <= shift_expr
+                |   rel_expr >= shift_expr
 
-shift_expr  -   add_expr
-	        |   shift_expr << add_expr
-	        |   shift_expr >> add_expr
+    shift_expr  -   add_expr
+                |   shift_expr << add_expr
+                |   shift_expr >> add_expr
 
-add_expr    -   mult_expr
-	        |   add_expr + mult_expr
-	        |   add_expr - mult_expr  
+    add_expr    -   mult_expr
+                |   add_expr + mult_expr
+                |   add_expr - mult_expr  
 
-mult_expr   -   dot_expr
-            |   mult_expr * dot_expr
-	        |   mult_expr / dot_expr
-	        |   mult_expr % dot_expr
+    mult_expr   -   dot_expr
+                |   mult_expr * dot_expr
+                |   mult_expr / dot_expr
+                |   mult_expr % dot_expr
 
-dot_expr    -   primary
-            |   dot_expr . primary
+    dot_expr    -   primary
+                |   dot_expr . primary
+                |   dot_expr [eq_expr]
 
-primary     -   (expr)
-            |   call
-            |   literal
-            |   var_name
+    primary     -   (expr)
+                |   call
+                |   literal
+                |   var_name
 
 call        -   func_name call_args
             -   func_name(call_args)

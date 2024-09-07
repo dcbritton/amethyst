@@ -204,7 +204,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "."
+                << n->op
                 << "\"];\n";
 
         // process child(ren)

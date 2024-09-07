@@ -296,7 +296,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->expr->accept(shared_from_this());
         if (exprTypes.back() != type) {
             std::cout << "In an assignment of variable " << n->lhs
-                      << ", the given type " << type
+                      << ", its type " << type
                       << " does not match the expression type " << exprTypes.back()
                       << ".\n";
             exit(1);
@@ -391,6 +391,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit string literal
     void visit(std::shared_ptr<Node::StringLiteral> n) override {
         // expression stack
+        // @TODO: should in fact be an array of char/_uint8
         exprTypes.push_back("_string");
     }
     

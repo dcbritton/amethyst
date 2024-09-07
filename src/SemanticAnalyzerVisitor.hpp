@@ -113,7 +113,6 @@ struct SemanticAnalyzerVisitor : Visitor {
         symbolTable.push_back(Scope(global));
         // @TODO: predefined variables, functions, types may go here with addToScope()
         addToScope(Type("_int32", {}, {}));
-        addToScope(Function("main", "main!_int32", "_int32", {}));
         addToScope(Type("_float32", {}, {}));
         addToScope(Type("_string", {}, {}));
 
@@ -183,12 +182,12 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit function definition
-    // @TODO: this violates visitor pattern. find a way to propagate the names and types up (return values)?
+    // @TODO: this violates visitor pattern. find a way to propagate the names and types up
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
         n->paramList->accept(shared_from_this());
         std::vector<Variable> parameters = {};
-        std::string mangledName = n->name + "!" + n->returnType;
+        std::string mangledName = n->name;
         for (const auto& parameter : n->paramList->parameters) {
             parameters.push_back(Variable(parameter->name, parameter->type));
             mangledName += "@" + parameter->type;
@@ -204,7 +203,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // name check 
         if (findFunction(mangledName)) {
-            std::cout << "Function " << n->name << " is defined more than once with the same return type and parameter types.\n"
+            std::cout << "Function " << n->name << " is defined more than once with the same parameter types.\n"
                       << "(Mangled: " << mangledName << ")\n";
             exit(1);    
         }
@@ -371,6 +370,10 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::DotExpr> n) override {
+        // @TODO: type inside [] does not have to match outside
+        // requires special interaction with call stack
+        // @TODO: make sure lhs of . has member rhs
+        // no calls on rhs for now, no (expr), no literals, etc 
         process(n);
     }
 
@@ -445,13 +448,48 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit call
+    // @TODO: this violates visitor pattern.
     void visit(std::shared_ptr<Node::Call> n) override {
-        // ensure that call's type, number of args, call's args' types match the definition
+        // determine argument expression types & deal with expr stack
+        std::vector<std::string> types = {};
+        for (auto& expr : n->args->exprs) {
+            expr->accept(shared_from_this());
+            types.push_back(exprTypes.back());
+            exprTypes.pop_back();
+        }
+
+        // create function signature
+        std::string signature = n->name;
+        for (const std::string& type : types) {
+            signature += "@" + type;
+        }
+
+        // function exists?
+        if (!findFunction(signature)) {
+            std::cout << "Could not find a matching definition for call with signature " << signature << ".\n";
+            exit(1);
+        }
+
+        // get type
+        std::string type;
+        for (const auto& scope : symbolTable) {
+            for (const auto& function : scope.functions) {
+                if (signature == function.signature) {
+                    type = function.returnType;
+                    break;
+                }
+            }
+        }
+
         // expression stack
+        exprTypes.push_back(type);
     }
 
-    // visit call arguments
-    void visit(std::shared_ptr<Node::CallArgs> n) override {}
+    // visit call args
+    // @TODO: violation of visitor pattern, never called
+    void visit(std::shared_ptr<Node::CallArgs> n) override {
+
+    }
 
     // visit type definition
     void visit(std::shared_ptr<Node::TypeDefn> n) override {

@@ -112,7 +112,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     void visit(std::shared_ptr<Node::Program> n) override {
         symbolTable.push_back(Scope(global));
         // @TODO: predefined variables, functions, types may go here with addToScope()
-        addToScope(Type("_uint32", {}, {}));
+        addToScope(Type("_int32", {}, {}));
         addToScope(Type("_float32", {}, {}));
         addToScope(Type("_string", {}, {}));
 
@@ -157,7 +157,15 @@ struct SemanticAnalyzerVisitor : Visitor {
             }
         }
 
-        // type check, match lhs and rhs
+        // does n->type exist?
+        if (!findType(n->type)) {
+            std::cout << "The given type " << n->type
+                      << " of variable " << n->name
+                      << " has not yet been defined.\n";
+            exit(1);
+        }
+        
+        // match lhs and rhs type
         n->expression->accept(shared_from_this());
         if (exprTypes.back() != n->type) {
             std::cout << "In the definition of variable " << n->name
@@ -289,7 +297,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit int literal
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
         // expression stack
-        exprTypes.push_back("_uint32");
+        exprTypes.push_back("_int32");
     }
 
     // visit float literal

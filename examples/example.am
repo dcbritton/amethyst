@@ -1,11 +1,11 @@
-a:_uint32 = 1 + 1
+a:_int32 = 1 + 1
 b:_float32 = 1.2 + 1.23
 c:_string = "" + "a"
 
 class T end
 
-def func(c:_uint32, d:_uint32):_uint32
-    b:_uint32 = c + d * c
+def func(c:_int32, d:_int32):_int32
+    b:_int32 = c + d * c
     return b
 end
 

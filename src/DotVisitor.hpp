@@ -74,7 +74,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "Define " << n->type << " " << n->name
+                << "var_def\n" << n->name << " : " << n->type
                 << "\"];\n";
 
         // process child(ren)
@@ -336,7 +336,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "Define " << n->name << " " << n->returnType
+                << "func_def\n" << n->name << " : " << n->returnType
                 << "\"];\n";
 
         // process child(ren)
@@ -436,7 +436,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "define type\n " << n->name
+                << "type_def\n " << n->name
                 << "\"];\n";
 
         // process child(ren)

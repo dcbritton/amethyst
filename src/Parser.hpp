@@ -54,7 +54,7 @@ struct Parser {
                 statements.push_back(parseFunctionDefn());
             }
 
-            // expression
+            //  @TODO: expression
 
             // type definition
             else if (*it == Token::kwClass) {
@@ -319,34 +319,43 @@ struct Parser {
             return subExpr;
         }
 
+        // array
+        else if (*it == Token::openBracket) {
+            discard(Token::openBracket);
+            auto exprs = parseExprList();
+            discard(Token::closeBracket);
+
+            return std::make_shared<Node::Array>(exprs);
+        }
+
         else {
-            std::cout << "Primaries are only allowed to be variables, calls, and literals.\n";
+            std::cout << "Primaries are only allowed to be variables, calls, and literals. Got token" << it->toString() << " instead.\n";
             exit(1);
         }
     }
 
-    // func_name(call_args)
+    // func_name(expr_list)
     std::shared_ptr<Node::Call> parseCall() {
         std::string name = consume(Token::identifier);
         discard(Token::openParen);
-        auto callArgs = parseCallArgs();
+        auto callArgs = parseExprList();
         discard(Token::closeParen);
 
         return std::make_shared<Node::Call>(name, callArgs);
     }
 
     // [expr, ]* expr 
-    std::shared_ptr<Node::CallArgs> parseCallArgs() {
+    std::shared_ptr<Node::ExprList> parseExprList() {
 
         std::vector<std::shared_ptr<Node::Node>> exprs = {};
-        while (*it != Token::closeParen) {
+        while (*it != Token::closeParen && *it != Token::closeBracket) {
             exprs.push_back(parseEqualityExpr());
-            if (*it == Token::closeParen)
+            if (*it == Token::closeParen || *it == Token::closeBracket)
                 break;
             discard(Token::comma);
         }
 
-        return std::make_shared<Node::CallArgs>(exprs);
+        return std::make_shared<Node::ExprList>(exprs);
     }
 
     // identifier:typename = expression

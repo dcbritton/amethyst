@@ -24,42 +24,44 @@ assignment  -   identifier = expr
 
 var_def     -   identifier:type_name = expr
 
-    eq_expr     -   rel_expr
-                |   eq_expr == rel_expr
-                |   eq_expr != rel_expr
+eq_expr     -   rel_expr
+            |   eq_expr == rel_expr
+            |   eq_expr != rel_expr
 
-    rel_expr    -   shift_expr
-                |   rel_expr < shift_expr
-                |   rel_expr > shift_expr
-                |   rel_expr <= shift_expr
-                |   rel_expr >= shift_expr
+rel_expr    -   shift_expr
+            |   rel_expr < shift_expr
+            |   rel_expr > shift_expr
+            |   rel_expr <= shift_expr
+            |   rel_expr >= shift_expr
 
-    shift_expr  -   add_expr
-                |   shift_expr << add_expr
-                |   shift_expr >> add_expr
+shift_expr  -   add_expr
+            |   shift_expr << add_expr
+            |   shift_expr >> add_expr
 
-    add_expr    -   mult_expr
-                |   add_expr + mult_expr
-                |   add_expr - mult_expr  
+add_expr    -   mult_expr
+            |   add_expr + mult_expr
+            |   add_expr - mult_expr  
 
-    mult_expr   -   dot_expr
-                |   mult_expr * dot_expr
-                |   mult_expr / dot_expr
-                |   mult_expr % dot_expr
+mult_expr   -   dot_expr
+            |   mult_expr * dot_expr
+            |   mult_expr / dot_expr
+            |   mult_expr % dot_expr
 
-    dot_expr    -   primary
-                |   dot_expr . primary
-                |   dot_expr [eq_expr]
+dot_expr    -   primary
+            |   dot_expr . primary
+            |   dot_expr [ eq_expr ]
 
-    primary     -   (expr)
-                |   call
-                |   literal
-                |   var_name
+primary     -   ( expr )
+            |   call
+            |   literal
+            |   var_name
+            |   array
 
-call        -   func_name call_args
-            -   func_name(call_args)
+array       -   [ expr_list ]
 
-call_args   -   [expr, ]* expr 
+call        -   func_name ( expr_list )
+
+expr_list   -   [[expr ,]* expr] 
 
 func_name   -   identifier
 var_name    -   identifier
@@ -67,8 +69,8 @@ type_name   -   identifier
 
 type_def    -   type identifier [var_def | func_def]* end
 
-func_def    -   def identifier(param_list):type_name comp_stmt end
+func_def    -   def identifier ( param_list ) : type_name comp_stmt end
 
-param_list  -   [parameter, ]* parameter
+param_list  -   [[parameter, ]* parameter]
 
 parameter   -   identifier:type_name

@@ -31,8 +31,9 @@ namespace Node {
     struct ForLoop;
     struct WhileLoop;
     struct DotExpr;
-    struct CallArgs;
+    struct ExprList;
     struct Call;
+    struct Array;
 }
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
@@ -59,6 +60,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::Primary> n) {}
 
+    virtual void visit(std::shared_ptr<Node::Array> n) {}
+
     virtual void visit(std::shared_ptr<Node::IntLiteral> n) {}
 
     virtual void visit(std::shared_ptr<Node::FloatLiteral> n) {}
@@ -67,7 +70,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     
     virtual void visit(std::shared_ptr<Node::Variable> n) {}
 
-    virtual void visit(std::shared_ptr<Node::CallArgs> n) {}
+    virtual void visit(std::shared_ptr<Node::ExprList> n) {}
 
     virtual void visit(std::shared_ptr<Node::Call> n) {}
 

@@ -182,7 +182,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit function definition
-    // @TODO: this violates visitor pattern. find a way to propagate the names and types up
+    // @NOTE: this violates visitor pattern. find a way to propagate the names and types up
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
         n->paramList->accept(shared_from_this());
@@ -349,6 +349,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back(lhsType);
     }
 
+    // @TODO: every kind of expr needs to check lhs and rhs against available operator overloads
     void visit(std::shared_ptr<Node::EqualityExpr> n) override {
         process(n);
     }
@@ -378,6 +379,36 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
+
+    // visit array
+    // @NOTE: violates visitor pattern
+    void visit(std::shared_ptr<Node::Array> n) override {
+        // verify types consistency across all elements
+        std::vector<std::string> types;
+        for (auto& expr : n->exprs->exprs) {
+            expr->accept(shared_from_this());
+            types.push_back(exprTypes.back());
+            exprTypes.pop_back();
+        }
+        if (!types.empty()) {
+            std::string firstType = types.front();
+            for (const auto& type : types) {
+                if (type != firstType) {
+                    std::cout << "In an array literal, the 1st element is of type " << firstType
+                              << ", but another element is of type " << type << ".\n";
+                    exit(1);
+                }
+            }
+        }
+
+        // expr stack
+        if (types.empty()) {
+            exprTypes.push_back("any&0");
+        }
+        else {
+            exprTypes.push_back(types.front() + "&" + std::to_string(types.size()));
+        }
+    }
 
     // visit int literal
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
@@ -448,7 +479,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit call
-    // @TODO: this violates visitor pattern.
+    // @NOTE: this violates visitor pattern.
     void visit(std::shared_ptr<Node::Call> n) override {
         // determine argument expression types & deal with expr stack
         std::vector<std::string> types = {};
@@ -486,8 +517,8 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit call args
-    // @TODO: violation of visitor pattern, never called
-    void visit(std::shared_ptr<Node::CallArgs> n) override {
+    // @NOTE: violation of visitor pattern, never called
+    void visit(std::shared_ptr<Node::ExprList> n) override {
 
     }
 

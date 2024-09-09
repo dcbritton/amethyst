@@ -220,6 +220,24 @@ struct DotVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
+    // visit array
+    void visit(std::shared_ptr<Node::Array> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "[ ... ]\"];\n";
+
+        // process child(ren)
+        int exprsId = nodeId;
+        n->exprs->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprsId) << ";\n";
+    }
+
     // visit call
     virtual void visit(std::shared_ptr<Node::Call> n) {
         int thisId = nodeId;
@@ -239,26 +257,25 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(argsId) << ";\n";
     }
 
-    // visit call args
-    virtual void visit(std::shared_ptr<Node::CallArgs> n) {
+    // visit expr list
+    virtual void visit(std::shared_ptr<Node::ExprList> n) {
         int thisId = nodeId;
         ++nodeId;
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "args\n"
-                << "\"];\n";
+                << "exprs\"];\n";
 
         // process child(ren)
-        std::vector<int> argIds = {};
+        std::vector<int> exprIds = {};
         for (auto arg : n->exprs) {
-            argIds.push_back(nodeId);
+            exprIds.push_back(nodeId);
             arg->accept(shared_from_this());
         }
 
         // connect child(ren) to this node
-        for (auto id : argIds) {
+        for (auto id : exprIds) {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
     }

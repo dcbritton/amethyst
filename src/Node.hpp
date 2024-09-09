@@ -138,12 +138,25 @@ namespace Node {
 
     };
 
-    // call args
-    struct CallArgs : Node, std::enable_shared_from_this<CallArgs> {
+    // array
+    struct Array : Primary, std::enable_shared_from_this<Array> {
+        std::shared_ptr<ExprList> exprs;
+
+        Array(std::shared_ptr<ExprList> exprs)
+            : exprs(exprs) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
+    // expr list
+    struct ExprList : Node, std::enable_shared_from_this<ExprList> {
         std::vector<std::shared_ptr<Node>> exprs;
 
         // constructor
-        CallArgs(const std::vector<std::shared_ptr<Node>>& exprs)
+        ExprList(const std::vector<std::shared_ptr<Node>>& exprs)
             : exprs(exprs) {}
 
         // accept
@@ -155,10 +168,10 @@ namespace Node {
     // call
     struct Call : Primary, std::enable_shared_from_this<Call> {
         std::string name;
-        std::shared_ptr<CallArgs> args;
+        std::shared_ptr<ExprList> args;
 
         // constructor
-        Call(const std::string& name, std::shared_ptr<CallArgs> args)
+        Call(const std::string& name, std::shared_ptr<ExprList> args)
             : name(name), args(args) {}
 
         // accept

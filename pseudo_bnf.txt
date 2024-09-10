@@ -20,9 +20,13 @@ conditional -   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
             
 return_stmt -   return eq_expr
 
-assignment  -   identifier = expr
+assignment  -   identifier op_assgn expr
 
 var_def     -   identifier:type_name = expr
+
+logic_expr  -   eq_expr
+            |   logic_expr and eq_expr   
+            |   logic_expr or eq_expr
 
 eq_expr     -   rel_expr
             |   eq_expr == rel_expr
@@ -67,10 +71,17 @@ func_name   -   identifier
 var_name    -   identifier
 type_name   -   identifier
 
-type_def    -   type identifier [var_def | func_def]* end
+type_def    -   type identifier [var_def | op_def]* end
+
+op_def      -   op operator ( param_list ) : 
 
 func_def    -   def identifier ( param_list ) : type_name comp_stmt end
 
 param_list  -   [[parameter, ]* parameter]
 
 parameter   -   identifier:type_name
+
+op_assgn    -   +=
+            |   -=
+            |   *=  
+            |   etc...

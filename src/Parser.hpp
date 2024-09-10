@@ -94,7 +94,7 @@ struct Parser {
     std::shared_ptr<Node::Assignment> parseAssignment() {
         std::string name = consume(Token::identifier);
         discard(Token::opAssign);
-        auto expr = parseEqualityExpr();
+        auto expr = parseLogicalExpr();
 
         return std::make_shared<Node::Assignment>(name, expr);
     }
@@ -102,7 +102,7 @@ struct Parser {
     // return expr
     std::shared_ptr<Node::Return> parseReturn() {
         discard(Token::kwReturn);
-        auto expr = parseEqualityExpr();
+        auto expr = parseLogicalExpr();
 
         return std::make_shared<Node::Return>(expr);
     }
@@ -174,6 +174,19 @@ struct Parser {
         std::string type = consume(Token::identifier);
 
         return std::make_shared<Node::Parameter>(name, type);
+    }
+
+    // parseLogicalExpr
+    std::shared_ptr<Node::Node> parseLogicalExpr() {
+
+        std::shared_ptr<Node::Node> LHS = parseRelationExpr();
+        while (*it == Token::kwAnd || *it == Token::kwOr) {
+            std::string op = (*it == Token::kwAnd) ? consume(Token::kwAnd) : consume(Token::kwOr );
+            auto RHS = parseRelationExpr();
+            LHS = std::make_shared<Node::LogicalExpr>(LHS, op, RHS);
+        }
+
+        return LHS;
     }
 
     // parseEqualityExpr
@@ -267,7 +280,7 @@ struct Parser {
             }
             else if (*it == Token::openBracket) {
                 discard(Token::openBracket);
-                auto rhs = parseEqualityExpr();
+                auto rhs = parseLogicalExpr();
                 lhs = std::make_shared<Node::DotExpr>(lhs, "[]", rhs);
                 discard(Token::closeBracket);
             }
@@ -313,7 +326,7 @@ struct Parser {
         // ( expr )
         else if (*it == Token::openParen) {
             discard(Token::openParen);
-            auto subExpr = parseEqualityExpr();
+            auto subExpr = parseLogicalExpr();
             discard(Token::closeParen);
 
             return subExpr;
@@ -349,7 +362,7 @@ struct Parser {
 
         std::vector<std::shared_ptr<Node::Node>> exprs = {};
         while (*it != Token::closeParen && *it != Token::closeBracket) {
-            exprs.push_back(parseEqualityExpr());
+            exprs.push_back(parseLogicalExpr());
             if (*it == Token::closeParen || *it == Token::closeBracket)
                 break;
             discard(Token::comma);
@@ -366,7 +379,7 @@ struct Parser {
         discard(Token::colon);
         std::string type = consume(Token::identifier);
         discard(Token::opAssign);
-        auto expression = parseEqualityExpr();
+        auto expression = parseLogicalExpr();
 
         scopes.top().insert({name, type});
         return std::make_shared<Node::VariableDefn>(name, type, expression);
@@ -377,12 +390,12 @@ struct Parser {
         currentContext = "conditional block";
 
         discard(Token::kwIf);
-        auto ifExpr = parseEqualityExpr();
+        auto ifExpr = parseLogicalExpr();
         auto ifStmt = parseCompStatement();
         std::vector<std::pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::CompStatement>>> elsifs;
         while(*it == Token::kwElsif) {
             discard(Token::kwElsif);
-            auto expr = parseEqualityExpr();
+            auto expr = parseLogicalExpr();
             auto stmts = parseCompStatement();
             // @TODO: come back to this and figure out why it wont work without std::move()
             elsifs.push_back(std::make_pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::CompStatement>>(std::move(expr), std::move(stmts)));
@@ -402,7 +415,7 @@ struct Parser {
         currentContext = "while loop";
 
         discard(Token::kwWhile);
-        auto expr = parseEqualityExpr();
+        auto expr = parseLogicalExpr();
         discard(Token::kwDo);
         auto stmts = parseCompStatement();
         discard(Token::kwEnd);

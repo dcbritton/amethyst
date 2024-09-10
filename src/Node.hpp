@@ -60,6 +60,18 @@ namespace Node {
             : LHS(LHS), op(op), RHS(RHS) {}
     };
 
+    struct LogicalExpr : Expr, std::enable_shared_from_this<LogicalExpr> {
+
+        // constructor
+        LogicalExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+            : Expr(LHS, op, RHS) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     struct EqualityExpr : Expr, std::enable_shared_from_this<EqualityExpr> {
 
         // constructor

@@ -10,6 +10,7 @@ namespace Node {
     struct Statement;
     struct Program;
     struct CompStatement;
+    struct LogicalExpr;
     struct EqualityExpr;
     struct RelationExpr;
     struct ShiftExpr;
@@ -45,6 +46,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Statement> n) {}
 
     virtual void visit(std::shared_ptr<Node::CompStatement> n) {}
+
+    virtual void visit(std::shared_ptr<Node::LogicalExpr> n) {}
 
     virtual void visit(std::shared_ptr<Node::EqualityExpr> n) {}
 

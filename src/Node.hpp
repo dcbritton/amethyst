@@ -325,6 +325,22 @@ namespace Node {
         }
     };
 
+    // operator overload
+    struct OperatorOverload : Statement, std::enable_shared_from_this<OperatorOverload> {
+        std::string op;
+        std::shared_ptr<Parameter> parameter;
+        std::string returnType;
+        std::shared_ptr<CompStatement> stmts;
+
+        OperatorOverload(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<CompStatement> stmts)
+            : op(op), parameter(parameter), returnType(returnType), stmts(stmts) {}
+
+        // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     // assignment
     struct Assignment : Statement, std::enable_shared_from_this<Assignment> {
         std::string lhs;

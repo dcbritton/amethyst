@@ -46,6 +46,7 @@ private:
         // // {"Array", kwArray},
         // // {"_int32", kw_int32},
         // // {"_int32", kw_float32},
+        {"op", Token::kwOp},
         {"BEGIN", Token::kwBEGIN},
         {"END", Token::kwEND},
         // {"alias", kwAlias},

@@ -17,10 +17,8 @@ struct Token {
         backtickString,
 
         // operators
-        opRangeExcl,
-        opRangeIncl,
+        opNot,
         opDot,
-        opCaseEquality,
         opEquality,
         opPlus,
         opMinus,
@@ -34,13 +32,16 @@ struct Token {
         opBitwiseXor,
         opLeftShift,
         opRightShift,
-        opNot,
         opNotEquals,
         opLessThan,
         opLessThanOrEqual,
         opGreaterThan,
         opGreaterThanOrEqual,
+        
         opSpaceship,
+        opRangeExcl,
+        opRangeIncl,
+        opCaseEquality,
 
         // assignments
         opPlusAssign,

@@ -350,7 +350,6 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // @TODO: every kind of expr needs to check lhs and rhs against available operator overloads
-
     void visit(std::shared_ptr<Node::LogicalExpr> n) override {
         process(n);
     }

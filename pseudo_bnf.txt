@@ -73,7 +73,7 @@ type_name   -   identifier
 
 type_def    -   type identifier [var_def | op_def]* end
 
-op_def      -   op operator ( param_list ) : 
+op_def      -   op operator ( parameter ) : typename comp_stmt end
 
 func_def    -   def identifier ( param_list ) : type_name comp_stmt end
 

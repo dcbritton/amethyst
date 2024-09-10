@@ -107,28 +107,55 @@ struct Parser {
         return std::make_shared<Node::Return>(expr);
     }
 
-    // type identifier [var_def | func_def]* end
+    // type identifier [var_def | op_def | func_def]* end
     std::shared_ptr<Node::TypeDefn> parseTypeDefn() {
         currentContext = "class definition";
 
         discard(Token::kwClass);
         std::string name = consume(Token::identifier);
         std::vector<std::shared_ptr<Node::Node>> members {};
-        while (*it == Token::identifier || *it == Token::kwDef) {
+        while (*it == Token::identifier || *it == Token::kwDef || *it == Token::kwOp) {
             if (*it == Token::identifier) {
                 members.push_back(parseVariableDefn());
             }
             else if (*it == Token::kwDef) {
                 members.push_back(parseFunctionDefn());
             }
+            else if (*it == Token::kwOp) {
+                members.push_back(parseOperatorOverload());
+            }
             else {
                 std::cout << "Parser error in definition of type " << name
-                          << ". Expecting tokens 'def' or '@'.\n";
+                          << ". Expecting tokens 'def', 'op', identifier, or 'end'.\n";
             }
         }
         discard(Token::kwEnd);
 
         return std::make_shared<Node::TypeDefn>(name, members);
+    }
+
+    // op operator ( parameter ) : typename comp_stmt end
+    std::shared_ptr<Node::OperatorOverload> parseOperatorOverload() {
+
+        discard(Token::kwOp);
+
+        // consume the operator
+        if (*it != Token::kwAnd && *it != Token::kwOr && (*it < Token::opDot || *it > Token::opGreaterThanOrEqual)) {
+             std::cout << "Parser error in " << currentContext << " on line " << it->lineNumber
+                       <<  ". Expected an operator. Got " << it->toString() << " " << it->value << " instead.\n";
+            exit(1);
+        }
+        std::string op = consume(*it);
+
+        discard(Token::openParen);
+        auto parameter = parseParameter();
+        discard(Token::closeParen);
+        discard(Token::colon);
+        std::string type = consume(Token::identifier);
+        auto stmts = parseCompStatement();
+        discard(Token::kwEnd);
+
+        return std::make_shared<Node::OperatorOverload>(op, parameter, type, stmts);
     }
 
     // def identifier(param_list):typename comp_stmt end
@@ -206,8 +233,7 @@ struct Parser {
     std::shared_ptr<Node::Node> parseRelationExpr() {
         std::shared_ptr<Node::Node> LHS = parseShiftExpr();
         while (*it == Token::opGreaterThan || *it == Token::opGreaterThanOrEqual ||
-            *it == Token::opLessThan || *it == Token::opLessThanOrEqual ||
-            *it == Token::opSpaceship) {
+            *it == Token::opLessThan || *it == Token::opLessThanOrEqual) {
             std::string op;
             if (*it == Token::opGreaterThan) {
                 op = consume(Token::opGreaterThan);
@@ -217,8 +243,6 @@ struct Parser {
                 op = consume(Token::opLessThan);
             } else if (*it == Token::opLessThanOrEqual) {
                 op = consume(Token::opLessThanOrEqual);
-            } else if (*it == Token::opSpaceship) {
-                op = consume(Token::opSpaceship);
             }
             auto RHS = parseShiftExpr();
             LHS = std::make_shared<Node::RelationExpr>(LHS, op, RHS);
@@ -433,8 +457,8 @@ struct Parser {
         }
 
         if (*it != expectedType) {
-            std::cout << "Parser error in " + currentContext + " on line " + std::to_string(it->lineNumber)
-                      +  ". Expected token: " + Token(expectedType).toString() + ". Got " + it->toString() + " " + it->value + " instead.\n";
+            std::cout << "Parser error in " << currentContext << " on line " << std::to_string(it->lineNumber)
+                      <<  ". Expected token: " << Token(expectedType).toString() << ". Got " << it->toString() << " " << it->value << " instead.\n";
             exit(1);
         }
 
@@ -459,8 +483,8 @@ struct Parser {
         }
 
         if (*it != expectedType) {
-            std::cout << "Parser error in " + currentContext + " on line " + std::to_string(it->lineNumber)
-                      +  ". Expected token: " + Token(expectedType).toString() + ". Got " + it->toString() + " " + it->value + " instead.\n";
+            std::cout << "Parser error in " << currentContext << " on line " << std::to_string(it->lineNumber)
+                      <<  ". Expected token: " << Token(expectedType).toString() << ". Got " << it->toString() << " " << it->value << " instead.\n";
             exit(1);
         }
 
@@ -470,7 +494,7 @@ struct Parser {
         return (it-1)->value;
 
         // @TODO: remove placeholder
-        std::cout << "Placeholder for consume(Token::Type).  Got a " + (it-1)->toString() + ":  " + (it-1)->value + ". Exiting.\n";
+        std::cout << "Placeholder for consume(Token::Type).  Got a " << (it-1)->toString() << ":  " << (it-1)->value << ". Exiting.\n";
         exit(1);
     }
 

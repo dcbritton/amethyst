@@ -238,17 +238,17 @@ public:
 
             // dot operator AND ranges
             else if (*it == '.') {
-                if (*(it+1) == '.') {
-                    if(*(it+2) == '.') {
-                        tokens.push_back(Token(Token::opRangeExcl, "...", lineNumber));
-                        it += 3;
-                        continue;              
-                    }
+                // if (*(it+1) == '.') {
+                //     if(*(it+2) == '.') {
+                //         tokens.push_back(Token(Token::opRangeExcl, "...", lineNumber));
+                //         it += 3;
+                //         continue;              
+                //     }
 
-                    tokens.push_back(Token(Token::opRangeIncl, "..", lineNumber));
-                    it += 2;
-                    continue;
-                }
+                //     tokens.push_back(Token(Token::opRangeIncl, "..", lineNumber));
+                //     it += 2;
+                //     continue;
+                // }
 
                 tokens.push_back(Token(Token::opDot, ".", lineNumber));
                 ++it;
@@ -258,11 +258,11 @@ public:
             // =, ==, ===
             else if (*it == '=') {
                 if (*(it+1) == '=') {
-                    if(*(it+2) == '=') {
-                        tokens.push_back(Token(Token::opCaseEquality, "===", lineNumber));
-                        it += 3;
-                        continue;              
-                    }
+                    // if(*(it+2) == '=') {
+                    //     tokens.push_back(Token(Token::opCaseEquality, "===", lineNumber));
+                    //     it += 3;
+                    //     continue;              
+                    // }
 
                     tokens.push_back(Token(Token::opEquality, "==", lineNumber));
                     it += 2;
@@ -335,48 +335,7 @@ public:
                 continue;
             }
 
-            // &, &=
-            else if (*it == '&') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opBitwiseAndAssign, "&=", lineNumber));
-                    it += 2;
-                    continue;
-                }
-                tokens.push_back(Token(Token::opBitwiseAnd, "&", lineNumber));
-                ++it;
-                continue;
-            }
-
-            // |, |=
-            else if (*it == '|') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opBitwiseOrAssign, "|=", lineNumber));
-                    it += 2;
-                    continue;
-                }
-                tokens.push_back(Token(Token::opBitwiseOr, "|", lineNumber));
-                ++it;
-                continue;
-            }
-
-            // ||, ||=
-            else if (*it == '|') {
-                if (*(it+1) == '|') {
-                    if (*(it+2) == '=') {
-                        tokens.push_back(Token(Token::opLogicalOrAssign, "||=", lineNumber));
-                        it += 3;
-                        continue;
-                    }
-                    tokens.push_back(Token(Token::opLogicalOr, "||", lineNumber));
-                    it += 2;
-                    continue;
-                }
-                tokens.push_back(Token(Token::opBitwiseOr, "|", lineNumber));
-                ++it;
-                continue;
-            }
-
-            // &&, &&=
+            // &, &&, &=, &&=
             else if (*it == '&') {
                 if (*(it+1) == '&') {
                     if (*(it+2) == '=') {
@@ -388,7 +347,34 @@ public:
                     it += 2;
                     continue;
                 }
+                if (*(it+1) == '=') {
+                    tokens.push_back(Token(Token::opBitwiseAndAssign, "&=", lineNumber));
+                    it += 2;
+                    continue;
+                }
                 tokens.push_back(Token(Token::opBitwiseAnd, "&", lineNumber));
+                ++it;
+                continue;
+            }
+
+            // |, ||, |=, ||=
+            else if (*it == '|') {
+                if (*(it+1) == '|') {
+                    if (*(it+2) == '=') {
+                        tokens.push_back(Token(Token::opLogicalOrAssign, "||=", lineNumber));
+                        it += 3;
+                        continue;
+                    }
+                    tokens.push_back(Token(Token::opLogicalOr, "||", lineNumber));
+                    it += 2;
+                    continue;
+                }
+                if (*(it+1) == '=') {
+                    tokens.push_back(Token(Token::opBitwiseOrAssign, "|=", lineNumber));
+                    it += 2;
+                    continue;
+                }
+                tokens.push_back(Token(Token::opBitwiseOr, "|", lineNumber));
                 ++it;
                 continue;
             }
@@ -450,11 +436,11 @@ public:
             }
 
             // <=>
-            else if (*it == '<' && *(it+1) == '=' && *(it+2) == '>') {
-                tokens.push_back(Token(Token::opSpaceship, "<=>", lineNumber));
-                it += 3;
-                continue;
-            }
+            // else if (*it == '<' && *(it+1) == '=' && *(it+2) == '>') {
+            //     tokens.push_back(Token(Token::opSpaceship, "<=>", lineNumber));
+            //     it += 3;
+            //     continue;
+            // }
 
             // ?
             else if (*it == '?') {

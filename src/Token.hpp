@@ -78,6 +78,7 @@ struct Token {
         // // kwArray,
         // // kwSymbol,
         // // kwHash,
+        kwOp,
         kwBEGIN,
         kwEND,
         // kwAlias,
@@ -194,6 +195,7 @@ struct Token {
             case opGreaterThan: return "opGreaterThan";
             case opGreaterThanOrEqual: return "opGreaterThanOrEqual";
             case opSpaceship: return "opSpaceship";
+            case at: return "opAt";
 
             // punctuation
             case questionMark: return "questionMark";
@@ -215,6 +217,7 @@ struct Token {
             // // case kwArray: return "kwArray";
             // // case kwSymbol: return "kwSymbol";
             // // case kwHash: return "kwHash";
+            case kwOp: return "kwOp";
             case kwBEGIN: return "kwBEGIN";
             case kwEND: return "kwEND";
             // case kwAlias: return "kwAlias";

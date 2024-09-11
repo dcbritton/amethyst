@@ -463,16 +463,40 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
 
         // process child(ren)
-        std::vector<int> parameterIds = {};
-        for (auto parameter : n->members) {
-            parameterIds.push_back(nodeId);
-            parameter->accept(shared_from_this());
+        std::vector<int> members = {};
+        for (auto member : n->members) {
+            members.push_back(nodeId);
+            member->accept(shared_from_this());
         }
 
         // connect child(ren) to this node
-        for (auto id : parameterIds) {
+        for (auto id : members) {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
+    }
+
+    // visit operator overload
+    void visit(std::shared_ptr<Node::OperatorOverload> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "op" << n->op << " : " << n->returnType
+                << "\"];\n";
+
+        // process child(ren)
+        int paramId = nodeId;
+        n->parameter->accept(shared_from_this());
+
+        int functionBodyId = nodeId;
+        n->stmts->accept(shared_from_this());
+
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(functionBodyId) << ";\n";
     }
 
     // visit conditional block

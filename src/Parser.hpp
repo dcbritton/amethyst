@@ -3,11 +3,6 @@
 #ifndef PARSER
 #define PARSER
 
-#include <vector>
-#include <stack>
-#include <memory>
-#include <unordered_map>
-#include <iostream>
 #include "Token.hpp"
 #include "Node.hpp"
 
@@ -16,20 +11,14 @@ struct Parser {
     std::vector<Token>::const_iterator it;
     std::string currentContext = "program";
 
-    // symbol table - is it a variable? type? - is it a function? return type? param types? - is it a type?
-    std::stack<std::unordered_map<std::string, std::string>> scopes = {};
-
     // constructor
     Parser(const std::vector<Token>& token_stream) 
-        : tokens(token_stream), it(tokens.begin()) {
-            // add primitive datatypes to global scope before parsing
-            scopes.push(std::unordered_map<std::string, std::string>({{"_uint32", "type_primitive"}, {"_float32", "type_primitive"}}));
-        };
+        : tokens(token_stream), it(tokens.begin()) {}
 
     // program
     std::shared_ptr<Node::Program> parse() {
         auto programBody = parseCompStatement();
-
+        
         if (it != tokens.end()) {
             std::cout << "Bad statement in global scope.\n";
             exit(1);
@@ -226,7 +215,6 @@ struct Parser {
 
     // parseEqualityExpr
     std::shared_ptr<Node::Node> parseEqualityExpr() {
-
         std::shared_ptr<Node::Node> LHS = parseRelationExpr();
         while (true) {
             std::string op;
@@ -341,26 +329,26 @@ struct Parser {
 
     // parseDotExpr
     std::shared_ptr<Node::Node> parseDotExpr() {
-        auto lhs = parsePrimary();
+        auto LHS = parsePrimary();
 
         while (true) {
             if (*it == Token::opDot) {
                 discard(Token::opDot);
-                auto rhs = parsePrimary();
-                lhs = std::make_shared<Node::DotExpr>(lhs, ".", rhs);
+                auto RHS = parsePrimary();
+                LHS = std::make_shared<Node::DotExpr>(LHS, ".", RHS);
             }
             else if (*it == Token::openBracket) {
                 discard(Token::openBracket);
-                auto rhs = parseLogicalExpr();
-                lhs = std::make_shared<Node::DotExpr>(lhs, "[]", rhs);
+                auto RHS = parseLogicalExpr();
+                LHS = std::make_shared<Node::DotExpr>(LHS, "[]", RHS);
                 discard(Token::closeBracket);
             }
             else {
                 break;
             }
         }
-        // otherwise, lhs is the main node
-        return lhs;
+
+        return LHS;
     }
 
     // parsePrimary
@@ -430,7 +418,6 @@ struct Parser {
 
     // [expr, ]* expr 
     std::shared_ptr<Node::ExprList> parseExprList() {
-
         std::vector<std::shared_ptr<Node::Node>> exprs = {};
         while (*it != Token::closeParen && *it != Token::closeBracket) {
             exprs.push_back(parseLogicalExpr());
@@ -452,7 +439,6 @@ struct Parser {
         discard(Token::opAssign);
         auto expression = parseLogicalExpr();
 
-        scopes.top().insert({name, type});
         return std::make_shared<Node::VariableDefn>(name, type, expression);
     }
 

@@ -114,7 +114,7 @@ struct Parser {
         discard(Token::kwClass);
         std::string name = consume(Token::identifier);
         std::vector<std::shared_ptr<Node::Node>> members {};
-        while (*it == Token::identifier || *it == Token::kwDef || *it == Token::kwOp) {
+        while (true) {
             if (*it == Token::identifier) {
                 members.push_back(parseVariableDefn());
             }
@@ -125,8 +125,7 @@ struct Parser {
                 members.push_back(parseOperatorOverload());
             }
             else {
-                std::cout << "Parser error in definition of type " << name
-                          << ". Expecting tokens 'def', 'op', identifier, or 'end'.\n";
+                break;
             }
         }
         discard(Token::kwEnd);
@@ -206,10 +205,19 @@ struct Parser {
     // parseLogicalExpr
     std::shared_ptr<Node::Node> parseLogicalExpr() {
 
-        std::shared_ptr<Node::Node> LHS = parseRelationExpr();
-        while (*it == Token::kwAnd || *it == Token::kwOr) {
-            std::string op = (*it == Token::kwAnd) ? consume(Token::kwAnd) : consume(Token::kwOr );
-            auto RHS = parseRelationExpr();
+        std::shared_ptr<Node::Node> LHS = parseEqualityExpr();
+        while (true) {
+            std::string op;
+            if (*it == Token::kwAnd) {
+                consume(Token::kwAnd);
+            }
+            else if (*it == Token::kwOr) {
+                consume(Token::kwOr);
+            }
+            else {
+                break;
+            }
+            auto RHS = parseEqualityExpr();
             LHS = std::make_shared<Node::LogicalExpr>(LHS, op, RHS);
         }
 
@@ -220,8 +228,17 @@ struct Parser {
     std::shared_ptr<Node::Node> parseEqualityExpr() {
 
         std::shared_ptr<Node::Node> LHS = parseRelationExpr();
-        while (*it == Token::opEquality || *it == Token::opNotEquals) {
-            std::string op = (*it == Token::opEquality) ? consume(Token::opEquality) : consume(Token::opNotEquals);
+        while (true) {
+            std::string op;
+            if (*it == Token::opEquality) {
+                consume(Token::opEquality);
+            }
+            else if (*it ==Token::opNotEquals) {
+                consume(Token::opNotEquals);
+            }
+            else {
+                break;
+            }
             auto RHS = parseRelationExpr();
             LHS = std::make_shared<Node::EqualityExpr>(LHS, op, RHS);
         }
@@ -232,50 +249,76 @@ struct Parser {
     // parseRelationExpr
     std::shared_ptr<Node::Node> parseRelationExpr() {
         std::shared_ptr<Node::Node> LHS = parseShiftExpr();
-        while (*it == Token::opGreaterThan || *it == Token::opGreaterThanOrEqual ||
-            *it == Token::opLessThan || *it == Token::opLessThanOrEqual) {
+        while (true) {
             std::string op;
             if (*it == Token::opGreaterThan) {
                 op = consume(Token::opGreaterThan);
-            } else if (*it == Token::opGreaterThanOrEqual) {
+            }
+            else if (*it == Token::opGreaterThanOrEqual) {
                 op = consume(Token::opGreaterThanOrEqual);
-            } else if (*it == Token::opLessThan) {
+            }
+            else if (*it == Token::opLessThan) {
                 op = consume(Token::opLessThan);
-            } else if (*it == Token::opLessThanOrEqual) {
+            }
+            else if (*it == Token::opLessThanOrEqual) {
                 op = consume(Token::opLessThanOrEqual);
+            }
+            else {
+                break;
             }
             auto RHS = parseShiftExpr();
             LHS = std::make_shared<Node::RelationExpr>(LHS, op, RHS);
         }
+
         return LHS;
     }
 
     // parseShiftExpr
     std::shared_ptr<Node::Node> parseShiftExpr() {
         std::shared_ptr<Node::Node> LHS = parseAdditionExpr();
-        while (*it == Token::opLeftShift || *it == Token::opRightShift) {
-            std::string op = (*it == Token::opLeftShift) ? consume(Token::opLeftShift) : consume(Token::opRightShift);
+        while (true) {
+            std::string op; 
+            if (*it == Token::opLeftShift) {
+                consume(Token::opLeftShift);
+            }
+            else if (*it == Token::opRightShift) {
+                consume(Token::opRightShift);
+            }
+            else {
+                break;
+            }
             auto RHS = parseAdditionExpr();
             LHS = std::make_shared<Node::ShiftExpr>(LHS, op, RHS);
         }
+
         return LHS;
     }
 
     // parseAdditionExpr
     std::shared_ptr<Node::Node> parseAdditionExpr() {
         std::shared_ptr<Node::Node> LHS = parseMultiplicationExpr();
-        while (*it == Token::opPlus || *it == Token::opMinus) {
-            std::string op = (*it == Token::opPlus) ? consume(Token::opPlus) : consume(Token::opMinus);
+        while (true) {
+            std::string op;
+            if (*it == Token::opPlus) {
+                consume(Token::opPlus);
+            }
+            else if (*it == Token::opMinus) {
+                consume(Token::opMinus);
+            }
+            else {
+                break;
+            }
             auto RHS = parseMultiplicationExpr();
             LHS = std::make_shared<Node::AdditionExpr>(LHS, op, RHS);
         }
+
         return LHS;
     }
 
     // parseMultiplicationExpr
     std::shared_ptr<Node::Node> parseMultiplicationExpr() {
         std::shared_ptr<Node::Node> LHS = parseDotExpr();
-        while (*it == Token::opMultiply || *it == Token::opDivide || *it == Token::opModulus) {
+        while (true) {
             std::string op;
             if (*it == Token::opMultiply) {
                 op = consume(Token::opMultiply);
@@ -286,9 +329,13 @@ struct Parser {
             else if (*it == Token::opModulus) {
                 op = consume(Token::opModulus);
             }
+            else {
+                break;
+            }
             auto RHS = parseDotExpr();
             LHS = std::make_shared<Node::MultiplicationExpr>(LHS, op, RHS);
         }
+        
         return LHS;
     }
 

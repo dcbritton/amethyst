@@ -3,6 +3,9 @@
 #ifndef SEMANTICANALYZERVISITOR
 #define SEMANTICANALYZERVISITOR
 
+#include <unordered_set>
+#include <unordered_map>
+#include <optional>
 #include "Visitor.hpp"
 
 struct SemanticAnalyzerVisitor : Visitor {
@@ -11,7 +14,11 @@ struct SemanticAnalyzerVisitor : Visitor {
         undefined,
         global,
         functionDefn,
+
         typeDefn,
+        methodDefn,
+        overloadDefn,
+
         whileLoop,
         conditionalBlock
     };
@@ -34,103 +41,107 @@ struct SemanticAnalyzerVisitor : Visitor {
             : name(name), signature(signature), returnType(returnType), parameters(parameters) {}
     };
 
+    // @TODO: rewrite using hashes of some kind
+    struct OperatorOverload {
+
+        // the operator and parameter (rhs) type are used to differentiate operators of a type, return type is not
+        std::string op;
+        std::string rhsType;
+        std::string returnType;
+
+        // overload equality
+        bool operator==(const OperatorOverload& other) {
+            return (this->op == other.op && this->rhsType == other.rhsType);
+        }
+
+        // constructor
+        OperatorOverload(const std::string& op, const std::string& rhsType, const std::string& returnType)
+            : op(op), rhsType(rhsType), returnType(returnType) {}
+    };
+
     struct Type {
         std::string name;
         std::vector<Variable> members;
         std::vector<Function> methods;
+        std::vector<OperatorOverload> overloads;
 
-        Type(const std::string& name, const std::vector<Variable>& members, const std::vector<Function>& methods)
-            : name(name), members(members), methods(methods) {}
+        Type(const std::string& name, const std::vector<Variable>& members, const std::vector<Function>& methods, const std::vector<OperatorOverload>& overloads)
+            : name(name), members(members), methods(methods), overloads(overloads) {}
+
+        bool has(const OperatorOverload& opOverload) {
+            return std::find(overloads.begin(), overloads.end(), opOverload) != overloads.end();
+        }
     };
 
     struct Scope {
         ScopeType type = undefined;
-        std::vector<Type> types;
-        std::vector<Variable> variables;
-        std::vector<Function> functions;
+        std::unordered_map<std::string, Variable> variables;
+        // name of function/type for definition
+        std::optional<std::string> name;
 
-        Scope(ScopeType type)
-            : type(type) {}
+        // constructor for type and function/method definitions
+        Scope(ScopeType type, std::optional<std::string> name)
+            : type(type), name(name) {}
     };
 
-    // structure containing the variables, functions, and types currently available at all scopes
-    std::vector<Scope> symbolTable;
-
+    // contains variables at all scopes
+    std::vector<Scope> variableTable;
+    // contains available types (types are only declarable in global)
+    std::unordered_map<std::string, Type> types;
+    // contains available functions (functions are only declarable in global)
+    std::unordered_map<std::string, Function> functions;
     // stack used for tracking the types of subexpressions as an expression is evaluated
     std::vector<std::string> exprTypes;
 
-    bool findVariable(const std::string& name) {
-        for (const auto& scope : symbolTable) {
-            for (const auto& variable : scope.variables) {
-                if (name == variable.name)
-                    return true;
+    bool inFunction() {
+        for (const auto& scope : variableTable) {
+            if (scope.type == functionDefn) {
+                return true;
             }
         }
         return false;
     }
 
-    bool findFunction(const std::string& name) {
-        for (const auto& scope : symbolTable) {
-            for (const auto& function : scope.functions) {
-                if (name == function.signature)
-                    return true;
+    bool findVariable(const std::string& name) {
+        // functions don't capture external variables, so check only most recent function scope
+        if (inFunction()) {
+            if (variableTable.back().variables.find(name) != variableTable.back().variables.end()) {
+                return true;
             }
         }
+        // otherwise, check all scopes
+        else {
+            for (const auto& scope : variableTable) {
+                if (scope.variables.find(name) != scope.variables.end()) {
+                    return true;
+                }
+            }
+        }
+        
         return false;
+    }
+
+    bool findFunction(const std::string& signature) {
+        return functions.find(signature) != functions.end();
     }
 
     bool findType(const std::string& name) {
-        for (const auto& scope : symbolTable) {
-            for (const auto& type : scope.types) {
-                if (name == type.name)
-                    return true;
-            }
-        }
-        return false;
+        return types.find(name) != types.end();
     }
 
     void addToScope(Variable variable) {
-        symbolTable.back().variables.push_back(variable);
-    }
-
-    void addToScope(Function function) {
-        symbolTable.back().functions.push_back(function);
-    }
-
-    void addToScope(Type type) {
-        symbolTable.back().types.push_back(type);
+        variableTable.back().variables.emplace(variable.name, variable);
     }
 
     void endScope() {
-        symbolTable.pop_back();
+        variableTable.pop_back();
     }
 
-    // @TODO: rewrite using hashes of some kind
-    struct OperatorOverload {
-        std::string op;
-        std::string lhsType;
-        std::string rhsType;
-        std::string returnType;
-
-        // constructor
-        OperatorOverload(const std::string& op, const std::string& lhsType, const std::string& rhsType, const std::string& returnType)
-            : op(op), lhsType(lhsType), rhsType(rhsType), returnType(returnType) {}
-
-        // overload equality
-        bool operator==(const OperatorOverload& other) {
-            return (this->op == other.op && this->lhsType == other.lhsType && this->rhsType == other.rhsType && this->returnType == other.returnType);
+    void printExprStack() {
+        for (auto& exprType : exprTypes) {
+            std::cout << exprType << ", ";
         }
-    };
-
-    // struct for keeping track of defined operator overloads
-    std::vector<OperatorOverload> overloads;
-
-    void add(OperatorOverload&& op) {
-        overloads.push_back(op);
-    }
-
-    bool exists(const OperatorOverload& opOverload) {
-        return std::find(overloads.begin(), overloads.end(), opOverload) != overloads.end();
+        std::cout << "\n";
     }
 
     void visit(std::shared_ptr<Node::Node> n) override {
@@ -139,11 +150,13 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // visit program
     void visit(std::shared_ptr<Node::Program> n) override {
-        symbolTable.push_back(Scope(global));
+
+        variableTable.push_back(Scope(global, std::nullopt));
+
         // @TODO: predefined variables, functions, types may go here with addToScope()
-        addToScope(Type("_int32", {}, {}));
-        addToScope(Type("_float32", {}, {}));
-        addToScope(Type("_string", {}, {}));
+        types.emplace("_int32", Type("_int32", {}, {}, {}));
+        types.emplace("_float32", Type("_float32", {}, {}, {}));
+        types.emplace("_string", Type("_string", {}, {}, {}));
 
         n->compStatement->accept(shared_from_this());
     }
@@ -157,33 +170,10 @@ struct SemanticAnalyzerVisitor : Visitor {
     
     // variable definition
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
-        // exists?; if in function, don't capture external variables, so check only most recent function scope
-        bool found = false;
-        auto functionCandidate = symbolTable.crbegin();
-        while (functionCandidate != symbolTable.crend()) {
-            if (functionCandidate->type == functionDefn) {
-                found = true;
-                break;
-            }
-            ++functionCandidate;
-        }
-        // function scope is found, check only those
-        if (found) {
-            for (const auto& variable : functionCandidate->variables) {
-                if (n->name == variable.name) {
-                    std::cout << "Variable " << n->name
-                              << " is already defined in function " << functionCandidate->functions.back().name
-                              << ".\n";
-                    exit(1);
-                }
-            }
-        }
-        // otherwise, name check as normal
-        else {
-            if (findVariable(n->name)) {
-                std::cout << "Variable " << n->name << " is defined more than once.\n";
-                exit(1);
-            }
+        // exists?
+        if (findVariable(n->name)) {
+            std::cout << "In some scope, " << n->name << " is defined more than once.\n";
+            exit(1);
         }
 
         // does n->type exist?
@@ -216,10 +206,10 @@ struct SemanticAnalyzerVisitor : Visitor {
         // process parameters
         n->paramList->accept(shared_from_this());
         std::vector<Variable> parameters = {};
-        std::string mangledName = n->name;
+        std::string signature = n->name;
         for (const auto& parameter : n->paramList->parameters) {
             parameters.push_back(Variable(parameter->name, parameter->type));
-            mangledName += "@" + parameter->type;
+            signature += "@" + parameter->type;
         }
 
         // return type check
@@ -231,17 +221,19 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // name check 
-        if (findFunction(mangledName)) {
+        if (findFunction(signature)) {
             std::cout << "Function " << n->name << " is defined more than once with the same parameter types.\n"
-                      << "(Mangled: " << mangledName << ")\n";
+                      << "(Mangled: " << signature << ")\n";
             exit(1);    
         }
         
         // make new scope
-        symbolTable.push_back(Scope(functionDefn));
+        variableTable.push_back(Scope(functionDefn, n->name));
 
-        // add itself and parameters to its own scope
-        addToScope(Function(n->name, mangledName, n->returnType, parameters));
+        // add the function (including to its own scope)
+        functions.emplace(signature, Function(n->name, signature, n->returnType, parameters));
+        
+        // add parameters to scope
         for (const auto& parameter : parameters) {
             addToScope(Variable(parameter.name, parameter.type));
         }
@@ -251,9 +243,6 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // end its own scope, remove itself & parameters
         endScope();
-
-        // add function to scope outside itself
-        addToScope(Function(n->name, mangledName, n->returnType, parameters));
     }
 
     // visit parameter list
@@ -277,46 +266,18 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit assignment
     void visit(std::shared_ptr<Node::Assignment> n) override {
 
-        // exists?; if in function, don't capture external variables, so check only most recent function scope
-        bool functionFound = false;
-        auto functionCandidate = symbolTable.crbegin();
-        while (functionCandidate != symbolTable.crend()) {
-            if (functionCandidate->type == functionDefn) {
-                functionFound = true;
-                break;
-            }
-            ++functionCandidate;
-        }
-        // function scope is found, check only those
-        if (functionFound) {
-            bool variableFound = false;
-            for (const auto& variable : functionCandidate->variables) {
-                if (n->lhs == variable.name) {
-                    variableFound = true;
-                    break;
-                }
-            }
-            if (!variableFound) {
-                std::cout << "Variable " << n->lhs
-                        << " in function " << functionCandidate->functions.back().name
-                        << " has not been defined in function scope, and cannot be assigned.\n";
-                exit(1);
-            }
-        }
-        // otherwise, lhs check as normal
-        else {
-            if (!findVariable(n->lhs)) {
-                std::cout << "Variable " << n->lhs << " has not been defined.\n";
-                exit(1);
-            }
+        // exists?
+        if (!findVariable(n->lhs)) {
+            std::cout << "In some scope, tried to assign a value to " << n->lhs << ", which has not been defined.\n";
+            exit(1);
         }
 
         // find type
         std::string type;
-        for (const auto& scope : symbolTable) {
+        for (const auto& scope : variableTable) {
             for (const auto& variable : scope.variables) {
-                if (n->lhs == variable.name)
-                    type = variable.type;
+                if (n->lhs == variable.first)
+                    type = variable.first;
             }
         }
 
@@ -334,18 +295,18 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit return
+    // @TODO: check for returns?
+    // @TODO: disallow if not in a functiondefn
     void visit(std::shared_ptr<Node::Return> n) override {
 
         // process expression
         n->expr->accept(shared_from_this());
         
-        // @TODO: this assumes there are no function definitions allowed in functions
-        // add a current function stack & redo functionCandidate when done
-
         // match return type to expression type
-        std::string functionType = symbolTable.back().functions.back().returnType;
+        std::string functionName = variableTable.back().name.value();
+        std::string functionType = functions.find(functionName)->second.returnType;
         if (functionType != exprTypes.back()) {
-            std::cout << "In a return in the function " << symbolTable.back().functions.back().name
+            std::cout << "In a return in the function " << functionName
                         << ", the function's return type " << functionType
                         << " does not match the expression type " << exprTypes.back()
                         << ".\n";
@@ -464,46 +425,18 @@ struct SemanticAnalyzerVisitor : Visitor {
     
     // visit variable
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // exists?; if in function, don't capture external variables, so check only most recent function scope
-        bool functionFound = false;
-        auto functionCandidate = symbolTable.crbegin();
-        while (functionCandidate != symbolTable.crend()) {
-            if (functionCandidate->type == functionDefn) {
-                functionFound = true;
-                break;
-            }
-            ++functionCandidate;
-        }
-        // function scope is found, check only those
-        if (functionFound) {
-            bool variableFound = false;
-            for (const auto& variable : functionCandidate->variables) {
-                if (n->name == variable.name) {
-                    variableFound = true;
-                    break;
-                }
-            }
-            if (!variableFound) {
-                std::cout << "Variable " << n->name
-                        << " in function " << functionCandidate->functions.back().name
-                        << " has not been defined in function scope.\n";
-                exit(1);
-            }
-        }
-        // otherwise, name check as normal
-        else {
-            if (!findVariable(n->name)) {
-                std::cout << "Variable " << n->name << " has not been defined.\n";
-                exit(1);
-            }
+        // exists?
+        if (!findVariable(n->name)) {
+            std::cout << "Variable " << n->name << " referenced in some scope, but it has not yet been defined.\n";
+            exit(1);
         }
 
         // find type
         std::string type;
-        for (const auto& scope : symbolTable) {
+        for (const auto& scope : variableTable) {
             for (const auto& variable : scope.variables) {
-                if (n->name == variable.name)
-                    type = variable.type;
+                if (n->name == variable.second.name)
+                    type = variable.second.type;
             }
         }
 
@@ -534,18 +467,8 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // get type
-        std::string type;
-        for (const auto& scope : symbolTable) {
-            for (const auto& function : scope.functions) {
-                if (signature == function.signature) {
-                    type = function.returnType;
-                    break;
-                }
-            }
-        }
-
-        // expression stack
+        // push type to expression stack
+        std::string type = functions.find(signature)->second.returnType;
         exprTypes.push_back(type);
     }
 
@@ -564,20 +487,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // enter scope
-        symbolTable.push_back(typeDefn);
+        variableTable.push_back(Scope(typeDefn, n->name));
 
         // @TODO: process members
         
         // process overloads
         for (const auto& overload : n->opOverloads) {
-            // @NOTE: violates visitor pattern
-            OperatorOverload candidate = OperatorOverload(overload->op, n->name, overload->parameter->type, overload->returnType);
-            if (exists(candidate)) {
-                std::cout << "Type" << n->name << "'s overload of op" << candidate.op << "(:" << candidate.rhsType << "):" << candidate.returnType
-                          << " is defined more than once!\n";
-                exit(1);
-            }
-            add(std::move(candidate));
 
             
             overload->accept(shared_from_this());
@@ -589,7 +504,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         endScope();
 
         // add
-        addToScope(Type(n->name, {}, {}));
+        types.emplace(n->name, Type(n->name, {}, {}, {}));
     }
 
     // visit operator overload

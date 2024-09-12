@@ -1,5 +1,5 @@
 a:_int32 = 1 + 1
-
+b:_int32 = a 
 c:_string = "" + "a"
 
 def func():_int32

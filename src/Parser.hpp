@@ -102,16 +102,19 @@ struct Parser {
 
         discard(Token::kwClass);
         std::string name = consume(Token::identifier);
-        std::vector<std::shared_ptr<Node::Node>> members {};
+        
+        std::vector<std::shared_ptr<Node::VariableDefn>> members;
+        std::vector<std::shared_ptr<Node::FunctionDefn>> methods;
+        std::vector<std::shared_ptr<Node::OperatorOverload>> ops;
         while (true) {
             if (*it == Token::identifier) {
                 members.push_back(parseVariableDefn());
             }
             else if (*it == Token::kwDef) {
-                members.push_back(parseFunctionDefn());
+                methods.push_back(parseFunctionDefn());
             }
             else if (*it == Token::kwOp) {
-                members.push_back(parseOperatorOverload());
+                ops.push_back(parseOperatorOverload());
             }
             else {
                 break;
@@ -119,7 +122,7 @@ struct Parser {
         }
         discard(Token::kwEnd);
 
-        return std::make_shared<Node::TypeDefn>(name, members);
+        return std::make_shared<Node::TypeDefn>(name, members, methods, ops);
     }
 
     // op operator ( parameter ) : typename comp_stmt end
@@ -198,10 +201,10 @@ struct Parser {
         while (true) {
             std::string op;
             if (*it == Token::kwAnd) {
-                consume(Token::kwAnd);
+                op = consume(Token::kwAnd);
             }
             else if (*it == Token::kwOr) {
-                consume(Token::kwOr);
+                op = consume(Token::kwOr);
             }
             else {
                 break;
@@ -219,10 +222,10 @@ struct Parser {
         while (true) {
             std::string op;
             if (*it == Token::opEquality) {
-                consume(Token::opEquality);
+                op = consume(Token::opEquality);
             }
             else if (*it ==Token::opNotEquals) {
-                consume(Token::opNotEquals);
+                op = consume(Token::opNotEquals);
             }
             else {
                 break;
@@ -267,10 +270,10 @@ struct Parser {
         while (true) {
             std::string op; 
             if (*it == Token::opLeftShift) {
-                consume(Token::opLeftShift);
+                op = consume(Token::opLeftShift);
             }
             else if (*it == Token::opRightShift) {
-                consume(Token::opRightShift);
+                op = consume(Token::opRightShift);
             }
             else {
                 break;
@@ -288,10 +291,10 @@ struct Parser {
         while (true) {
             std::string op;
             if (*it == Token::opPlus) {
-                consume(Token::opPlus);
+                op = consume(Token::opPlus);
             }
             else if (*it == Token::opMinus) {
-                consume(Token::opMinus);
+                op = consume(Token::opMinus);
             }
             else {
                 break;

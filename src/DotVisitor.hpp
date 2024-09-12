@@ -463,14 +463,30 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
 
         // process child(ren)
-        std::vector<int> members = {};
+        std::vector<int> memberIds = {};
         for (auto member : n->members) {
-            members.push_back(nodeId);
+            memberIds.push_back(nodeId);
             member->accept(shared_from_this());
+        }
+        std::vector<int> methodIds = {};
+        for (auto method : n->methods) {
+            methodIds.push_back(nodeId);
+            method->accept(shared_from_this());
+        }
+        std::vector<int> overloadIds = {};
+        for (auto overload : n->opOverloads) {
+            overloadIds.push_back(nodeId);
+            overload->accept(shared_from_this());
         }
 
         // connect child(ren) to this node
-        for (auto id : members) {
+        for (auto id : memberIds) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
+        }
+        for (auto id : methodIds) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
+        }
+        for (auto id : overloadIds) {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
     }

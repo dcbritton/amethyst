@@ -1,16 +1,18 @@
 a:_int32 = 1 + 1
-b:_float32 = [1.2, 1.45] + [1.3]
+
 c:_string = "" + "a"
 
 def func():_int32
     b:_int32 = func()
     e:_float32 = 1.34
-    a:bool = e and b or e
     return b
 end
 
 class T
     op <=(awaga:_int32):T
+    end
+    
+    op <=(awaga:_e):T
     end
 end
 

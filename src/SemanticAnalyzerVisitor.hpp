@@ -3,8 +3,6 @@
 #ifndef SEMANTICANALYZERVISITOR
 #define SEMANTICANALYZERVISITOR
 
-#include <iostream>
-#include <unordered_map>
 #include "Visitor.hpp"
 
 struct SemanticAnalyzerVisitor : Visitor {
@@ -55,7 +53,10 @@ struct SemanticAnalyzerVisitor : Visitor {
             : type(type) {}
     };
 
+    // structure containing the variables, functions, and types currently available at all scopes
     std::vector<Scope> symbolTable;
+
+    // stack used for tracking the types of subexpressions as an expression is evaluated
     std::vector<std::string> exprTypes;
 
     bool findVariable(const std::string& name) {
@@ -102,6 +103,34 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void endScope() {
         symbolTable.pop_back();
+    }
+
+    // @TODO: rewrite using hashes of some kind
+    struct OperatorOverload {
+        std::string op;
+        std::string lhsType;
+        std::string rhsType;
+        std::string returnType;
+
+        // constructor
+        OperatorOverload(const std::string& op, const std::string& lhsType, const std::string& rhsType, const std::string& returnType)
+            : op(op), lhsType(lhsType), rhsType(rhsType), returnType(returnType) {}
+
+        // overload equality
+        bool operator==(const OperatorOverload& other) {
+            return (this->op == other.op && this->lhsType == other.lhsType && this->rhsType == other.rhsType && this->returnType == other.returnType);
+        }
+    };
+
+    // struct for keeping track of defined operator overloads
+    std::vector<OperatorOverload> overloads;
+
+    void add(OperatorOverload&& op) {
+        overloads.push_back(op);
+    }
+
+    bool exists(const OperatorOverload& opOverload) {
+        return std::find(overloads.begin(), overloads.end(), opOverload) != overloads.end();
     }
 
     void visit(std::shared_ptr<Node::Node> n) override {
@@ -534,12 +563,37 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
+        // enter scope
+        symbolTable.push_back(typeDefn);
+
         // @TODO: process members
+        
+        // process overloads
+        for (const auto& overload : n->opOverloads) {
+            // @NOTE: violates visitor pattern
+            OperatorOverload candidate = OperatorOverload(overload->op, n->name, overload->parameter->type, overload->returnType);
+            if (exists(candidate)) {
+                std::cout << "Type" << n->name << "'s overload of op" << candidate.op << "(:" << candidate.rhsType << "):" << candidate.returnType
+                          << " is defined more than once!\n";
+                exit(1);
+            }
+            add(std::move(candidate));
+
+            
+            overload->accept(shared_from_this());
+        }
+
         // @TODO: process methods
+
+        // end scope
+        endScope();
 
         // add
         addToScope(Type(n->name, {}, {}));
     }
+
+    // visit operator overload
+    void visit(std::shared_ptr<Node::OperatorOverload> n) override {}
 
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
 

@@ -1,5 +1,5 @@
 a:_int32 = 1 + 1
-b:_int32 = a 
+
 c:_string = "" + "a"
 
 def func():_int32
@@ -9,10 +9,10 @@ def func():_int32
 end
 
 class T
-    op <=(awaga:_int32):T
-    end
-    
-    op <=(awaga:_e):T
+    a:_int32 = 1
+    b:_int32 = 1
+    op <=(z:_int32):_int32
+        
     end
 end
 

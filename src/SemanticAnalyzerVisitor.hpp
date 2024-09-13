@@ -255,10 +255,10 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit function definition
-    // @NOTE: this violates visitor pattern. find a way to propagate the names and types up
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // process parameters
         n->paramList->accept(shared_from_this());
+        // @NOTE: this violates visitor pattern
         std::vector<Variable> parameters = {};
         std::string signature = n->name;
         for (const auto& parameter : n->paramList->parameters) {
@@ -282,7 +282,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
         
         // make new scope
-        enterScope(functionDefn, n->name);
+        enterScope(functionDefn, signature);
 
         // add the function (including to its own scope)
         functions.emplace(signature, Function(n->name, signature, n->returnType, parameters));
@@ -499,6 +499,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit call
+    // @TODO: method call
     // @NOTE: this violates visitor pattern.
     void visit(std::shared_ptr<Node::Call> n) override {
         // determine argument expression types & deal with expr stack
@@ -526,7 +527,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back(type);
     }
 
-    // visit call args
+    // visit expr list
     // @NOTE: violation of visitor pattern, never called
     void visit(std::shared_ptr<Node::ExprList> n) override {
 
@@ -543,9 +544,62 @@ struct SemanticAnalyzerVisitor : Visitor {
         // enter scope
         enterScope(typeDefn, n->name);
 
-        // @TODO: process members
+        // process members
+        std::vector<Variable> members;
+        for (auto member : n->members) {
+            member->accept(shared_from_this());
+            // @NOTE: violates visitor pattern
+            members.push_back(Variable(member->name, member->type));
+        }
 
-        // @TODO: process methods
+        // process methods
+        // @NOTE: violates visitor pattern
+        std::vector<Function> methods;
+        for (auto method : n->methods) {
+            // process parameters
+            method->paramList->accept(shared_from_this());
+            // @NOTE: this violates visitor pattern
+            std::vector<Variable> parameters = {};
+            std::string signature = method->name;
+            for (const auto& parameter : method->paramList->parameters) {
+                parameters.push_back(Variable(parameter->name, parameter->type));
+                signature += "@" + parameter->type;
+            }
+
+            // return type check
+            if (!typeExists(method->returnType)) {
+                std::cout << "Return type " << method->returnType
+                        << " of function " << method->name
+                        << " has not yet been defined.\n";
+                exit(1);
+            }
+
+            // no two methods with the same signature in a type
+            for (const auto& m : methods) {
+                if (signature == m.signature) {
+                    std::cout << "Method " << method->name << " in type " << n->name << " is defined more than once with the same parameter types.\n"
+                            << "(Mangled: " << signature << ")\n";  
+                    exit(1);
+                }
+            }
+ 
+            // make new scope
+            enterScope(methodDefn, method->name);
+
+            // add the method to the type
+            methods.push_back(Function(method->name, signature, method->returnType, parameters));
+            
+            // add parameters to scope
+            for (const auto& parameter : parameters) {
+                addToScope(Variable(parameter.name, parameter.type));
+            }
+
+            // process function body
+            method->functionBody->accept(shared_from_this());
+
+            // end its own scope, remove itself & parameters
+            endScope();
+        }
 
         // process overloads
         // @NOTE: violates visitor pattern
@@ -567,7 +621,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         endScope();
 
         // add
-        types.emplace(n->name, Type(n->name, {}, {}, std::move(overloads)));
+        types.emplace(n->name, Type(n->name, std::move(members), std::move(methods), std::move(overloads)));
     }
 
     // visit operator overload

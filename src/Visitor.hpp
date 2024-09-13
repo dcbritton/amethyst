@@ -32,7 +32,7 @@ namespace Node {
     struct ConditionalBlock;
     struct ForLoop;
     struct WhileLoop;
-    struct DotExpr;
+    struct AccessExpr;
     struct ExprList;
     struct Call;
     struct Array;
@@ -60,7 +60,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::MultiplicationExpr> n) {}
 
-    virtual void visit(std::shared_ptr<Node::DotExpr> n) {}
+    virtual void visit(std::shared_ptr<Node::AccessExpr> n) {}
 
     virtual void visit(std::shared_ptr<Node::Primary> n) {}
 

@@ -132,11 +132,11 @@ namespace Node {
         }
     };
 
-    // dot operator
-    struct DotExpr : Expr, std::enable_shared_from_this<DotExpr> {
+    // . []
+    struct AccessExpr : Expr, std::enable_shared_from_this<AccessExpr> {
 
         // constructor
-        DotExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        AccessExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
             : Expr(LHS, op, RHS) {}
 
         // accept

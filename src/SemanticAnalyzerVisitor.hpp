@@ -418,7 +418,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         process(n);
     }
 
-    void visit(std::shared_ptr<Node::DotExpr> n) override {
+    void visit(std::shared_ptr<Node::AccessExpr> n) override {
         // @TODO: type inside [] does not have to match outside
         // requires special interaction with call stack
         // @TODO: make sure lhs of . has member rhs

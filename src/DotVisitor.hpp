@@ -219,8 +219,8 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
-    // visit dot expression
-    void visit(std::shared_ptr<Node::DotExpr> n) override {
+    // visit access expression
+    void visit(std::shared_ptr<Node::AccessExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 

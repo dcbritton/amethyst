@@ -308,7 +308,7 @@ struct Parser {
 
     // parseMultiplicationExpr
     std::shared_ptr<Node::Node> parseMultiplicationExpr() {
-        std::shared_ptr<Node::Node> LHS = parseDotExpr();
+        std::shared_ptr<Node::Node> LHS = parseAccessExpr();
         while (true) {
             std::string op;
             if (*it == Token::opMultiply) {
@@ -323,27 +323,27 @@ struct Parser {
             else {
                 break;
             }
-            auto RHS = parseDotExpr();
+            auto RHS = parseAccessExpr();
             LHS = std::make_shared<Node::MultiplicationExpr>(LHS, op, RHS);
         }
         
         return LHS;
     }
 
-    // parseDotExpr
-    std::shared_ptr<Node::Node> parseDotExpr() {
+    // parseAccessExpr
+    std::shared_ptr<Node::Node> parseAccessExpr() {
         auto LHS = parsePrimary();
 
         while (true) {
             if (*it == Token::opDot) {
                 discard(Token::opDot);
                 auto RHS = parsePrimary();
-                LHS = std::make_shared<Node::DotExpr>(LHS, ".", RHS);
+                LHS = std::make_shared<Node::AccessExpr>(LHS, ".", RHS);
             }
             else if (*it == Token::openBracket) {
                 discard(Token::openBracket);
                 auto RHS = parseLogicalExpr();
-                LHS = std::make_shared<Node::DotExpr>(LHS, "[]", RHS);
+                LHS = std::make_shared<Node::AccessExpr>(LHS, "[]", RHS);
                 discard(Token::closeBracket);
             }
             else {

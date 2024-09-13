@@ -46,14 +46,14 @@ add_expr    -   mult_expr
             |   add_expr + mult_expr
             |   add_expr - mult_expr  
 
-mult_expr   -   dot_expr
-            |   mult_expr * dot_expr
-            |   mult_expr / dot_expr
-            |   mult_expr % dot_expr
+mult_expr   -   access_expr
+            |   mult_expr * access_expr
+            |   mult_expr / access_expr
+            |   mult_expr % access_expr
 
-dot_expr    -   primary
-            |   dot_expr . primary
-            |   dot_expr [ eq_expr ]
+access_expr -   primary
+            |   access_expr . primary
+            |   access_expr [ eq_expr ]
 
 primary     -   ( expr )
             |   call

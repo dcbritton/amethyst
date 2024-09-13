@@ -1,6 +1,5 @@
-a:_int32 = 1 + 1
+a:_int32 = 1 + 1 * 1 and 1
 
-c:_string = "" + "a"
 
 def func():_int32
     b:_int32 = func()
@@ -11,17 +10,14 @@ end
 class T
     a:_int32 = 1
 
-    def func(a:_int32):_int32
-        b:_int32 = func(a)
-    end
-
-    def func():_int32
-    end
-
     op <=(c:_int32):_int32
         b:_int32 = a + c
+        g:_float32 = 1.2
+        return g
     end
 end
+
+g:T = 
 
 if a + b
     c = a

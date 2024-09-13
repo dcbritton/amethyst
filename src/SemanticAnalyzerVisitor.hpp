@@ -49,25 +49,28 @@ struct SemanticAnalyzerVisitor : Visitor {
         // constructor
         OperatorOverload(const std::string& op, const std::string& rhsType, const std::string& returnType)
             : op(op), rhsType(rhsType), returnType(returnType) {}
-
-        // overload equality
-        bool operator==(const OperatorOverload& other) {
-            return this->op == other.op && this->rhsType == other.rhsType;
-        }
     };
+
+    std::string formOpSignature(const std::string& op, const std::string& rhsType) {
+        return op + "(:" + rhsType + "):";
+    }
 
     struct Type {
         std::string name;
         std::vector<Variable> members;
         std::vector<Function> methods;
         // @TODO: rewrite using a hash structure
-        std::vector<OperatorOverload> overloads;
+        std::unordered_map<std::string, OperatorOverload> overloads;
 
-        Type(const std::string& name, const std::vector<Variable>& members, const std::vector<Function>& methods, const std::vector<OperatorOverload> & overloads)
+        Type(const std::string& name, const std::vector<Variable>& members, const std::vector<Function>& methods, const std::unordered_map<std::string, OperatorOverload>& overloads)
             : name(name), members(members), methods(methods), overloads(overloads) {}
 
-        bool has(const OperatorOverload& opOverload) {
-            return std::find(overloads.begin(), overloads.end(), opOverload) != overloads.end();
+        bool has(const std::string& signature) {
+            return overloads.find(signature) != overloads.end();
+        }
+
+        OperatorOverload getOverload(const std::string& signature) {
+            return overloads.find(signature)->second;
         }
     };
 
@@ -208,8 +211,45 @@ struct SemanticAnalyzerVisitor : Visitor {
         enterScope(global, "global");
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
-        types.emplace("_int32", Type("_int32", {}, {}, {}));
-        types.emplace("_float32", Type("_float32", {}, {}, {}));
+        types.emplace("_int32", Type("_int32", {}, {}, {
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("+", "_int32"), OperatorOverload("+", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("-", "_int32"), OperatorOverload("-", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("!=", "_int32"), OperatorOverload("!=", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("!", "_int32"), OperatorOverload("!", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature(".", "_int32"), OperatorOverload(".", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("==", "_int32"), OperatorOverload("==", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("*", "_int32"), OperatorOverload("*", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("/", "_int32"), OperatorOverload("/", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("%", "_int32"), OperatorOverload("%", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("&", "_int32"), OperatorOverload("&", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("|", "_int32"), OperatorOverload("|", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("||", "_int32"), OperatorOverload("||", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("&&", "_int32"), OperatorOverload("&&", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("^", "_int32"), OperatorOverload("^", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("<<", "_int32"), OperatorOverload("<<", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature(">>", "_int32"), OperatorOverload(">>", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("<", "_int32"), OperatorOverload("<", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("<=", "_int32"), OperatorOverload("<=", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature(">", "_int32"), OperatorOverload(">", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature(">=", "_int32"), OperatorOverload(">=", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("and", "_int32"), OperatorOverload("and", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("or", "_int32"), OperatorOverload("or", "_int32", "_int32")),
+            // std::make_pair<std::string, OperatorOverload>(formOpSignature("[]", "_int32"), OperatorOverload("[]", "_int32", "_int32")),
+        }));
+
+        types.emplace("_float32", Type("_float32", {}, {}, {
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("+", "_int32"), OperatorOverload("+", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("-", "_int32"), OperatorOverload("-", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("!=", "_int32"), OperatorOverload("!=", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("==", "_int32"), OperatorOverload("==", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("*", "_int32"), OperatorOverload("*", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("/", "_int32"), OperatorOverload("/", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("<", "_int32"), OperatorOverload("<", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("<=", "_int32"), OperatorOverload("<=", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature(">", "_int32"), OperatorOverload(">", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature(">=", "_int32"), OperatorOverload(">=", "_int32", "_int32")),
+
+        }));
         types.emplace("_string", Type("_string", {}, {}, {}));
 
         n->compStatement->accept(shared_from_this());
@@ -375,22 +415,24 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // a method for common expression functionality
     void process(std::shared_ptr<Node::Expr> n) {
+        // process lhs and rhs
         n->LHS->accept(shared_from_this());
         n->RHS->accept(shared_from_this());
 
+        // get lhs and rhs types of expr type stack
         std::string rhsType = exprTypes.back();
         exprTypes.pop_back();
         std::string lhsType = exprTypes.back();
         exprTypes.pop_back();
 
-        // @TODO: check implicit conversions
-        if (lhsType != rhsType) {
-            std::cout << "Type error in expression. Could not convert "
-                      << rhsType << " to type " << lhsType << ".\n";
+        // check the type and see if it has
+        std::string signature = formOpSignature(n->op, rhsType);
+        Type& type = types.find(lhsType)->second;
+        if (!type.has(signature)) {
+            std::cout << "Type " << type.name << " has no defined op " << signature << ".\n";
             exit(1);
         }
-
-        exprTypes.push_back(lhsType);
+        exprTypes.push_back(type.getOverload(signature).returnType);
     }
 
     // @TODO: every kind of expr needs to check lhs and rhs against available operator overloads
@@ -603,15 +645,15 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // process overloads
         // @NOTE: violates visitor pattern
-        std::vector<OperatorOverload> overloads;
+        std::unordered_map<std::string, OperatorOverload> overloads;
         for (const auto& overload : n->opOverloads) {
             // ensure no repeats
-            auto candidate = OperatorOverload(overload->op, overload->parameter->type, overload->returnType);
-            if (std::find(overloads.begin(), overloads.end(), candidate) != overloads.end()) {
-                std::cout << "Type " << n->name << "'s overload of op" << overload->op << "(:" << overload->parameter->type << "): is defined more than once!\n";
+            std::string signature = formOpSignature(overload->op, overload->parameter->type);
+            if (overloads.find(signature) != overloads.end()) {
+                std::cout << "Type " << n->name << "'s overload of op " << signature << " is defined more than once!\n";
                 exit(1);
             }
-            overloads.push_back(candidate);
+            overloads.emplace(signature, OperatorOverload(overload->op, overload->parameter->type, overload->returnType));
 
             // process each overload similarly to function
             overload->accept(shared_from_this());
@@ -636,7 +678,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // return type check
         if (!typeExists(n->returnType)) {
             std::cout << "Return type " << n->returnType
-                      << " of type " << typeName << "'s overload of op" << n->op << "(:" << n->parameter->type
+                      << " of type " << typeName << "'s overload of op " << n->op << "(:" << n->parameter->type
                       << "): has not yet been defined.\n";
             exit(1);
         }

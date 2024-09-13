@@ -337,7 +337,15 @@ struct Parser {
         while (true) {
             if (*it == Token::opDot) {
                 discard(Token::opDot);
-                auto RHS = parsePrimary();
+                // only variables and calls may follow opDot
+                std::shared_ptr<Node::Node> RHS;
+                if (*it == Token::identifier) {
+                    RHS = parsePrimary();
+                }
+                else {
+                    std::cout << "Parser error on line " << it->lineNumber << ". Only variables and calls may follow opDot.\n";
+                    exit(1);
+                }
                 LHS = std::make_shared<Node::AccessExpr>(LHS, ".", RHS);
             }
             else if (*it == Token::openBracket) {

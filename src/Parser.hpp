@@ -15,40 +15,41 @@ struct Parser {
     Parser(const std::vector<Token>& token_stream) 
         : tokens(token_stream), it(tokens.begin()) {}
 
-    // program
+    // program - [var_def | func_def | type_def]*
     std::shared_ptr<Node::Program> parse() {
-        auto programBody = parseCompStatement();
+        std::vector<std::shared_ptr<Node::Node>> definitions; 
         
-        if (it != tokens.end()) {
-            std::cout << "Bad statement in global scope.\n";
-            exit(1);
+        while (it != tokens.end()) {
+            if (*it == Token::identifier && *(it+1) == Token::colon) {
+                definitions.push_back(parseVariableDefn());
+            }
+            else if (*it == Token::kwDef) {
+                definitions.push_back(parseFunctionDefn());
+            }
+            else if (*it == Token::kwClass) {
+                definitions.push_back(parseTypeDefn());
+            }
+            else {
+                std::cout << "Parser error on line " << it->lineNumber << ". Expected a definition in global scope.\n";
+                exit(1);
+            }
         }
 
-        return std::make_shared<Node::Program>(programBody); 
+        return std::make_shared<Node::Program>(definitions); 
     }
 
-    // compound statement
-    std::shared_ptr<Node::CompStatement> parseCompStatement() {
+    // func_body - [stmt]*
+    std::shared_ptr<Node::FunctionBody> parseFunctionBody() {
 
         std::vector<std::shared_ptr<Node::Statement>> statements;
-        while (it != tokens.end()) {
+        while (true) {
             
             // variable definition
             if (*it == Token::identifier && *(it+1) == Token::colon) {
                 statements.push_back(parseVariableDefn());
             }
 
-            // function definition
-            else if (*it == Token::kwDef) {
-                statements.push_back(parseFunctionDefn());
-            }
-
             //  @TODO: expression
-
-            // type definition
-            else if (*it == Token::kwClass) {
-                statements.push_back(parseTypeDefn());
-            }
 
             // return_stmt
             else if (*it == Token::kwReturn) {
@@ -72,11 +73,11 @@ struct Parser {
 
             // unrecognized statement type
             else {
-                return std::make_shared<Node::CompStatement>(statements);
+                break;
             }
         }
 
-        return std::make_shared<Node::CompStatement>(statements);
+        return std::make_shared<Node::FunctionBody>(statements);
     }
 
     // identifier = expr
@@ -143,7 +144,7 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
-        auto stmts = parseCompStatement();
+        auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
 
         return std::make_shared<Node::OperatorOverload>(op, parameter, type, stmts);
@@ -162,7 +163,7 @@ struct Parser {
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
         // discard(Token::terminator);
-        auto functionBody = parseCompStatement();
+        auto functionBody = parseFunctionBody();
         discard(Token::kwEnd);
 
         return std::make_shared<Node::FunctionDefn>(name, returnType, parameters, functionBody);
@@ -459,19 +460,19 @@ struct Parser {
 
         discard(Token::kwIf);
         auto ifExpr = parseLogicalExpr();
-        auto ifStmt = parseCompStatement();
-        std::vector<std::pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::CompStatement>>> elsifs;
+        auto ifStmt = parseFunctionBody();
+        std::vector<std::pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::FunctionBody>>> elsifs;
         while(*it == Token::kwElsif) {
             discard(Token::kwElsif);
             auto expr = parseLogicalExpr();
-            auto stmts = parseCompStatement();
+            auto stmts = parseFunctionBody();
             // @TODO: come back to this and figure out why it wont work without std::move()
-            elsifs.push_back(std::make_pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::CompStatement>>(std::move(expr), std::move(stmts)));
+            elsifs.push_back(std::make_pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::FunctionBody>>(std::move(expr), std::move(stmts)));
         }
-        std::shared_ptr<Node::CompStatement> elseStmts; 
+        std::shared_ptr<Node::FunctionBody> elseStmts; 
         if (*it == Token::kwElse) {
             discard(Token::kwElse);
-            elseStmts = parseCompStatement();
+            elseStmts = parseFunctionBody();
         }
         discard(Token::kwEnd);
 
@@ -485,7 +486,7 @@ struct Parser {
         discard(Token::kwWhile);
         auto expr = parseLogicalExpr();
         discard(Token::kwDo);
-        auto stmts = parseCompStatement();
+        auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
 
         return std::make_shared<Node::WhileLoop>(expr, stmts);

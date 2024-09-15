@@ -20,11 +20,11 @@ namespace Node {
 
     // program
     struct Program : Node, std::enable_shared_from_this<Program> {
-        std::shared_ptr<CompStatement> compStatement;
+        std::vector<std::shared_ptr<Node>> definitions;
 
         // constructor
-        Program(std::shared_ptr<CompStatement> compStatement) 
-        : compStatement(compStatement) {}
+        Program(const std::vector<std::shared_ptr<Node>>& definitions) 
+        : definitions(definitions) {}
 
         void accept(std::shared_ptr<Visitor> v) override {
             v->visit(shared_from_this());
@@ -32,11 +32,11 @@ namespace Node {
     };
 
     // compound statement
-    struct CompStatement : Node, std::enable_shared_from_this<CompStatement> {
+    struct FunctionBody : Node, std::enable_shared_from_this<FunctionBody> {
         std::vector<std::shared_ptr<Statement>> statements;
 
         // constructor
-        CompStatement(const std::vector<std::shared_ptr<Statement>>& statements) 
+        FunctionBody(const std::vector<std::shared_ptr<Statement>>& statements) 
         : statements(statements) {}
 
         // accept
@@ -298,10 +298,10 @@ namespace Node {
         std::string name;
         std::string returnType;
         std::shared_ptr<ParamList> paramList;
-        std::shared_ptr<CompStatement> functionBody;
+        std::shared_ptr<FunctionBody> functionBody;
 
         // constuctor
-        FunctionDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<CompStatement> functionBody) 
+        FunctionDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<FunctionBody> functionBody) 
             : name(name), returnType(returnType), paramList(paramList), functionBody(functionBody) {}
 
         // accept visitor
@@ -332,9 +332,9 @@ namespace Node {
         std::string op;
         std::shared_ptr<Parameter> parameter;
         std::string returnType;
-        std::shared_ptr<CompStatement> stmts;
+        std::shared_ptr<FunctionBody> stmts;
 
-        OperatorOverload(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<CompStatement> stmts)
+        OperatorOverload(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<FunctionBody> stmts)
             : op(op), parameter(parameter), returnType(returnType), stmts(stmts) {}
 
         // accept visitor
@@ -374,16 +374,16 @@ namespace Node {
 
     struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlock> {
         std::shared_ptr<Node> ifExpr;
-        std::shared_ptr<CompStatement> ifStmts;
-        std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs;
-        std::shared_ptr<CompStatement> elseStmts;
+        std::shared_ptr<FunctionBody> ifStmts;
+        std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<FunctionBody>>> elsifs;
+        std::shared_ptr<FunctionBody> elseStmts;
 
         // constructor
         ConditionalBlock(
             std::shared_ptr<Node> ifExpr,
-            std::shared_ptr<CompStatement> ifStmts,
-            std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<CompStatement>>> elsifs,
-            std::shared_ptr<CompStatement> elseStmts
+            std::shared_ptr<FunctionBody> ifStmts,
+            std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<FunctionBody>>> elsifs,
+            std::shared_ptr<FunctionBody> elseStmts
         ) 
             : ifExpr(ifExpr),
             ifStmts(ifStmts),
@@ -400,10 +400,10 @@ namespace Node {
     // while loop
     struct WhileLoop : Statement, std::enable_shared_from_this<WhileLoop> {
         std::shared_ptr<Node> expr;
-        std::shared_ptr<CompStatement> stmts;
+        std::shared_ptr<FunctionBody> stmts;
 
         // constructor
-        WhileLoop(std::shared_ptr<Node> expr, std::shared_ptr<CompStatement> stmts)
+        WhileLoop(std::shared_ptr<Node> expr, std::shared_ptr<FunctionBody> stmts)
             : expr(expr), stmts(stmts) {}
 
         // accept

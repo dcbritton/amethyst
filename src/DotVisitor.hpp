@@ -38,20 +38,26 @@ struct DotVisitor : Visitor {
                 << " [label=\"program\"];\n";
 
         // process child(ren)
-        n->compStatement->accept(shared_from_this());
-        
+        std::vector<int> definitionIds = {};
+        for (auto definition : n->definitions) {
+            definitionIds.push_back(nodeId);
+            definition->accept(shared_from_this());
+        }
+
         // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(thisId+1) << ";\n";
+        for (auto id : definitionIds) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
+        }
     }
 
-    // visit compound statement
-    void visit(std::shared_ptr<Node::CompStatement> n) override {
+    // visit function body
+    void visit(std::shared_ptr<Node::FunctionBody> n) override {
         int thisId = nodeId;
         ++nodeId;
         
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\"comp_stmt\"];\n";
+                << " [label=\"body\"];\n";
 
         // process child(ren)
         std::vector<int> substatementIds = {};

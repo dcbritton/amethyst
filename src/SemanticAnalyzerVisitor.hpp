@@ -3,7 +3,7 @@
 #ifndef SEMANTICANALYZERVISITOR
 #define SEMANTICANALYZERVISITOR
 
-#include <unordered_set>
+#include <iostream>
 #include <unordered_map>
 #include "Visitor.hpp"
 
@@ -232,8 +232,8 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::make_pair<std::string, OperatorOverload>(formOpSignature("<=", "_int32"), OperatorOverload("<=", "_int32", "_int32")),
             std::make_pair<std::string, OperatorOverload>(formOpSignature(">", "_int32"), OperatorOverload(">", "_int32", "_int32")),
             std::make_pair<std::string, OperatorOverload>(formOpSignature(">=", "_int32"), OperatorOverload(">=", "_int32", "_int32")),
-            // std::make_pair<std::string, OperatorOverload>(formOpSignature("and", "_int32"), OperatorOverload("and", "_int32", "_int32")),
-            // std::make_pair<std::string, OperatorOverload>(formOpSignature("or", "_int32"), OperatorOverload("or", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("and", "_int32"), OperatorOverload("and", "_int32", "_int32")),
+            std::make_pair<std::string, OperatorOverload>(formOpSignature("or", "_int32"), OperatorOverload("or", "_int32", "_int32")),
             // std::make_pair<std::string, OperatorOverload>(formOpSignature("[]", "_int32"), OperatorOverload("[]", "_int32", "_int32")),
         }));
 
@@ -252,11 +252,13 @@ struct SemanticAnalyzerVisitor : Visitor {
         }));
         types.emplace("_string", Type("_string", {}, {}, {}));
 
-        n->compStatement->accept(shared_from_this());
+        for (auto definition : n->definitions) {
+            definition->accept(shared_from_this());
+        }
     }
 
     // visit compound statement
-    void visit(std::shared_ptr<Node::CompStatement> n) override {
+    void visit(std::shared_ptr<Node::FunctionBody> n) override {
         for (auto stmt : n->statements) {
             stmt->accept(shared_from_this());
         }

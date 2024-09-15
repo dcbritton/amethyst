@@ -1,24 +1,28 @@
 // pseudo_bnf.txt
 // contains a tentative pseudo-bnf of amethyst syntax
 
-program     -   comp_stmt
+program     -   [var_def | func_def | type_def]*
 
-comp_stmt   -   [stmt]*
+func_def    -   def identifier ( param_list ) : type_name func_body end
+
+param_list  -   [[parameter ,]* parameter]
+
+parameter   -   identifier : type_name
+
+func_body   -   [stmt]*
 
 stmt        -   var_def
-            |   eq_expr
+            |   logic_expr
             |   assignment
-            |   func_def
-            |   type_def
-            |   return_stmt
             |   conditional
             |   while_loop
+            |   return_stmt
 
 while_loop  -   while expr do comp_stmt end
 
 conditional -   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
             
-return_stmt -   return eq_expr
+return_stmt -   return logic_expr
 
 assignment  -   identifier op_assgn expr
 
@@ -61,6 +65,12 @@ primary     -   ( expr )
             |   literal
             |   var_name
             |   array
+            |   member_name
+            |   method_call
+
+member_name -   @ identifier
+
+method_call -   @ identifier ( expr_list )
 
 array       -   [ expr_list ]
 
@@ -72,17 +82,6 @@ func_name   -   identifier
 var_name    -   identifier
 type_name   -   identifier
 
-type_def    -   type identifier [var_def | op_def]* end
+type_def    -   type identifier [var_def | op_def | func_def]* end
 
-op_def      -   op operator ( parameter ) : typename comp_stmt end
-
-func_def    -   def identifier ( param_list ) : type_name comp_stmt end
-
-param_list  -   [[parameter, ]* parameter]
-
-parameter   -   identifier:type_name
-
-op_assgn    -   +=
-            |   -=
-            |   *=  
-            |   etc...
+op_def      -   op operator ( parameter ) : type_name comp_stmt end

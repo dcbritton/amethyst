@@ -372,8 +372,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string type;
         for (const auto& scope : scopeTable) {
             for (const auto& variable : scope.variables) {
-                if (n->lhs == variable.first)
-                    type = variable.first;
+                if (n->lhs == variable.first) {
+                    type = variable.second.type;
+                }
             }
         }
 

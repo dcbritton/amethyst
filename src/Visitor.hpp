@@ -36,6 +36,8 @@ namespace Node {
     struct ExprList;
     struct Call;
     struct Array;
+    struct Member;
+    struct MethodCall;
 }
 
 struct Visitor : std::enable_shared_from_this<Visitor> {
@@ -91,6 +93,10 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Return> n) {}
 
     virtual void visit(std::shared_ptr<Node::TypeDefn> n) {}
+
+    virtual void visit(std::shared_ptr<Node::Member> n) {}
+
+    virtual void visit(std::shared_ptr<Node::MethodCall> n) {}
 
     virtual void visit(std::shared_ptr<Node::OperatorOverload> n) {}
 

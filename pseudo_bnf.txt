@@ -1,13 +1,15 @@
 // pseudo_bnf.txt
 // contains a tentative pseudo-bnf of amethyst syntax
 
-program     -   [var_def | func_def | type_def]*
+program     -   [global_def | func_def | type_def]*
 
-func_def    -   def identifier ( param_list ) : type_name func_body end
+global_def  -   $ identifier : identifier = logic_expr
+
+func_def    -   def identifier ( param_list ) : identifier func_body end
 
 param_list  -   [[parameter ,]* parameter]
 
-parameter   -   identifier : type_name
+parameter   -   identifier : identifier
 
 func_body   -   [stmt]*
 
@@ -18,15 +20,16 @@ stmt        -   var_def
             |   while_loop
             |   return_stmt
 
-while_loop  -   while expr do comp_stmt end
+while_loop  -   while logic_expr do func_body end
 
-conditional -   if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
+conditional -   if logic_expr func_body [elsif logic_expr func_body]* [else func_body] end
             
 return_stmt -   return logic_expr
 
-assignment  -   identifier op_assgn expr
+assignment  -   identifier = logic_expr
+            |   member_name = logic_expr
 
-var_def     -   identifier:type_name = expr
+var_def     -   identifier : identifier = logic_expr
 
 logic_expr  -   eq_expr
             |   logic_expr and eq_expr   
@@ -60,28 +63,28 @@ access_expr -   primary
             |   access_expr . call
             |   access_expr [ logic_expr ]
 
-primary     -   ( expr )
+primary     -   ( logic_expr )
             |   call
             |   literal
-            |   var_name
+            |   identifier
             |   array
             |   member_name
             |   method_call
 
+array       -   [ expr_list ]
+
+call        -   identifier ( expr_list )
+
+expr_list   -   [[logic_expr ,]* logic_expr] 
+
+type_def    -   type identifier [member_def | method_def | op_def]* end
+
+member_def  -   @ identifier : identifier = logic_expr
+
+method_def  -   def @identifier ( param_list ) : identifier func_body end
+
+op_def      -   op operator ( parameter ) : identifier func_body end
+
 member_name -   @ identifier
 
 method_call -   @ identifier ( expr_list )
-
-array       -   [ expr_list ]
-
-call        -   func_name ( expr_list )
-
-expr_list   -   [[expr ,]* expr] 
-
-func_name   -   identifier
-var_name    -   identifier
-type_name   -   identifier
-
-type_def    -   type identifier [var_def | op_def | func_def]* end
-
-op_def      -   op operator ( parameter ) : type_name comp_stmt end

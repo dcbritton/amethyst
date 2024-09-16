@@ -104,18 +104,16 @@ struct Parser {
         discard(Token::kwClass);
         std::string name = consume(Token::identifier);
         
-        std::vector<std::shared_ptr<Node::VariableDefn>> members;
-        std::vector<std::shared_ptr<Node::FunctionDefn>> methods;
-        std::vector<std::shared_ptr<Node::OperatorOverload>> ops;
+        std::vector<std::shared_ptr<Node::Node>> definitions; 
         while (true) {
             if (*it == Token::identifier) {
-                members.push_back(parseVariableDefn());
+                definitions.push_back(parseVariableDefn());
             }
             else if (*it == Token::kwDef) {
-                methods.push_back(parseFunctionDefn());
+                definitions.push_back(parseFunctionDefn());
             }
             else if (*it == Token::kwOp) {
-                ops.push_back(parseOperatorOverload());
+                definitions.push_back(parseOperatorOverload());
             }
             else {
                 break;
@@ -123,7 +121,7 @@ struct Parser {
         }
         discard(Token::kwEnd);
 
-        return std::make_shared<Node::TypeDefn>(name, members, methods, ops);
+        return std::make_shared<Node::TypeDefn>(name, definitions);
     }
 
     // op operator ( parameter ) : typename comp_stmt end
@@ -393,7 +391,18 @@ struct Parser {
             return std::make_shared<Node::Variable>(consume(Token::identifier));
         }
 
-        // @TODO: disallow paren expressions after dot operator. maybe in semantic analyzer?
+        // member, method call
+        else if (*it == Token::at && *(it+1) == Token::identifier) {
+
+            // method call
+            if (*(it+2) == Token::openParen) {
+                return parseMethodCall();
+            }
+
+            // member
+            return parseMember();
+        }
+
         // ( expr )
         else if (*it == Token::openParen) {
             discard(Token::openParen);
@@ -413,9 +422,28 @@ struct Parser {
         }
 
         else {
-            std::cout << "Primaries are only allowed to be variables, calls, and literals. Got token" << it->toString() << " instead.\n";
+            std::cout << "Parser error on line " << it->lineNumber << ". Primaries are only allowed to be variables, calls, and literals. Got token" << it->toString() << " instead.\n";
             exit(1);
         }
+    }
+
+    // @ identifier
+    std::shared_ptr<Node::Member> parseMember() {
+        discard(Token::at);
+        std::string name = consume(Token::identifier);
+
+        return std::make_shared<Node::Member>(name);
+    }
+
+    // @ identifier ( expr_list )
+    std::shared_ptr<Node::MethodCall> parseMethodCall() {
+        discard(Token::at);
+        std::string name = consume(Token::identifier);
+        discard(Token::openParen);
+        auto callArgs = parseExprList();
+        discard(Token::closeParen);
+
+        return std::make_shared<Node::MethodCall>(name, callArgs);
     }
 
     // func_name(expr_list)

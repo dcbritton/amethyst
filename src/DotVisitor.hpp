@@ -469,32 +469,17 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
 
         // process child(ren)
-        std::vector<int> memberIds = {};
-        for (auto member : n->members) {
-            memberIds.push_back(nodeId);
+        std::vector<int> definitionIds = {};
+        for (auto member : n->definitions) {
+            definitionIds.push_back(nodeId);
             member->accept(shared_from_this());
-        }
-        std::vector<int> methodIds = {};
-        for (auto method : n->methods) {
-            methodIds.push_back(nodeId);
-            method->accept(shared_from_this());
-        }
-        std::vector<int> overloadIds = {};
-        for (auto overload : n->opOverloads) {
-            overloadIds.push_back(nodeId);
-            overload->accept(shared_from_this());
         }
 
         // connect child(ren) to this node
-        for (auto id : memberIds) {
+        for (auto id : definitionIds) {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
-        for (auto id : methodIds) {
-            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
-        }
-        for (auto id : overloadIds) {
-            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
-        }
+
     }
 
     // visit operator overload
@@ -519,6 +504,37 @@ struct DotVisitor : Visitor {
         // connect child(ren) to this node
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramId) << ";\n";
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(functionBodyId) << ";\n";
+    }
+    
+    // visit member
+    void visit(std::shared_ptr<Node::Member> n) {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\"@"
+                << n->name
+                << "\"];\n";
+    }
+
+    // visit method call
+    void visit(std::shared_ptr<Node::MethodCall> n) {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "call\n@" << n->name
+                << "\"];\n";
+
+        // process child(ren)
+        int argsId = nodeId;
+        n->args->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(argsId) << ";\n";
     }
 
     // visit conditional block

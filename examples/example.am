@@ -1,26 +1,24 @@
 
-a:_int32 = 1 + 1 * 1 and 1
-
-class T
-    a:_int32 = 1 + 1
-
-    def method(b:_int32):_int32
-        b = a
-    end
-end
+a:_int32 = 1 + 1
 
 def main(a:_int32, b:_int32):_int32
-    c:_int32 = 1 + 1
+    e:_int32 = 1
+    d:_int32 = main(e, a)
+    return 1
+end
 
-    if a + b
-        c = a
-    elsif a * b
-        c = b
-    else
-        c = c
+b:_int32 = 1 + 1
+
+class T
+    @number:_int32 = @call()
+
+    def main(a:_int32, b:_int32):_int32
+        e:_int32 = 1
+        d:_int32 = main(e, a)
+        return 1
     end
 
-    while a < 10 do
-        a = a.b(1+2, b(1+2)) + 1
+    op >=(a:_int32):_int32
+
     end
 end

@@ -313,13 +313,11 @@ namespace Node {
     // type definition
     struct TypeDefn : Statement, std::enable_shared_from_this<TypeDefn> {
         std::string name;
-        std::vector<std::shared_ptr<VariableDefn>> members;
-        std::vector<std::shared_ptr<FunctionDefn>> methods;
-        std::vector<std::shared_ptr<OperatorOverload>> opOverloads;
+        std::vector<std::shared_ptr<Node>> definitions;
 
         // constuctor
-        TypeDefn(const std::string& name, const std::vector<std::shared_ptr<VariableDefn>>& members, const std::vector<std::shared_ptr<FunctionDefn>>& methods, const std::vector<std::shared_ptr<OperatorOverload>>& opOverloads) 
-            : name(name), members(members), methods(methods), opOverloads(opOverloads) {}
+        TypeDefn(const std::string& name, const std::vector<std::shared_ptr<Node>>& definitions) 
+            : name(name), definitions(definitions) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {
@@ -338,6 +336,35 @@ namespace Node {
             : op(op), parameter(parameter), returnType(returnType), stmts(stmts) {}
 
         // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
+    // member
+    struct Member : Primary, std::enable_shared_from_this<Member> {
+        std::string name;
+
+        // constructor
+        Member(const std::string& name)
+            : name(name) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
+    // method call
+    struct MethodCall : Primary, std::enable_shared_from_this<MethodCall> {
+        std::string name;
+        std::shared_ptr<ExprList> args;
+
+        // constructor
+        MethodCall(const std::string& name, std::shared_ptr<ExprList> args)
+            : name(name), args(args) {}
+
+        // accept
         void accept(std::shared_ptr<Visitor> v) override {
             v->visit(shared_from_this());
         }

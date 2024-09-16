@@ -132,39 +132,6 @@ public:
                 continue;
             }
 
-            // global (restricting all globals to '$IDENTIFIER' for now)
-            // @TODO: add option variables '$[-]any_char', listed at https://ruby-doc.org/docs/ruby-doc-bundle/Manual/man-1.4/variable.html#number
-            else if (*it == '$') {
-                std::string::const_iterator wordEnd = it+1;
-
-                // report if the word following the $ is not an identifier
-                if (!(isalpha(*(it+1)) || *(it+1) == '_')) {
-                    while (!isspace(*wordEnd)) {
-                        ++wordEnd;
-                    }
-                    throw InvalidSymbolException(lineNumber, std::string(it, wordEnd));
-                }
-
-                // lex an identifier as normal after the '$'
-                while (isalnum(*wordEnd) || *wordEnd == '_') {        
-                    ++wordEnd;
-                }
-                std::string word = std::string(it, wordEnd);
-
-                // identifier found if not in keyword map
-                std::unordered_map<std::string, Token::Type>::const_iterator possibleKeyword = keywordMap.find(word);
-                if (possibleKeyword == keywordMap.end()) {
-                    tokens.push_back(Token(Token::global, word, lineNumber));
-                }
-                // otherwise keyword
-                else {
-                    tokens.push_back(Token(possibleKeyword->second, word, lineNumber));
-                }
-                it = wordEnd;
-
-                continue;
-            }
-
             // @TODO fix bug here regarding - sign 
             // numeric
             else if (isdigit(*it) || *it == '-') {
@@ -527,7 +494,14 @@ public:
 
             // @
             else if (*it == '@') {
-                tokens.push_back(Token(Token::at, "@", lineNumber));
+                tokens.push_back(Token(Token::memberSigil, "@", lineNumber));
+                ++it;
+                continue;
+            }
+
+            // $
+            else if (*it == '$') {
+                tokens.push_back(Token(Token::globalSigil, "$", lineNumber));
                 ++it;
                 continue;
             }

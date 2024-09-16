@@ -31,6 +31,22 @@ namespace Node {
         }
     };
 
+    // global definiton
+    struct GlobalDefn : Node, std::enable_shared_from_this<GlobalDefn> {
+        std::string name;
+        std::string type;
+        std::shared_ptr<Node> expression;
+
+        // constructor
+        GlobalDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
+            : name(name), type(type), expression(expression) {}
+
+        // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     // compound statement
     struct FunctionBody : Node, std::enable_shared_from_this<FunctionBody> {
         std::vector<std::shared_ptr<Statement>> statements;
@@ -148,6 +164,20 @@ namespace Node {
     // primary
     struct Primary : Node {
 
+    };
+
+    // global
+    struct Global : Primary, std::enable_shared_from_this<Global> {
+        std::string name;
+
+        // constructor
+        Global(const std::string& name)
+            : name(name) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
     };
 
     // array
@@ -294,7 +324,7 @@ namespace Node {
     };
 
     // function definition
-    struct FunctionDefn : Statement, std::enable_shared_from_this<FunctionDefn> {
+    struct FunctionDefn : Node, std::enable_shared_from_this<FunctionDefn> {
         std::string name;
         std::string returnType;
         std::shared_ptr<ParamList> paramList;
@@ -311,7 +341,7 @@ namespace Node {
     };
 
     // type definition
-    struct TypeDefn : Statement, std::enable_shared_from_this<TypeDefn> {
+    struct TypeDefn : Node, std::enable_shared_from_this<TypeDefn> {
         std::string name;
         std::vector<std::shared_ptr<Node>> definitions;
 
@@ -326,7 +356,7 @@ namespace Node {
     };
 
     // operator overload
-    struct OperatorOverload : Statement, std::enable_shared_from_this<OperatorOverload> {
+    struct OperatorOverload : Node, std::enable_shared_from_this<OperatorOverload> {
         std::string op;
         std::shared_ptr<Parameter> parameter;
         std::string returnType;
@@ -334,6 +364,39 @@ namespace Node {
 
         OperatorOverload(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<FunctionBody> stmts)
             : op(op), parameter(parameter), returnType(returnType), stmts(stmts) {}
+
+        // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
+    // member definition
+    struct MemberDefn : Node, std::enable_shared_from_this<MemberDefn> {
+        std::string name;
+        std::string type;
+        std::shared_ptr<Node> expression;
+
+        // constructor
+        MemberDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
+            : name(name), type(type), expression(expression) {}
+
+        // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
+    // method defintion
+    struct MethodDefn : Node, std::enable_shared_from_this<MethodDefn> {
+        std::string name;
+        std::string returnType;
+        std::shared_ptr<ParamList> paramList;
+        std::shared_ptr<FunctionBody> functionBody;
+
+        // constuctor
+        MethodDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<FunctionBody> functionBody) 
+            : name(name), returnType(returnType), paramList(paramList), functionBody(functionBody) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {

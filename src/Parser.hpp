@@ -20,8 +20,8 @@ struct Parser {
         std::vector<std::shared_ptr<Node::Node>> definitions; 
         
         while (it != tokens.end()) {
-            if (*it == Token::identifier && *(it+1) == Token::colon) {
-                definitions.push_back(parseVariableDefn());
+            if (*it == Token::globalSigil) {
+                definitions.push_back(parseGlobalDefn());
             }
             else if (*it == Token::kwDef) {
                 definitions.push_back(parseFunctionDefn());
@@ -36,6 +36,28 @@ struct Parser {
         }
 
         return std::make_shared<Node::Program>(definitions); 
+    }
+
+    // global_def - $ identifier : identifier = logic_expr
+    std::shared_ptr<Node::GlobalDefn> parseGlobalDefn() {
+        currentContext = "global definition";
+        
+        discard(Token::globalSigil);
+        std::string name = consume(Token::identifier);
+        discard(Token::colon);
+        std::string type = consume(Token::identifier);
+        discard(Token::opAssign);
+        auto expression = parseLogicalExpr();
+
+        return std::make_shared<Node::GlobalDefn>(name, type, expression);
+    }
+
+    // global - $ identifier
+    std::shared_ptr<Node::Global> parseGlobal() {
+        discard(Token::globalSigil);
+        std::string name = consume(Token::identifier);
+
+        return std::make_shared<Node::Global>(name);
     }
 
     // func_body - [stmt]*
@@ -97,7 +119,7 @@ struct Parser {
         return std::make_shared<Node::Return>(expr);
     }
 
-    // type identifier [var_def | op_def | func_def]* end
+    // type identifier [global_def | op_def | func_def]* end
     std::shared_ptr<Node::TypeDefn> parseTypeDefn() {
         currentContext = "class definition";
 
@@ -106,11 +128,11 @@ struct Parser {
         
         std::vector<std::shared_ptr<Node::Node>> definitions; 
         while (true) {
-            if (*it == Token::identifier) {
-                definitions.push_back(parseVariableDefn());
+            if (*it == Token::memberSigil) {
+                definitions.push_back(parseMemberDefn());
             }
             else if (*it == Token::kwDef) {
-                definitions.push_back(parseFunctionDefn());
+                definitions.push_back(parseMethodDefn());
             }
             else if (*it == Token::kwOp) {
                 definitions.push_back(parseOperatorOverload());
@@ -146,6 +168,39 @@ struct Parser {
         discard(Token::kwEnd);
 
         return std::make_shared<Node::OperatorOverload>(op, parameter, type, stmts);
+    }
+
+    // member_def - @ identifier : identifier = logic_expr
+    std::shared_ptr<Node::MemberDefn> parseMemberDefn() {
+        currentContext = "member definition";
+        
+        discard(Token::memberSigil);
+        std::string name = consume(Token::identifier);
+        discard(Token::colon);
+        std::string type = consume(Token::identifier);
+        discard(Token::opAssign);
+        auto expression = parseLogicalExpr();
+
+        return std::make_shared<Node::MemberDefn>(name, type, expression);
+    }
+
+    // method_def - def @ identifier ( param_list ) : identifier func_body end
+    std::shared_ptr<Node::MethodDefn> parseMethodDefn() {
+
+        discard(Token::kwDef);
+        discard(Token::memberSigil);
+        std::string name = consume(Token::identifier);
+        discard(Token::openParen);
+        std::shared_ptr<Node::ParamList> parameters = nullptr;
+        parameters = parseParamList();
+        discard(Token::closeParen);
+        discard(Token::colon);
+        std::string returnType = consume(Token::identifier);
+        // discard(Token::terminator);
+        auto functionBody = parseFunctionBody();
+        discard(Token::kwEnd);
+
+        return std::make_shared<Node::MethodDefn>(name, returnType, parameters, functionBody);  
     }
 
     // def identifier(param_list):typename comp_stmt end
@@ -392,7 +447,7 @@ struct Parser {
         }
 
         // member, method call
-        else if (*it == Token::at && *(it+1) == Token::identifier) {
+        else if (*it == Token::memberSigil) {
 
             // method call
             if (*(it+2) == Token::openParen) {
@@ -401,6 +456,11 @@ struct Parser {
 
             // member
             return parseMember();
+        }
+
+        // global
+        else if (*it == Token::globalSigil) {
+            return parseGlobal();
         }
 
         // ( expr )
@@ -429,7 +489,7 @@ struct Parser {
 
     // @ identifier
     std::shared_ptr<Node::Member> parseMember() {
-        discard(Token::at);
+        discard(Token::memberSigil);
         std::string name = consume(Token::identifier);
 
         return std::make_shared<Node::Member>(name);
@@ -437,7 +497,7 @@ struct Parser {
 
     // @ identifier ( expr_list )
     std::shared_ptr<Node::MethodCall> parseMethodCall() {
-        discard(Token::at);
+        discard(Token::memberSigil);
         std::string name = consume(Token::identifier);
         discard(Token::openParen);
         auto callArgs = parseExprList();

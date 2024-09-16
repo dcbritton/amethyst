@@ -50,6 +50,37 @@ struct DotVisitor : Visitor {
         }
     }
 
+    // visit global definition
+    void visit(std::shared_ptr<Node::GlobalDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "global_def\n$" << n->name << " : " << n->type
+                << "\"];\n";
+
+        // process child(ren)
+        int exprId = nodeId;
+        n->expression->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
+    }
+
+    // visit global
+    void visit(std::shared_ptr<Node::Global> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\"$"
+                << n->name
+                << "\"];\n";
+    }
+
     // visit function body
     void visit(std::shared_ptr<Node::FunctionBody> n) override {
         int thisId = nodeId;
@@ -506,6 +537,51 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(functionBodyId) << ";\n";
     }
     
+    // visit member definition
+    void visit(std::shared_ptr<Node::MemberDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "member_def\n@" << n->name << " : " << n->type
+                << "\"];\n";
+
+        // process child(ren)
+        int exprId = nodeId;
+        n->expression->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
+    }
+
+    // visit method definition
+    void visit(std::shared_ptr<Node::MethodDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "method_def\n@" << n->name << " : " << n->returnType
+                << "\"];\n";
+
+        // process child(ren)
+        int paramListId = nodeId;
+        if (n->paramList) {
+            n->paramList->accept(shared_from_this());
+        }
+        int functionBodyId = nodeId;
+        n->functionBody->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        if (n->paramList) {
+            dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramListId) << ";\n";
+        }
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(functionBodyId) << ";\n";
+    }
+
     // visit member
     void visit(std::shared_ptr<Node::Member> n) {
         int thisId = nodeId;

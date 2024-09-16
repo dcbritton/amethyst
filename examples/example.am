@@ -1,24 +1,33 @@
 
-a:_int32 = 1 + 1
 
-def main(a:_int32, b:_int32):_int32
-    e:_int32 = 1
-    d:_int32 = main(e, a)
-    return 1
+$a:_int32 = 1
+$b:_int32 = $a + 1
+
+def ex(a:_int32, b:_int32):_int32
+    c:_int32 = $b + 1
+    d:_int32 = ex($b + 1, c)
+    return c + $b
 end
 
-b:_int32 = 1 + 1
-
 class T
-    @number:_int32 = @call()
+    @a:_int32 = 1
+    @b:_int32 = @a + $b + 1
 
-    def main(a:_int32, b:_int32):_int32
-        e:_int32 = 1
-        d:_int32 = main(e, a)
+    def @ex(a:_int32):_int32
+        b:_int32 = @a + $a + 1 + ex(1,1)
+        c:_int32 = a + b + @a + $a + @ex(ex(@a, $b) + a + b)
+    end
+
+    def @a(a:_int32):_int32
+        b:_int32 = @a + $a + 1 + ex(1,1)
+        c:_int32 = a + b + @a + $a + ex(@a, $b) + @ex(1)
+    end
+
+    op +(integer:_int32):_int32
+        integer = 1
+        integer2:_int32 = integer
+        @a = integer
         return 1
     end
 
-    op >=(a:_int32):_int32
-
-    end
 end

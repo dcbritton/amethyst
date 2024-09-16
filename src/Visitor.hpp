@@ -9,6 +9,8 @@ namespace Node {
     struct Node;
     struct Statement;
     struct Program;
+    struct GlobalDefn;
+    struct Global;
     struct FunctionBody;
     struct LogicalExpr;
     struct EqualityExpr;
@@ -28,6 +30,8 @@ namespace Node {
     struct Assignment;
     struct Return;
     struct TypeDefn;
+    struct MemberDefn;
+    struct MethodDefn;
     struct OperatorOverload;
     struct ConditionalBlock;
     struct ForLoop;
@@ -43,6 +47,10 @@ namespace Node {
 struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::Program> n) {}
+
+    virtual void visit(std::shared_ptr<Node::GlobalDefn> n) {}
+
+    virtual void visit(std::shared_ptr<Node::Global> n) {}
 
     virtual void visit(std::shared_ptr<Node::Node> n) {}
 
@@ -93,6 +101,10 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Return> n) {}
 
     virtual void visit(std::shared_ptr<Node::TypeDefn> n) {}
+
+    virtual void visit(std::shared_ptr<Node::MemberDefn> n) {}
+
+    virtual void visit(std::shared_ptr<Node::MethodDefn> n) {}
 
     virtual void visit(std::shared_ptr<Node::Member> n) {}
 

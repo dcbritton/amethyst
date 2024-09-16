@@ -70,7 +70,8 @@ struct Token {
         closeBrace,
         openBracket,
         closeBracket,
-        at,
+        memberSigil,
+        globalSigil,
 
         // reserved words
         // // kw_int32,
@@ -196,7 +197,7 @@ struct Token {
             case opGreaterThan: return "opGreaterThan";
             case opGreaterThanOrEqual: return "opGreaterThanOrEqual";
             case opSpaceship: return "opSpaceship";
-            case at: return "opAt";
+            case memberSigil: return "opAt";
 
             // punctuation
             case questionMark: return "questionMark";

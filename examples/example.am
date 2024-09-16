@@ -2,6 +2,7 @@
 
 $a:_int32 = 1
 $b:_int32 = $a + 1
+$c:_float32 = 1.0
 
 def ex(a:_int32, b:_int32):_int32
     c:_int32 = $b + 1
@@ -16,6 +17,7 @@ class T
     def @ex(a:_int32):_int32
         b:_int32 = @a + $a + 1 + ex(1,1)
         c:_int32 = a + b + @a + $a + @ex(ex(@a, $b) + a + b)
+        return $a
     end
 
     def @a(a:_int32):_int32
@@ -26,8 +28,8 @@ class T
     op +(integer:_int32):_int32
         integer = 1
         integer2:_int32 = integer
-        @a = integer
-        return 1
+
+        return @a($a)
     end
 
 end

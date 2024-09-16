@@ -463,11 +463,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->expr->accept(shared_from_this());
         
         // match return type to expression type
-        std::string functionName = getFunctionDefnScope()->name;
-        std::string functionType = functions.find(functionName)->second.returnType;
-        if (functionType != exprTypes.back()) {
-            std::cout << "In a return in the function " << functionName
-                        << ", the function's return type " << functionType
+        if (currentFunction->returnType != exprTypes.back()) {
+            std::cout << "In a return in the definition of " << currentFunction->signature
+                        << ", the return type " << currentFunction->returnType
                         << " does not match the expression type " << exprTypes.back()
                         << ".\n";
             exit(1);
@@ -694,7 +692,9 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // fully define current function with name, signature, and type (parameters already added when visited)
         currentFunction->returnType = n->returnType;
-
+        currentFunction->name = n->op;
+        currentFunction->signature = signature;
+        
         // make new scope
         enterScope(overloadDefn, signature);
 

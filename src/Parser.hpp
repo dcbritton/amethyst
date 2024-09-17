@@ -78,8 +78,12 @@ struct Parser {
                 statements.push_back(parseReturn());
             }
 
-            // assignment
-            else if (*it == Token::identifier) {
+            // assignment of $global / @member
+            else if ((*it == Token::globalSigil || *it == Token::memberSigil) && *(it+2) == Token::opAssign) {
+                statements.push_back(parseAssignment());
+            }
+
+            else if (*it == Token::identifier && *(it+1) == Token::opAssign) {
                 statements.push_back(parseAssignment());
             }
 
@@ -104,11 +108,17 @@ struct Parser {
 
     // identifier = expr
     std::shared_ptr<Node::Assignment> parseAssignment() {
+        currentContext = "assignment";
+        
+        std::string sigil;
+        if (*it == Token::globalSigil || *it == Token::memberSigil) {
+           sigil = consume(*it);
+        }
         std::string name = consume(Token::identifier);
         discard(Token::opAssign);
         auto expr = parseLogicalExpr();
 
-        return std::make_shared<Node::Assignment>(name, expr);
+        return std::make_shared<Node::Assignment>(sigil, name, expr);
     }
 
     // return expr

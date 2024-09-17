@@ -431,17 +431,55 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit assignment
-    // @TODO add member and global lhs
     void visit(std::shared_ptr<Node::Assignment> n) override {
+        std::string type;
+        // split on sigil of lhs
+        // global
+        if (n->sigil == "$") {
+            // exists?
+            if (!globalExists(n->lhs)) {
+                std::cout << "In some scope, tried to assign a value to global $" << n->lhs << ", which has not been defined.\n";
+                exit(1);  
+            }
 
-        // exists?
-        if (!variableExists(n->lhs)) {
-            std::cout << "In some scope, tried to assign a value to " << n->lhs << ", which has not been defined.\n";
-            exit(1);
+            // find type
+            type = getGlobalType(n->lhs);
         }
 
-        // find type
-        std::string type = getVariableType(n->lhs);
+        // member
+        else if (n->sigil == "@") {
+            // not allowed outside of a type definition
+            if (!inTypeDefn()) {
+                std::cout << "Tried to assign to member @" << n->lhs << " when not in a type definition.\n";
+                exit(1);
+            }
+            // exists?
+            if (currentType->members.find(n->lhs) == currentType->members.end()) {
+                std::cout << "In definition of type " << currentType->name
+                          << ", tried to assign to member @" << n->lhs
+                          << ", which has not yet been defined.\n";
+                exit(1);
+            }
+            // find type
+            type = currentType->members.find(n->lhs)->second.type;
+        }
+
+        // variable
+        else if (n->sigil == "") {
+            // exists?
+            if (!variableExists(n->lhs)) {
+                std::cout << "In some scope, tried to assign a value to " << n->lhs << ", which has not been defined.\n";
+                exit(1);
+            }
+            // find type
+            type = getVariableType(n->lhs);
+        }
+
+        // otherwise, error
+        else {
+            std::cout << "Internal error. Unrecognized sigil " << n->sigil << " in assignment.\n";
+            exit(1);
+        }
 
        // match lhs and rhs type
         n->expr->accept(shared_from_this());
@@ -813,7 +851,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // find type
-        std::string type = getGlobalType(n->name);
+        std::string type = currentType->members.find(n->name)->second.type;
 
         // expression stack
         exprTypes.push_back(type);

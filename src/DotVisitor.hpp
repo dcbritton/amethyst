@@ -458,8 +458,9 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "Assign " << n->lhs
-                << "\"];\n";
+                << "assign\n"
+                << n->sigil
+                << n->lhs << "\"];\n";
 
         // process child(ren)
         int exprId = nodeId;

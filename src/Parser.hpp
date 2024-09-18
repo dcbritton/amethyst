@@ -15,10 +15,16 @@ struct Parser {
     Parser(const std::vector<Token>& token_stream) 
         : tokens(token_stream), it(tokens.begin()) {}
 
-    // program - [var_def | func_def | type_def]*
+    // parse program
     std::shared_ptr<Node::Program> parse() {
-        std::vector<std::shared_ptr<Node::Node>> definitions; 
         
+        // discard initial newline token
+        if (*it == Token ::terminator) {
+            discard(Token::terminator);
+        }
+
+        // main parsing loop
+        std::vector<std::shared_ptr<Node::Node>> definitions;
         while (it != tokens.end()) {
             if (*it == Token::globalSigil) {
                 definitions.push_back(parseGlobalDefn());
@@ -32,6 +38,19 @@ struct Parser {
             else {
                 std::cout << "Parser error on line " << it->lineNumber << ". Expected a definition in global scope.\n";
                 exit(1);
+            }
+
+            // at end of program, no newline needed
+            if (it == tokens.end()) {
+                break;
+            }
+            // not at end of program, require terminator
+            else {
+                if (*it != Token::terminator) {
+                    std::cout << "Parser error on line " << it->lineNumber << ". Did not separate defintions in global scope with a newline.\n";
+                    exit(1);
+                }
+                discard(Token::terminator);
             }
         }
 
@@ -101,6 +120,8 @@ struct Parser {
             else {
                 break;
             }
+
+            discard(Token::terminator);
         }
 
         return std::make_shared<Node::FunctionBody>(statements);
@@ -129,12 +150,13 @@ struct Parser {
         return std::make_shared<Node::Return>(expr);
     }
 
-    // type identifier [global_def | op_def | func_def]* end
+    // type identifier TERM [temp TERM]* end
     std::shared_ptr<Node::TypeDefn> parseTypeDefn() {
         currentContext = "class definition";
 
         discard(Token::kwClass);
         std::string name = consume(Token::identifier);
+        discard(Token::terminator);
         
         std::vector<std::shared_ptr<Node::Node>> definitions; 
         while (true) {
@@ -150,6 +172,7 @@ struct Parser {
             else {
                 break;
             }
+            discard(Token::terminator);
         }
         discard(Token::kwEnd);
 
@@ -174,6 +197,7 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
+        discard(Token::terminator);
         auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
 
@@ -206,7 +230,7 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
-        // discard(Token::terminator);
+        discard(Token::terminator);
         auto functionBody = parseFunctionBody();
         discard(Token::kwEnd);
 
@@ -225,7 +249,7 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
-        // discard(Token::terminator);
+        discard(Token::terminator);
         auto functionBody = parseFunctionBody();
         discard(Token::kwEnd);
 

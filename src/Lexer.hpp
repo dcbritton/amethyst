@@ -101,10 +101,29 @@ public:
 
             // whitespace
             if (isspace(*it)) {
-                if (*it == '\n') {
-                    ++lineNumber;
-                    // tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
+
+                // @NOTE: condense any number of sequential newlines into one token
+
+                // windows newline crlf
+                if (*it == '\r' && *(it+1) == '\n') {
+                    while (*it == '\r' && *(it+1) == '\n') {
+                        ++lineNumber;
+                        it += 2;
+                    }
+                    tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
+                    continue;
                 }
+                // *nix 
+                else if (*it == '\n') {
+                    while (*it == '\n') {
+                        ++lineNumber;
+                        ++it;
+                    }
+                    tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
+                    continue;
+                }
+
+                // ignore other whitespace
                 ++it;
                 continue;
             }
@@ -434,13 +453,6 @@ public:
                 tokens.push_back(Token(Token::comma, ",", lineNumber));
                 ++it;
                 continue;         
-            }
-
-            // ;
-            else if (*it == ';') {
-                tokens.push_back(Token(Token::terminator, ";", lineNumber));
-                ++it;
-                continue;
             }
 
             // (

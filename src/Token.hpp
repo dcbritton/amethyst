@@ -197,7 +197,8 @@ struct Token {
             case opGreaterThan: return "opGreaterThan";
             case opGreaterThanOrEqual: return "opGreaterThanOrEqual";
             case opSpaceship: return "opSpaceship";
-            case memberSigil: return "opAt";
+            case memberSigil: return "memberSigil";
+            case globalSigil: return "globalSigil";
 
             // punctuation
             case questionMark: return "questionMark";

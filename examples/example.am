@@ -11,30 +11,18 @@ def ex(a:_int32, b:_int32):_int32
     c:_int32 = $b + 1
     d:_int32 = ex($b + 1, c)
     return c + $b
+
+
 end
 
-class T
+class T 
     @a:_int32 = 1
-    @b:_int32 = @a + $b + 1
 
-    def @ex(a:_int32):_int32
-        b:_int32 = @a + $a + 1 + ex(1,1)
-        c:_int32 = a + b + @a + $a + @ex(ex(@a, $b) + a + b)
-        return $a
+    def @method():_int32
+        return 1
     end
 
-    def @a(a:_int32):_int32
-        b:_int32 = @a + $a + 1 + ex(1,1)
-        c:_int32 = a + b + @a + $a + ex(@a, $b) + @ex(1)
+    op +(a:_int32):_int32
     end
-
-    op +(integer:_int32):_int32
-        integer = 1
-        integer2:_int32 = integer
-        @a = 1
-        $a = 1
-
-        return @a($a)
-    end
-
 end
+

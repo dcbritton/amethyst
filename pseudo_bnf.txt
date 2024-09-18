@@ -1,19 +1,23 @@
 // pseudo_bnf.txt
-// contains a tentative pseudo-bnf of amethyst syntax
+// contains a pseudo-bnf for amethyst
 
-program     -   [global_def | func_def | type_def]*
+program     -   [TERM] [def TERM]* [def [TERM]]
+
+def         -   global_def
+            |   func_def
+            |   type_def
 
 global_def  -   $ identifier : identifier = logic_expr
 
 global      -   $ identifier
 
-func_def    -   def identifier ( param_list ) : identifier func_body end
+func_def    -   def identifier ( param_list ) : identifier TERM func_body end
 
 param_list  -   [[parameter ,]* parameter]
 
 parameter   -   identifier : identifier
 
-func_body   -   [stmt]*
+func_body   -   [stmt TERM]*
 
 stmt        -   var_def
             |   logic_expr
@@ -81,13 +85,17 @@ call        -   identifier ( expr_list )
 
 expr_list   -   [[logic_expr ,]* logic_expr] 
 
-type_def    -   type identifier [member_def | method_def | op_def]* end
+type_def    -   type identifier TERM [temp TERM]* end
+
+temp        -   member_def
+            |   method_def
+            |   op_def
 
 member_def  -   @ identifier : identifier = logic_expr
 
-method_def  -   def @identifier ( param_list ) : identifier func_body end
+method_def  -   def @identifier ( param_list ) : identifier TERM func_body end
 
-op_def      -   op operator ( parameter ) : identifier func_body end
+op_def      -   op operator ( parameter ) : identifier TERM func_body end
 
 member_name -   @ identifier
 

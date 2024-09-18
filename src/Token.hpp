@@ -27,8 +27,6 @@ struct Token {
         opModulus,
         opBitwiseAnd,
         opBitwiseOr,
-        opLogicalOr,
-        opLogicalAnd,
         opBitwiseXor,
         opLeftShift,
         opRightShift,
@@ -44,18 +42,6 @@ struct Token {
         opCaseEquality,
 
         // assignments
-        opPlusAssign,
-        opMinusAssign,
-        opMultiplyAssign,
-        opDivideAssign,
-        opModulusAssign,
-        opBitwiseAndAssign,
-        opBitwiseOrAssign,
-        opLogicalOrAssign,
-        opLogicalAndAssign,
-        opBitwiseXorAssign,
-        opLeftShiftAssign,
-        opRightShiftAssign,
         opAssign,
 
         // punctuation
@@ -74,12 +60,6 @@ struct Token {
         globalSigil,
 
         // reserved words
-        // // kw_int32,
-        // // kw_float32,
-        // // kwString,
-        // // kwArray,
-        // // kwSymbol,
-        // // kwHash,
         kwOp,
         kwBEGIN,
         kwEND,
@@ -167,29 +147,15 @@ struct Token {
             case opEquality: return "opEquality";
             case opAssign: return "opAssign";
             case opPlus: return "opPlus";
-            case opPlusAssign: return "opPlusAssign";
             case opMinus: return "opMinus";
-            case opMinusAssign: return "opMinusAssign";
             case opMultiply: return "opMultiply";
-            case opMultiplyAssign: return "opMultiplyAssign";
             case opDivide: return "opDivide";
-            case opDivideAssign: return "opDivideAssign";
             case opModulus: return "opModulus";
-            case opModulusAssign: return "opModulusAssign";
             case opBitwiseAnd: return "opBitwiseAnd";
-            case opBitwiseAndAssign: return "opBitwiseAndAssign";
             case opBitwiseOr: return "opBitwiseOr";
-            case opBitwiseOrAssign: return "opBitwiseOrAssign";
-            case opLogicalOr: return "opLogicalOr";
-            case opLogicalOrAssign: return "opLogicalOrAssign";
-            case opLogicalAnd: return "opLogicalAnd";
-            case opLogicalAndAssign: return "opLogicalAndAssign";
             case opBitwiseXor: return "opBitwiseXor";
-            case opBitwiseXorAssign: return "opBitwiseXorAssign";
             case opLeftShift: return "opLeftShift";
-            case opLeftShiftAssign: return "opLeftShiftAssign";
             case opRightShift: return "opRightShift";
-            case opRightShiftAssign: return "opRightShiftAssign";
             case opNot: return "opNot";
             case opNotEquals: return "opNotEquals";
             case opLessThan: return "opLessThan";
@@ -214,12 +180,7 @@ struct Token {
             case closeBracket: return "closeBracket";
 
             // reserved words
-            // // case kw_int32: return "kw_int32";
-            // // case kw_float32: return "kw_float32";
-            // // case kwString: return "kwString";
-            // // case kwArray: return "kwArray";
-            // // case kwSymbol: return "kwSymbol";
-            // // case kwHash: return "kwHash";
+
             case kwOp: return "kwOp";
             case kwBEGIN: return "kwBEGIN";
             case kwEND: return "kwEND";

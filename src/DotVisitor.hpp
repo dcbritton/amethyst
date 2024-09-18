@@ -12,24 +12,22 @@ struct DotVisitor : Visitor {
 
     int nodeId = 0;
     std::ofstream dotFile;
+    std::string fileName;
 
     // constructor
-    DotVisitor(const std::string& filename) {
-        dotFile.open(filename);
-        dotFile << "graph G {\n";
-    };
-
-    // destructor
-    ~DotVisitor() {
-        dotFile << "}\n";
-        dotFile.close();
-    }
+    DotVisitor(const std::string& fileName) 
+        : fileName(fileName) {}
 
     // visit node
     void visit(std::shared_ptr<Node::Node> n) override {}
 
     // visit program
     void visit(std::shared_ptr<Node::Program> n) override {
+        
+        // header
+        dotFile.open(fileName);
+        dotFile << "graph G {\n";
+
         int thisId = nodeId;
         ++nodeId;
 
@@ -48,6 +46,10 @@ struct DotVisitor : Visitor {
         for (auto id : definitionIds) {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
+
+        // footer
+        dotFile << "}\n";
+        dotFile.close();
     }
 
     // visit global definition

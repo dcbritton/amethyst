@@ -32,7 +32,7 @@ struct Parser {
             else if (*it == Token::kwDef) {
                 definitions.push_back(parseFunctionDefn());
             }
-            else if (*it == Token::kwClass) {
+            else if (*it == Token::kwType) {
                 definitions.push_back(parseTypeDefn());
             }
             else {
@@ -156,9 +156,9 @@ struct Parser {
 
     // type identifier TERM [temp TERM]* end
     std::shared_ptr<Node::TypeDefn> parseTypeDefn() {
-        currentContext = "class definition";
+        currentContext = "type definition";
 
-        discard(Token::kwClass);
+        discard(Token::kwType);
         std::string name = consume(Token::identifier);
         discard(Token::terminator);
         

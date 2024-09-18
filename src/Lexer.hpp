@@ -33,6 +33,7 @@ public:
     };
 };
 
+
 class Lexer {
 private:
     int lineNumber = 1;
@@ -54,7 +55,7 @@ private:
         {"begin", Token::kwBegin},
         {"break", Token::kwBreak},
         {"case", Token::kwCase},
-        {"class", Token::kwClass},
+        {"type", Token::kwType},
         {"def", Token::kwDef},
         // {"defined?", kwDefined?},
         {"do", Token::kwDo},

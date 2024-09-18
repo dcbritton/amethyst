@@ -17,7 +17,7 @@ def ex(a:_int32, b:_int32):_int32
 
 end
 
-class T 
+type T 
     @a:_int32 = 1
 
     def @method():_int32

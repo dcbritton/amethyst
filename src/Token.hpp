@@ -88,7 +88,7 @@ struct Token {
         kwBegin,
         kwBreak,
         kwCase,
-        kwClass,
+        kwType,
         kwDef,
         // kwDefined?,
         kwDo,
@@ -228,7 +228,7 @@ struct Token {
             case kwBegin: return "kwBegin";
             case kwBreak: return "kwBreak";
             case kwCase: return "kwCase";
-            case kwClass: return "kwClass";
+            case kwType: return "kwType";
             case kwDef: return "kwDef";
             // case kwDefined?: return "kwDefined?";
             case kwDo: return "kwDo";

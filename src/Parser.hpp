@@ -79,18 +79,16 @@ struct Parser {
         return std::make_shared<Node::Global>(name);
     }
 
-    // func_body - [stmt]*
+    // func_body - [stmt TERM]*
     std::shared_ptr<Node::FunctionBody> parseFunctionBody() {
 
-        std::vector<std::shared_ptr<Node::Statement>> statements;
+        std::vector<std::shared_ptr<Node::Node>> statements;
         while (true) {
             
             // variable definition
             if (*it == Token::identifier && *(it+1) == Token::colon) {
                 statements.push_back(parseVariableDefn());
             }
-
-            //  @TODO: expression
 
             // return_stmt
             else if (*it == Token::kwReturn) {
@@ -116,11 +114,17 @@ struct Parser {
                 statements.push_back(parseWhileLoop());
             }
 
-            // unrecognized statement type
-            else {
+            // end of function body
+            else if (*it == Token::kwEnd) {
                 break;
             }
 
+            // otherwise, it must be an expression
+            else {
+                statements.push_back(parseLogicalExpr());
+            }
+
+            // statement must be terminated with newline
             discard(Token::terminator);
         }
 
@@ -516,7 +520,7 @@ struct Parser {
         }
 
         else {
-            std::cout << "Parser error on line " << it->lineNumber << ". Primaries are only allowed to be variables, calls, and literals. Got token" << it->toString() << " instead.\n";
+            std::cout << "Parser error on line " << it->lineNumber << ". Unrecognizable primary beginning with token " << it->toString() << " instead.\n";
             exit(1);
         }
     }

@@ -49,10 +49,10 @@ namespace Node {
 
     // compound statement
     struct FunctionBody : Node, std::enable_shared_from_this<FunctionBody> {
-        std::vector<std::shared_ptr<Statement>> statements;
+        std::vector<std::shared_ptr<Node>> statements;
 
         // constructor
-        FunctionBody(const std::vector<std::shared_ptr<Statement>>& statements) 
+        FunctionBody(const std::vector<std::shared_ptr<Node>>& statements) 
         : statements(statements) {}
 
         // accept

@@ -424,7 +424,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "Parameters"
+                << "params"
                 << "\"];\n";
 
         // process child(ren)
@@ -480,7 +480,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << "Return"
+                << "return"
                 << "\"];\n";
 
         // process child(ren)

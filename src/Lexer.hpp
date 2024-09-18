@@ -263,123 +263,64 @@ public:
             }
 
 
-            // +, +=
+            // +
             else if (*it == '+') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opPlusAssign, "+=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opPlus, "+", lineNumber));
                 ++it;
                 continue;
             }
 
-            // -, -=
+            // -, -
             else if (*it == '-') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opMinusAssign, "-=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opMinus, "-", lineNumber));
                 ++it;
                 continue;
             }
 
-            // *, *=
+            // *
             else if (*it == '*') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opMultiplyAssign, "*=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opMultiply, "*", lineNumber));
                 ++it;
                 continue;
             }
 
-            // /, /=
+            // /
             else if (*it == '/') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opDivideAssign, "/=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opDivide, "/", lineNumber));
                 ++it;
                 continue;
             }
 
-            // %, %=
+            // %
             else if (*it == '%') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opModulusAssign, "%=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opModulus, "%", lineNumber));
                 ++it;
                 continue;
             }
 
-            // &, &&, &=, &&=
+            // &
             else if (*it == '&') {
-                if (*(it+1) == '&') {
-                    if (*(it+2) == '=') {
-                        tokens.push_back(Token(Token::opLogicalAndAssign, "&&=", lineNumber));
-                        it += 3;
-                        continue;
-                    }
-                    tokens.push_back(Token(Token::opLogicalAnd, "&&", lineNumber));
-                    it += 2;
-                    continue;
-                }
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opBitwiseAndAssign, "&=", lineNumber));
-                    it += 2;
-                    continue;
-                }
+
                 tokens.push_back(Token(Token::opBitwiseAnd, "&", lineNumber));
                 ++it;
                 continue;
             }
 
-            // |, ||, |=, ||=
+            // |
             else if (*it == '|') {
-                if (*(it+1) == '|') {
-                    if (*(it+2) == '=') {
-                        tokens.push_back(Token(Token::opLogicalOrAssign, "||=", lineNumber));
-                        it += 3;
-                        continue;
-                    }
-                    tokens.push_back(Token(Token::opLogicalOr, "||", lineNumber));
-                    it += 2;
-                    continue;
-                }
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opBitwiseOrAssign, "|=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opBitwiseOr, "|", lineNumber));
                 ++it;
                 continue;
             }
 
-            // ^, ^=
+            // ^
             else if (*it == '^') {
-                if (*(it+1) == '=') {
-                    tokens.push_back(Token(Token::opBitwiseXorAssign, "^=", lineNumber));
-                    it += 2;
-                    continue;
-                }
                 tokens.push_back(Token(Token::opBitwiseXor, "^", lineNumber));
                 ++it;
                 continue;
             }
 
-            // <, <=, <<, <<=
+            // <, <=, <<
             else if (*it == '<') {
                 if (*(it+1) == '=') {
                     tokens.push_back(Token(Token::opLessThanOrEqual, "<=", lineNumber));
@@ -387,11 +328,6 @@ public:
                     continue;
                 }
                 if (*(it+1) == '<') {
-                    if (*(it+2) == '=') {
-                        tokens.push_back(Token(Token::opLeftShiftAssign, "<<=", lineNumber));
-                        it += 3;
-                        continue;
-                    }
                     tokens.push_back(Token(Token::opLeftShift, "<<", lineNumber));
                     it += 2;
                     continue;
@@ -401,7 +337,7 @@ public:
                 continue;
             }
 
-            // >, >=, >>, >>=
+            // >, >=, >>
             else if (*it == '>') {
                 if (*(it+1) == '=') {
                     tokens.push_back(Token(Token::opGreaterThanOrEqual, ">=", lineNumber));
@@ -409,11 +345,6 @@ public:
                     continue;
                 }
                 if (*(it+1) == '>') {
-                    if (*(it+2) == '=') {
-                        tokens.push_back(Token(Token::opRightShiftAssign, ">>=", lineNumber));
-                        it += 3;
-                        continue;
-                    }
                     tokens.push_back(Token(Token::opRightShift, ">>", lineNumber));
                     it += 2;
                     continue;
@@ -422,13 +353,6 @@ public:
                 ++it;
                 continue;
             }
-
-            // <=>
-            // else if (*it == '<' && *(it+1) == '=' && *(it+2) == '>') {
-            //     tokens.push_back(Token(Token::opSpaceship, "<=>", lineNumber));
-            //     it += 3;
-            //     continue;
-            // }
 
             // ?
             else if (*it == '?') {

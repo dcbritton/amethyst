@@ -1,15 +1,15 @@
 
 
-$a:_int32 = 1
-$b:_int32 = $a + 1
+$a:int = 1
+$b:int = $a + 1
 $c:_float32 = 1.0
 
-def ex(a:_int32, b:_int32):_int32
+def ex(a:int, b:int):int
     $a = 1
     a = $a + a + ex(a, $a)
     
-    c:_int32 = $b + 1
-    d:_int32 = ex($b + 1, c)
+    c:int = $b + 1
+    d:int = ex($b + 1, c)
     return c + $b
 
     g:bool = a == $a and a == b
@@ -17,13 +17,13 @@ def ex(a:_int32, b:_int32):_int32
 end
 
 type T 
-    @a:_int32 = 1
+    @a:int = 1
 
-    def @method():_int32
+    def @method():int
         return 1
     end
 
-    op +(a:_int32):_int32
+    op +(a:int):int
     end
 end
 

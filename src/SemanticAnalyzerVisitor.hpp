@@ -30,18 +30,19 @@ struct SemanticAnalyzerVisitor : Visitor {
             : name(name), type(type) {}
     };
 
-    struct Function {
+    // used for functions, methods, and operators
+    struct Procedure {
         std::string name;
         std::string signature;
         std::string returnType;
         std::vector<Variable> parameters;
 
-        Function() {}
+        Procedure() {}
 
-        Function(const std::string& returnType)
+        Procedure(const std::string& returnType)
             : returnType(returnType) {}
 
-        Function(const std::string& name, const std::string& signature, const std::string& returnType, const std::vector<Variable>& parameters) 
+        Procedure(const std::string& name, const std::string& signature, const std::string& returnType, const std::vector<Variable>& parameters) 
             : name(name), signature(signature), returnType(returnType), parameters(parameters) {}
     };
 
@@ -52,20 +53,20 @@ struct SemanticAnalyzerVisitor : Visitor {
     struct Type {
         std::string name;
         std::unordered_map<std::string, Variable> members;
-        std::unordered_map<std::string, Function> methods;
-        std::unordered_map<std::string, Function> operators;
+        std::unordered_map<std::string, Procedure> methods;
+        std::unordered_map<std::string, Procedure> operators;
 
         Type(const std::string& name) 
             : name(name) {}
 
-        Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Function>& methods, const std::unordered_map<std::string, Function>& operators)
+        Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Procedure>& methods, const std::unordered_map<std::string, Procedure>& operators)
             : name(name), members(members), methods(methods), operators(operators) {}
 
         bool has(const std::string& signature) {
             return operators.find(signature) != operators.end();
         }
 
-        Function getOperator(const std::string& signature) {
+        Procedure getOperator(const std::string& signature) {
             return operators.find(signature)->second;
         }
     };
@@ -73,7 +74,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     struct Scope {
         ScopeType type = undefined;
         std::unordered_map<std::string, Variable> variables;
-        std::string name; // name of function/type for definition
+        std::string name; // name of function/type/method/operator for definition
 
         // constructor
         Scope(ScopeType type, const std::string& name)
@@ -124,24 +125,24 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
 
-    // FUNCTION
+    // FUNCTION / PROCEDURE
     // ptr to current function/method/opdefn (gets reset() at end of visits)
-    std::unique_ptr<Function> currentFunction =  nullptr;
+    std::unique_ptr<Procedure> currentProcedure =  nullptr;
 
     // contains available functions (functions are only declarable in global)
-    std::unordered_map<std::string, Function> functions;
+    std::unordered_map<std::string, Procedure> functions;
 
-    bool inFunction() {
-        return currentFunction != nullptr;
+    bool inProcedure() {
+        return currentProcedure != nullptr;
     }
 
     bool functionExists(const std::string& signature) {
         return functions.find(signature) != functions.end();
     }
 
-    // PRE: currentFunction != nullptr
+    // PRE: currentProcedure != nullptr
     // used by functions, methods, and opdefns
-    std::vector<Scope>::const_iterator getFunctionDefnScope() {
+    std::vector<Scope>::const_iterator getProcedureDefnScope() {
         auto it = scopeTable.begin();
         for (; it != scopeTable.end(); ++it) {
             if (it->type == functionDefn || it->type == methodDefn || it->type == operatorDefn) {
@@ -149,7 +150,7 @@ struct SemanticAnalyzerVisitor : Visitor {
             }
         }
         
-        std::cout << "Internal error. getFunctionDefnScope() called when not in a function, method, or operator definition.\n";
+        std::cout << "Internal error. getProcedureDefnScope() called when not in a function, method, or operator definition.\n";
         exit(1);
     }
 
@@ -186,16 +187,16 @@ struct SemanticAnalyzerVisitor : Visitor {
     bool variableExists(const std::string& name) {
 
         // functions don't capture external variables
-        if (inFunction()) {
+        if (inProcedure()) {
             // check parameters
-            for (const auto& parameter : currentFunction->parameters) {
+            for (const auto& parameter : currentProcedure->parameters) {
                 if (name == parameter.name) {
                     return true;
                 }
             }
-           // check only past the most recent function scope
-            for (auto functionScope = getFunctionDefnScope(); functionScope != scopeTable.end(); ++functionScope) {
-                if (functionScope->variables.find(name) != functionScope->variables.end()) {
+           // check only past the most recent procedure scope
+            for (auto procedureScope = getProcedureDefnScope(); procedureScope != scopeTable.end(); ++procedureScope) {
+                if (procedureScope->variables.find(name) != procedureScope->variables.end()) {
                     return true;
                 }
             }
@@ -207,18 +208,18 @@ struct SemanticAnalyzerVisitor : Visitor {
     
     // PRE: variable must exist as verified by variableExists
     std::string getVariableType(const std::string& name) {
-        // functions don't capture external variables
-        if (inFunction()) {
+        // procedures don't capture external variables
+        if (inProcedure()) {
             // check parameters
-            for (const auto& parameter : currentFunction->parameters) {
+            for (const auto& parameter : currentProcedure->parameters) {
                 if (name == parameter.name) {
                     return parameter.type;
                 }
             }
-           // check only past the most recent function scope
-            for (auto functionScope = getFunctionDefnScope(); functionScope != scopeTable.end(); ++functionScope) {
-                if (functionScope->variables.find(name) != functionScope->variables.end()) {
-                    return functionScope->variables.find(name)->second.type;
+           // check only past the most recent procedure scope
+            for (auto procedureScope = getProcedureDefnScope(); procedureScope != scopeTable.end(); ++procedureScope) {
+                if (procedureScope->variables.find(name) != procedureScope->variables.end()) {
+                    return procedureScope->variables.find(name)->second.type;
                 }
             }
         }
@@ -239,29 +240,29 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
         types.emplace("_int32", Type("_int32", {}, {}, {
-            std::make_pair<std::string, Function>("+@_int32", Function("_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("-", "_int32"), Function("-", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("!=", "_int32"), Function("!=", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("!", "_int32"), Function("!", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature(".", "_int32"), Function(".", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("==", "_int32"), Function("==", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("*", "_int32"), Function("*", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("/", "_int32"), Function("/", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("%", "_int32"), Function("%", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("&", "_int32"), Function("&", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("|", "_int32"), Function("|", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("||", "_int32"), Function("||", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("&&", "_int32"), Function("&&", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("^", "_int32"), Function("^", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("<<", "_int32"), Function("<<", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature(">>", "_int32"), Function(">>", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("<", "_int32"), Function("<", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("<=", "_int32"), Function("<=", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature(">", "_int32"), Function(">", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature(">=", "_int32"), Function(">=", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("and", "_int32"), Function("and", "_int32", "_int32")),
-            // std::make_pair<std::string, Function>(formOpSignature("or", "_int32"), Function("or", "_int32", "_int32")),
-            // // std::make_pair<std::string, Function>(formOpSignature("[]", "_int32"), Function("[]", "_int32", "_int32")),
+            std::make_pair<std::string, Procedure>("+@_int32", Procedure("_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("-", "_int32"), Procedure("-", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("!=", "_int32"), Procedure("!=", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("!", "_int32"), Procedure("!", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature(".", "_int32"), Procedure(".", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("==", "_int32"), Procedure("==", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("*", "_int32"), Procedure("*", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("/", "_int32"), Procedure("/", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("%", "_int32"), Procedure("%", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("&", "_int32"), Procedure("&", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("|", "_int32"), Procedure("|", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("||", "_int32"), Procedure("||", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("&&", "_int32"), Procedure("&&", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("^", "_int32"), Procedure("^", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("<<", "_int32"), Procedure("<<", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature(">>", "_int32"), Procedure(">>", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("<", "_int32"), Procedure("<", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("<=", "_int32"), Procedure("<=", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature(">", "_int32"), Procedure(">", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature(">=", "_int32"), Procedure(">=", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("and", "_int32"), Procedure("and", "_int32", "_int32")),
+            // std::make_pair<std::string, Procedure>(formOpSignature("or", "_int32"), Procedure("or", "_int32", "_int32")),
+            // // std::make_pair<std::string, Procedure>(formOpSignature("[]", "_int32"), Procedure("[]", "_int32", "_int32")),
         }));
 
         types.emplace("_float32", Type("_float32", {}, {}, {}));
@@ -361,15 +362,15 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit function definition
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
 
-        // set currentFunction to an empty Function
-        currentFunction = std::make_unique<Function>();
+        // set currentProcedure to an empty Procedure
+        currentProcedure = std::make_unique<Procedure>();
 
-        // process parameters, this adds the parameters to currentFunction
+        // process parameters, this adds the parameters to currentProcedure
         n->paramList->accept(shared_from_this());
 
         // construct signature
         std::string signature = n->name;
-        for (const auto& parameter : currentFunction->parameters) {
+        for (const auto& parameter : currentProcedure->parameters) {
             signature += "@" + parameter.type;
         }
 
@@ -388,25 +389,25 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // fully define current function with name, signature, and type (parameters already added when visited)
-        currentFunction->name = n->name;
-        currentFunction->signature = signature;
-        currentFunction->returnType = n->returnType;
+        // fully define currentProcedure with name, signature, and type (parameters already added when visited)
+        currentProcedure->name = n->name;
+        currentProcedure->signature = signature;
+        currentProcedure->returnType = n->returnType;
 
         // make new scope
         enterScope(functionDefn, signature);
 
         // add the function (usable in own scope) - parameters are in the function map, not in scopeTable as variables
-        functions.emplace(signature, *currentFunction);
+        functions.emplace(signature, *currentProcedure);
 
-        // process function body
+        // process functionBody
         n->functionBody->accept(shared_from_this());
 
         // end its own scope
         endScope();
 
-        // clear current function, leaves nullptr
-        currentFunction.reset();
+        // clear currentProcedure, leaves nullptr
+        currentProcedure.reset();
     }
 
     // visit parameter list
@@ -427,7 +428,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
         
         // put in function/method/operator defn
-        currentFunction->parameters.push_back(Variable(n->name, n->type));
+        currentProcedure->parameters.push_back(Variable(n->name, n->type));
     }
 
     // visit assignment
@@ -501,9 +502,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->expr->accept(shared_from_this());
         
         // match return type to expression type
-        if (currentFunction->returnType != exprTypes.back()) {
-            std::cout << "In a return in the definition of " << currentFunction->signature
-                        << ", the return type " << currentFunction->returnType
+        if (currentProcedure->returnType != exprTypes.back()) {
+            std::cout << "In a return in the definition of " << currentProcedure->signature
+                        << ", the return type " << currentProcedure->returnType
                         << " does not match the expression type " << exprTypes.back()
                         << ".\n";
             exit(1);
@@ -700,15 +701,15 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit operator defn
     void visit(std::shared_ptr<Node::OperatorDefn> n) override {
 
-       // set currentFunction to an empty Function
-        currentFunction = std::make_unique<Function>();
+       // set currentProcedure to an empty Procedure
+        currentProcedure = std::make_unique<Procedure>();
 
-        // process parameters, this adds the parameters to currentFunction
+        // process parameters, this adds the parameters to currentProcedure
         n->parameter->accept(shared_from_this());
 
         // construct signature
         std::string signature = n->op;
-        for (const auto& parameter : currentFunction->parameters) {
+        for (const auto& parameter : currentProcedure->parameters) {
             signature += "@" + parameter.type;
         }
 
@@ -727,25 +728,25 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // fully define current function with name, signature, and type (parameters already added when visited)
-        currentFunction->returnType = n->returnType;
-        currentFunction->name = n->op;
-        currentFunction->signature = signature;
+        // fully define currentProcedure with name, signature, and type (parameters already added when visited)
+        currentProcedure->returnType = n->returnType;
+        currentProcedure->name = n->op;
+        currentProcedure->signature = signature;
         
         // make new scope
         enterScope(operatorDefn, signature);
 
         // add to type's operators (allows it to be used in itself)
-        currentType->operators.emplace(signature, *currentFunction);
+        currentType->operators.emplace(signature, *currentProcedure);
 
-        // process function body
+        // process functionBody
         n->stmts->accept(shared_from_this());
 
         // end its own scope
         endScope();
 
-        // clear current function, leaves nullptr
-        currentFunction.reset();
+        // clear currentProcedure, leaves nullptr
+        currentProcedure.reset();
     }
 
     // visit member definition
@@ -787,15 +788,15 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // visit method definition
     void visit(std::shared_ptr<Node::MethodDefn> n) override {
-        // set currentFunction to an empty Function
-        currentFunction = std::make_unique<Function>();
+        // set currentProcedure to an empty Procedure
+        currentProcedure = std::make_unique<Procedure>();
 
-        // process parameters, this adds the parameters to currentFunction
+        // process parameters, this adds the parameters to currentProcedure
         n->paramList->accept(shared_from_this());
 
         // construct signature
         std::string signature = n->name;
-        for (const auto& parameter : currentFunction->parameters) {
+        for (const auto& parameter : currentProcedure->parameters) {
             signature += "@" + parameter.type;
         }
 
@@ -814,25 +815,25 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // fully define current function with name, signature, and type (parameters already added when visited)
-        currentFunction->name = n->name;
-        currentFunction->signature = signature;
-        currentFunction->returnType = n->returnType;
+        // fully define currentProcedure with name, signature, and type (parameters already added when visited)
+        currentProcedure->name = n->name;
+        currentProcedure->signature = signature;
+        currentProcedure->returnType = n->returnType;
 
         // make new scope
         enterScope(methodDefn, signature);
 
         // add to type's methods (allows it to be used in itself)
-        currentType->methods.emplace(signature, *currentFunction);
+        currentType->methods.emplace(signature, *currentProcedure);
 
-        // process function body
+        // process functionBody
         n->functionBody->accept(shared_from_this());
 
         // end its own scope
         endScope();
 
-        // clear current function, leaves nullptr
-        currentFunction.reset();
+        // clear currentProcedure, leaves nullptr
+        currentProcedure.reset();
     }
 
     // visit member
@@ -873,7 +874,7 @@ struct SemanticAnalyzerVisitor : Visitor {
             exprTypes.pop_back();
         }
 
-        // create function signature
+        // create signature
         std::string signature = n->name;
         for (const std::string& type : types) {
             signature += "@" + type;

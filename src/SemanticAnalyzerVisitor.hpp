@@ -16,7 +16,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         typeDefn,
         methodDefn,
-        overloadDefn,
+        operatorDefn,
 
         whileLoop,
         conditionalBlock
@@ -53,20 +53,20 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string name;
         std::unordered_map<std::string, Variable> members;
         std::unordered_map<std::string, Function> methods;
-        std::unordered_map<std::string, Function> overloads;
+        std::unordered_map<std::string, Function> operators;
 
         Type(const std::string& name) 
             : name(name) {}
 
-        Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Function>& methods, const std::unordered_map<std::string, Function>& overloads)
-            : name(name), members(members), methods(methods), overloads(overloads) {}
+        Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Function>& methods, const std::unordered_map<std::string, Function>& operators)
+            : name(name), members(members), methods(methods), operators(operators) {}
 
         bool has(const std::string& signature) {
-            return overloads.find(signature) != overloads.end();
+            return operators.find(signature) != operators.end();
         }
 
-        Function getOverload(const std::string& signature) {
-            return overloads.find(signature)->second;
+        Function getOperator(const std::string& signature) {
+            return operators.find(signature)->second;
         }
     };
 
@@ -144,12 +144,12 @@ struct SemanticAnalyzerVisitor : Visitor {
     std::vector<Scope>::const_iterator getFunctionDefnScope() {
         auto it = scopeTable.begin();
         for (; it != scopeTable.end(); ++it) {
-            if (it->type == functionDefn || it->type == methodDefn || it->type == overloadDefn) {
+            if (it->type == functionDefn || it->type == methodDefn || it->type == operatorDefn) {
                 return it;
             }
         }
         
-        std::cout << "Internal error. getFunctionDefnScope() called when not in a function, method, or overload definition.\n";
+        std::cout << "Internal error. getFunctionDefnScope() called when not in a function, method, or operator definition.\n";
         exit(1);
     }
 
@@ -426,7 +426,7 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
         
-        // put in function/method/overloaddefn
+        // put in function/method/operator defn
         currentFunction->parameters.push_back(Variable(n->name, n->type));
     }
 
@@ -534,10 +534,9 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::cout << "Type " << type.name << " has no defined op " << signature << ".\n";
             exit(1);
         }
-        exprTypes.push_back(type.getOverload(signature).returnType);
+        exprTypes.push_back(type.getOperator(signature).returnType);
     }
 
-    // @TODO: every kind of expr needs to check lhs and rhs against available operator overloads
     void visit(std::shared_ptr<Node::LogicalExpr> n) override {
         process(n);
     }
@@ -698,8 +697,8 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentType.reset();
     }
 
-    // visit operator overload
-    void visit(std::shared_ptr<Node::OperatorOverload> n) override {
+    // visit operator defn
+    void visit(std::shared_ptr<Node::OperatorDefn> n) override {
 
        // set currentFunction to an empty Function
         currentFunction = std::make_unique<Function>();
@@ -714,7 +713,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // signature check
-        if (currentType->overloads.find(signature) != currentType->overloads.end()) {
+        if (currentType->operators.find(signature) != currentType->operators.end()) {
             std::cout << "In definition of type " << currentType->name << " operator " << n->op << " is defined more than once with the same parameter types.\n"
                         << "(Mangled: " << signature << ")\n";
             exit(1);    
@@ -734,10 +733,10 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentFunction->signature = signature;
         
         // make new scope
-        enterScope(overloadDefn, signature);
+        enterScope(operatorDefn, signature);
 
-        // add to type's overloads (allows it to be used in itself)
-        currentType->overloads.emplace(signature, *currentFunction);
+        // add to type's operators (allows it to be used in itself)
+        currentType->operators.emplace(signature, *currentFunction);
 
         // process function body
         n->stmts->accept(shared_from_this());

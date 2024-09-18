@@ -184,7 +184,7 @@ struct Parser {
     }
 
     // op operator ( parameter ) : typename comp_stmt end
-    std::shared_ptr<Node::OperatorOverload> parseOperatorOverload() {
+    std::shared_ptr<Node::OperatorDefn> parseOperatorOverload() {
 
         discard(Token::kwOp);
 
@@ -205,7 +205,7 @@ struct Parser {
         auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
 
-        return std::make_shared<Node::OperatorOverload>(op, parameter, type, stmts);
+        return std::make_shared<Node::OperatorDefn>(op, parameter, type, stmts);
     }
 
     // member_def - @ identifier : identifier = logic_expr

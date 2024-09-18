@@ -517,7 +517,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit operator overload
-    void visit(std::shared_ptr<Node::OperatorOverload> n) override {
+    void visit(std::shared_ptr<Node::OperatorDefn> n) override {
         int thisId = nodeId;
         ++nodeId;
 

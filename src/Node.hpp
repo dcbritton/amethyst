@@ -356,13 +356,13 @@ namespace Node {
     };
 
     // operator overload
-    struct OperatorOverload : Node, std::enable_shared_from_this<OperatorOverload> {
+    struct OperatorDefn : Node, std::enable_shared_from_this<OperatorDefn> {
         std::string op;
         std::shared_ptr<Parameter> parameter;
         std::string returnType;
         std::shared_ptr<FunctionBody> stmts;
 
-        OperatorOverload(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<FunctionBody> stmts)
+        OperatorDefn(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<FunctionBody> stmts)
             : op(op), parameter(parameter), returnType(returnType), stmts(stmts) {}
 
         // accept visitor

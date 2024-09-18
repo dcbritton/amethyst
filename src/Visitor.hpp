@@ -32,7 +32,7 @@ namespace Node {
     struct TypeDefn;
     struct MemberDefn;
     struct MethodDefn;
-    struct OperatorOverload;
+    struct OperatorDefn;
     struct ConditionalBlock;
     struct ForLoop;
     struct WhileLoop;
@@ -110,7 +110,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::MethodCall> n) {}
 
-    virtual void visit(std::shared_ptr<Node::OperatorOverload> n) {}
+    virtual void visit(std::shared_ptr<Node::OperatorDefn> n) {}
 
     virtual void visit(std::shared_ptr<Node::ConditionalBlock> n) {}
 

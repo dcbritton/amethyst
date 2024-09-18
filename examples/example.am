@@ -13,7 +13,7 @@ def ex(a:_int32, b:_int32):_int32
     return c + $b
 
     [a,a,a]
-    ex(1,1) + 1 +1.0 
+    ex(1,1) + 1
 
 end
 

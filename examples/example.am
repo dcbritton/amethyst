@@ -4,16 +4,15 @@ $a:int = new int()
 $b:int* = new* int()
 $c:_float32* = new[3] _float32()
 
-def ex(a:int*, b:int):int*
+def main():int
+    delete b
     $a = 1
     a = $a + a + ex(a, $a)
-    
-    c:int = $b + 1
+    c:int* = $b + 1
     d:int = ex($b + 1, c)
-    return c + $b
 
     g:bool = a == $a and a == b
-
+    return 0
 end
 
 type T 

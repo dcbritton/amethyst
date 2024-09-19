@@ -479,6 +479,21 @@ namespace Node {
         }
     };
 
+    // delete
+    struct Delete : Statement, std::enable_shared_from_this<Delete> {
+        std::string number;
+        std::string name;
+
+        // constructor
+        Delete(const std::string& number, const std::string& name)
+            : number(number), name(name) {}
+
+        // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     // return
     struct Return : Statement, std::enable_shared_from_this<Return> {
         std::shared_ptr<Node> expr;

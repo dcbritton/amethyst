@@ -27,8 +27,7 @@ stmt        -   var_def
             |   return_stmt
             |   delete_stmt
 
-delete_stmt -   delete identifier
-            -   delete [ int literal ] identifier
+delete_stmt -   delete [[ int_literal ]] identifier
 
 while_loop  -   while logic_expr do func_body end
 

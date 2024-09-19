@@ -660,6 +660,21 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(argsId) << ";\n";
     }
 
+    // visit delete 
+    void visit(std::shared_ptr<Node::Delete> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "delete" 
+                
+                << "[" << n->number
+                << "]" <<"\n" << n->name
+                << "\"];\n";
+    }
+
     // visit conditional block
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {
         int thisId = nodeId;

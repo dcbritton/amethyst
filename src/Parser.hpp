@@ -106,8 +106,14 @@ struct Parser {
                 statements.push_back(parseAssignment());
             }
 
+            // assignment of standard variable
             else if (*it == Token::identifier && *(it+1) == Token::opAssign) {
                 statements.push_back(parseAssignment());
+            }
+
+            // delete
+            else if (*it == Token::kwDelete) {
+                statements.push_back(parseDelete());
             }
 
             // conditional block
@@ -667,6 +673,21 @@ struct Parser {
         auto expression = parseLogicalExpr();
 
         return std::make_shared<Node::VariableDefn>(name, type, expression);
+    }
+
+    // delete_stmt - delete [[ int_literal ]] identifier
+    std::shared_ptr<Node::Delete> parseDelete() {
+
+        discard(Token::kwDelete);
+        std::string number = "0";
+        if (*it == Token::openBracket) {
+            discard(Token::openBracket);
+            number = consume(Token::intLiteral);
+            discard(Token::closeBracket);
+        }
+        std::string name = consume(Token::identifier);
+
+        return std::make_shared<Node::Delete>(number, name);
     }
 
     // if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end

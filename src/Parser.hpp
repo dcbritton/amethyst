@@ -165,7 +165,7 @@ struct Parser {
         std::vector<std::shared_ptr<Node::Node>> definitions; 
         while (true) {
             if (*it == Token::memberSigil) {
-                definitions.push_back(parseMemberDefn());
+                definitions.push_back(parseMemberDecl());
             }
             else if (*it == Token::kwDef) {
                 definitions.push_back(parseMethodDefn());
@@ -226,18 +226,21 @@ struct Parser {
         return std::make_shared<Node::OperatorDefn>(op, parameter, type, stmts);
     }
 
-    // member_def - @ identifier : identifier = logic_expr
-    std::shared_ptr<Node::MemberDefn> parseMemberDefn() {
-        currentContext = "member definition";
+    // member_decl - @ identifier : identifier [*]
+    std::shared_ptr<Node::MemberDecl> parseMemberDecl() {
+        currentContext = "member declaration";
         
         discard(Token::memberSigil);
         std::string name = consume(Token::identifier);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
-        discard(Token::opAssign);
-        auto expression = parseLogicalExpr();
 
-        return std::make_shared<Node::MemberDefn>(name, type, expression);
+        // pointer
+        if (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
+
+        return std::make_shared<Node::MemberDecl>(name, type);
     }
 
     // method_def - def @ identifier ( param_list ) : identifier func_body end

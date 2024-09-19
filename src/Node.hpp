@@ -386,14 +386,13 @@ namespace Node {
     };
 
     // member definition
-    struct MemberDefn : Node, std::enable_shared_from_this<MemberDefn> {
+    struct MemberDecl : Node, std::enable_shared_from_this<MemberDecl> {
         std::string name;
         std::string type;
-        std::shared_ptr<Node> expression;
 
         // constructor
-        MemberDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
-            : name(name), type(type), expression(expression) {}
+        MemberDecl(const std::string& name, const std::string& type)
+            : name(name), type(type) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {

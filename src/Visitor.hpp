@@ -31,7 +31,7 @@ namespace Node {
     struct Return;
     struct TypeDefn;
     struct ConstructorDefn;
-    struct MemberDefn;
+    struct MemberDecl;
     struct MethodDefn;
     struct OperatorDefn;
     struct ConditionalBlock;
@@ -105,7 +105,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::ConstructorDefn> n) {}
 
-    virtual void visit(std::shared_ptr<Node::MemberDefn> n) {}
+    virtual void visit(std::shared_ptr<Node::MemberDecl> n) {}
 
     virtual void visit(std::shared_ptr<Node::MethodDefn> n) {}
 

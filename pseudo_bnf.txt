@@ -95,12 +95,12 @@ expr_list   -   [[logic_expr ,]* logic_expr]
 
 type_def    -   type identifier TERM [temp TERM]* end
 
-temp        -   member_def
+temp        -   member_decl
             |   method_def
             |   op_def
             |   constructor
 
-member_def  -   @ identifier : identifier = logic_expr
+member_decl  -   @ identifier : identifier [*]
 
 method_def  -   def @identifier ( param_list ) : identifier TERM func_body end
 

@@ -17,7 +17,7 @@ def ex(a:int, b:int):int
 end
 
 type T 
-    @a:int = 1
+    @a:int*
 
     def @method():int
         return 1

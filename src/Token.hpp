@@ -60,6 +60,8 @@ struct Token {
         globalSigil,
 
         // reserved words
+        kwNew,
+        kwDelete,
         kwOp,
         kwBEGIN,
         kwEND,
@@ -180,7 +182,8 @@ struct Token {
             case closeBracket: return "closeBracket";
 
             // reserved words
-
+            case kwNew: return "kwNew";
+            case kwDelete: return "kwDelete";
             case kwOp: return "kwOp";
             case kwBEGIN: return "kwBEGIN";
             case kwEND: return "kwEND";

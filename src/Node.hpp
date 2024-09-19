@@ -355,7 +355,7 @@ namespace Node {
         }
     };
 
-    // operator overload
+    // operator definition
     struct OperatorDefn : Node, std::enable_shared_from_this<OperatorDefn> {
         std::string op;
         std::shared_ptr<Parameter> parameter;
@@ -369,6 +369,20 @@ namespace Node {
         void accept(std::shared_ptr<Visitor> v) override {
             v->visit(shared_from_this());
         }
+    };
+
+    // constructor definition
+    struct ConstructorDefn : Node, std::enable_shared_from_this<ConstructorDefn> {
+        std::shared_ptr<ParamList> parameters;
+        std::shared_ptr<FunctionBody> body;
+
+        ConstructorDefn(std::shared_ptr<ParamList> parameters, std::shared_ptr<FunctionBody> body)
+            : parameters(parameters), body(body) {}
+
+        // accept visitor
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }  
     };
 
     // member definition

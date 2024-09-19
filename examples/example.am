@@ -25,5 +25,9 @@ type T
 
     op +(a:int):int
     end
+
+    new(first:int)
+        @a = first
+    end
 end
 

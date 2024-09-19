@@ -30,6 +30,7 @@ namespace Node {
     struct Assignment;
     struct Return;
     struct TypeDefn;
+    struct ConstructorDefn;
     struct MemberDefn;
     struct MethodDefn;
     struct OperatorDefn;
@@ -101,6 +102,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Return> n) {}
 
     virtual void visit(std::shared_ptr<Node::TypeDefn> n) {}
+
+    virtual void visit(std::shared_ptr<Node::ConstructorDefn> n) {}
 
     virtual void visit(std::shared_ptr<Node::MemberDefn> n) {}
 

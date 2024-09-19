@@ -7,7 +7,7 @@ def         -   global_def
             |   func_def
             |   type_def
 
-global_def  -   $ identifier : identifier = logic_expr
+global_def  -   $ identifier : identifier * = logic_expr
 
 global      -   $ identifier
 
@@ -25,6 +25,10 @@ stmt        -   var_def
             |   conditional
             |   while_loop
             |   return_stmt
+            |   delete_stmt
+
+delete_stmt -   delete identifier
+            -   delete [ int literal ] identifier
 
 while_loop  -   while logic_expr do func_body end
 
@@ -36,7 +40,7 @@ assignment  -   identifier = logic_expr
             |   @ identifier = logic_expr
             |   $ identifier = logic_expr
 
-var_def     -   identifier : identifier = logic_expr
+var_def     -   identifier : identifier * = logic_expr
 
 logic_expr  -   eq_expr
             |   logic_expr and eq_expr   
@@ -78,8 +82,12 @@ primary     -   ( logic_expr )
             |   member_name
             |   method_call
             |   global
+            |   new_expr
 
-array       -   [ expr_list? ]
+new_expr    -   new [ int_literal ] identifier ( expr_list )
+            -   new * identifier ( expr_list )
+
+array       -   [ expr_list? ] identifier
 
 call        -   identifier ( expr_list )
 
@@ -90,12 +98,15 @@ type_def    -   type identifier TERM [temp TERM]* end
 temp        -   member_def
             |   method_def
             |   op_def
+            |   constructor
 
 member_def  -   @ identifier : identifier = logic_expr
 
 method_def  -   def @identifier ( param_list ) : identifier TERM func_body end
 
 op_def      -   op operator ( parameter ) : identifier TERM func_body end
+
+constructor -   new ( param_list ) TERM func_body end
 
 member_name -   @ identifier
 

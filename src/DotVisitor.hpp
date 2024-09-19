@@ -514,6 +514,30 @@ struct DotVisitor : Visitor {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
 
+    } 
+
+    // visit constructor definition
+    void visit(std::shared_ptr<Node::ConstructorDefn> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "constructor"
+                << "\"];\n";
+
+        // process child(ren)
+        int paramId = nodeId;
+        n->parameters->accept(shared_from_this());
+
+        int bodyId = nodeId;
+        n->body->accept(shared_from_this());
+
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(paramId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(bodyId) << ";\n";
     }
 
     // visit operator overload

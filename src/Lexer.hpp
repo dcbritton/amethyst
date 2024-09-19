@@ -41,12 +41,9 @@ private:
     std::vector<Token> tokens = {};
     std::string::const_iterator it;
     std::unordered_map<std::string, Token::Type> keywordMap {
-        // // {"String", kwString},
-        // // {"Symbol", kwSymbol},
-        // // {"Hash", kwHash},
-        // // {"Array", kwArray},
-        // // {"_int32", kw_int32},
-        // // {"_int32", kw_float32},
+
+        {"new", Token::kwNew},
+        {"delete", Token::kwDelete},
         {"op", Token::kwOp},
         {"BEGIN", Token::kwBEGIN},
         {"END", Token::kwEND},

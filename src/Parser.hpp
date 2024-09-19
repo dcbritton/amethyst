@@ -173,6 +173,9 @@ struct Parser {
             else if (*it == Token::kwOp) {
                 definitions.push_back(parseOperatorOverload());
             }
+            else if (*it == Token::kwNew) {
+                definitions.push_back(parseConstructorDefn());
+            }
             else {
                 break;
             }
@@ -183,7 +186,22 @@ struct Parser {
         return std::make_shared<Node::TypeDefn>(name, definitions);
     }
 
-    // op operator ( parameter ) : typename comp_stmt end
+    // constructor - new ( param_list ) TERM func_body end
+    std::shared_ptr<Node::ConstructorDefn> parseConstructorDefn() {
+
+        discard(Token::kwNew);
+        discard(Token::openParen);
+        auto parameters = parseParamList();
+        discard(Token::closeParen);
+        discard(Token::terminator);
+        auto body = parseFunctionBody();
+        discard(Token::kwEnd);
+
+        return std::make_shared<Node::ConstructorDefn>(parameters, body);
+    } 
+
+    // op operator ( parameter ) : typename TERM comp_stmt end
+    // @TODO: rename to OperatorDefinition
     std::shared_ptr<Node::OperatorDefn> parseOperatorOverload() {
 
         discard(Token::kwOp);

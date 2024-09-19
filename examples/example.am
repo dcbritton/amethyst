@@ -1,10 +1,10 @@
 
 
 $a:int = 1
-$b:int = $a + 1
+$b:int* = $a + 1
 $c:_float32 = 1.0
 
-def ex(a:int, b:int):int
+def ex(a:int*, b:int):int*
     $a = 1
     a = $a + a + ex(a, $a)
     
@@ -17,16 +17,17 @@ def ex(a:int, b:int):int
 end
 
 type T 
-    @a:int*
+    @a:int
+    @b:int*
 
-    def @method():int
+    def @getPtrToA():int*
         return 1
     end
 
     op +(a:int):int
     end
 
-    new(first:int)
+    new(first:int*)
         @a = first
     end
 end

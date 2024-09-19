@@ -7,11 +7,11 @@ def         -   global_def
             |   func_def
             |   type_def
 
-global_def  -   $ identifier : identifier * = logic_expr
+global_def  -   $ identifier : identifier [*] = logic_expr
 
 global      -   $ identifier
 
-func_def    -   def identifier ( param_list ) : identifier TERM func_body end
+func_def    -   def identifier ( param_list ) : identifier [*] TERM func_body end
 
 param_list  -   [[parameter ,]* parameter]
 
@@ -40,7 +40,7 @@ assignment  -   identifier = logic_expr
             |   @ identifier = logic_expr
             |   $ identifier = logic_expr
 
-var_def     -   identifier : identifier * = logic_expr
+var_def     -   identifier : identifier [*] = logic_expr
 
 logic_expr  -   eq_expr
             |   logic_expr and eq_expr   
@@ -84,8 +84,8 @@ primary     -   ( logic_expr )
             |   global
             |   new_expr
 
-new_expr    -   new [ int_literal ] identifier ( expr_list )
-            -   new * identifier ( expr_list )
+new_expr    -   new [ int_literal | * ] identifier ( expr_list )
+            -   new identifier ( expr_list )
 
 array       -   [ expr_list? ] identifier
 
@@ -102,9 +102,9 @@ temp        -   member_decl
 
 member_decl  -   @ identifier : identifier [*]
 
-method_def  -   def @identifier ( param_list ) : identifier TERM func_body end
+method_def  -   def @identifier ( param_list ) : identifier [*] TERM func_body end
 
-op_def      -   op operator ( parameter ) : identifier TERM func_body end
+op_def      -   op operator ( parameter ) : identifier [*] TERM func_body end
 
 constructor -   new ( param_list ) TERM func_body end
 

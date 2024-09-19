@@ -57,7 +57,7 @@ struct Parser {
         return std::make_shared<Node::Program>(definitions); 
     }
 
-    // global_def - $ identifier : identifier = logic_expr
+    // global_def - $ identifier : identifier [*] = logic_expr
     std::shared_ptr<Node::GlobalDefn> parseGlobalDefn() {
         currentContext = "global definition";
         
@@ -65,6 +65,12 @@ struct Parser {
         std::string name = consume(Token::identifier);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
+
+        // pointer
+        if (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
+
         discard(Token::opAssign);
         auto expression = parseLogicalExpr();
 
@@ -200,7 +206,7 @@ struct Parser {
         return std::make_shared<Node::ConstructorDefn>(parameters, body);
     } 
 
-    // op operator ( parameter ) : typename TERM comp_stmt end
+    // op operator ( parameter ) : typename [*] TERM comp_stmt end
     // @TODO: rename to OperatorDefinition
     std::shared_ptr<Node::OperatorDefn> parseOperatorOverload() {
 
@@ -219,6 +225,12 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
+
+        // pointer
+        if (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
+        
         discard(Token::terminator);
         auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
@@ -243,7 +255,7 @@ struct Parser {
         return std::make_shared<Node::MemberDecl>(name, type);
     }
 
-    // method_def - def @ identifier ( param_list ) : identifier func_body end
+    // method_def - def @ identifier ( param_list ) : identifier [*] TERM func_body end
     std::shared_ptr<Node::MethodDefn> parseMethodDefn() {
 
         discard(Token::kwDef);
@@ -255,6 +267,12 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
+
+        // pointer
+        if (*it == Token::opMultiply) {
+            returnType += consume(Token::opMultiply);
+        }
+
         discard(Token::terminator);
         auto functionBody = parseFunctionBody();
         discard(Token::kwEnd);
@@ -262,7 +280,7 @@ struct Parser {
         return std::make_shared<Node::MethodDefn>(name, returnType, parameters, functionBody);  
     }
 
-    // def identifier(param_list):typename comp_stmt end
+    // def identifier ( param_list ) : typename [*] TERM func_body end
     std::shared_ptr<Node::FunctionDefn> parseFunctionDefn() {
         currentContext = "function definition";
 
@@ -274,6 +292,12 @@ struct Parser {
         discard(Token::closeParen);
         discard(Token::colon);
         std::string returnType = consume(Token::identifier);
+
+        // pointer
+        if (*it == Token::opMultiply) {
+            returnType += consume(Token::opMultiply);
+        }
+
         discard(Token::terminator);
         auto functionBody = parseFunctionBody();
         discard(Token::kwEnd);
@@ -296,13 +320,18 @@ struct Parser {
         return std::make_shared<Node::ParamList>(parameters);
     }
 
-    // identifier:typename
+    // identifier : identifier [*]
     std::shared_ptr<Node::Parameter> parseParameter() {
         currentContext = "parameter";
 
         std::string name = consume(Token::identifier);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
+
+        // pointer
+        if (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
 
         return std::make_shared<Node::Parameter>(name, type);
     }
@@ -588,13 +617,19 @@ struct Parser {
         return std::make_shared<Node::ExprList>(exprs);
     }
 
-    // identifier:typename = expression
+    // identifier:typename [*] = expression
     std::shared_ptr<Node::VariableDefn> parseVariableDefn() {
         currentContext = "variable definition";
         
         std::string name = consume(Token::identifier);
         discard(Token::colon);
         std::string type = consume(Token::identifier);
+
+        // pointer
+        if (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
+
         discard(Token::opAssign);
         auto expression = parseLogicalExpr();
 

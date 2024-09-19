@@ -84,8 +84,7 @@ primary     -   ( logic_expr )
             |   global
             |   new_expr
 
-new_expr    -   new [ int_literal | * ] identifier ( expr_list )
-            -   new identifier ( expr_list )
+new_expr    -   new [[ int_literal ] | * ] identifier ( expr_list )
 
 array       -   [ expr_list? ] identifier
 

@@ -19,6 +19,7 @@ namespace Node {
     struct AdditionExpr;
     struct MultiplicationExpr;
     struct Primary;
+    struct NewExpr;
     struct IntLiteral;
     struct FloatLiteral;
     struct StringLiteral;
@@ -76,6 +77,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Primary> n) {}
 
     virtual void visit(std::shared_ptr<Node::Array> n) {}
+
+    virtual void visit(std::shared_ptr<Node::NewExpr> n) {}
 
     virtual void visit(std::shared_ptr<Node::IntLiteral> n) {}
 

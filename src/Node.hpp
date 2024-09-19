@@ -166,6 +166,23 @@ namespace Node {
 
     };
 
+    // new expr
+    struct NewExpr : Node, std::enable_shared_from_this<NewExpr> {
+        bool isPointer;
+        std::string number;
+        std::string type;
+        std::shared_ptr<ExprList> args;
+
+        // constructor
+        NewExpr(bool isPointer, const std::string& number, const std::string& type, std::shared_ptr<ExprList> args)
+            : isPointer(isPointer), number(number), type(type), args(args) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     // global
     struct Global : Primary, std::enable_shared_from_this<Global> {
         std::string name;

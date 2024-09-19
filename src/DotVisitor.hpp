@@ -282,6 +282,33 @@ struct DotVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
+    // new expression
+    void visit(std::shared_ptr<Node::NewExpr> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "new";
+        if (n->isPointer) {
+            if (n->number == "0") {
+                dotFile << "*";
+            }
+            else {
+                dotFile << "[" << n->number << "]";
+            }
+        }
+        dotFile << "\"];\n";
+
+        // process child(ren)
+        int exprsId = nodeId;
+        n->args->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprsId) << ";\n";  
+    }
+
     // visit array
     void visit(std::shared_ptr<Node::Array> n) override {
         int thisId = nodeId;

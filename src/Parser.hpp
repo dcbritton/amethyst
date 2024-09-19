@@ -230,7 +230,7 @@ struct Parser {
         if (*it == Token::opMultiply) {
             type += consume(Token::opMultiply);
         }
-        
+
         discard(Token::terminator);
         auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
@@ -569,10 +569,43 @@ struct Parser {
             return std::make_shared<Node::Array>(exprs);
         }
 
+        // new_expr
+        else if (*it == Token::kwNew) {
+            return parseNewExpr();
+        }
+
         else {
             std::cout << "Parser error on line " << it->lineNumber << ". Unrecognizable primary beginning with token " << it->toString() << " instead.\n";
             exit(1);
         }
+    }
+
+    // new_expr - new [[ int_literal ] | * ] identifier ( expr_list )
+    std::shared_ptr<Node::NewExpr> parseNewExpr() {
+        bool isPointer = false;
+        std::string number = "0";
+
+        discard(Token::kwNew);
+
+        // *
+        if (*it == Token::opMultiply) {
+            isPointer = true;
+            discard(Token::opMultiply);
+        }
+        // [ int_literal ]
+        else if (*it == Token::openBracket) {
+            isPointer = true;
+            discard(Token::openBracket);
+            number = consume(Token::intLiteral);
+            discard(Token::closeBracket);
+        }
+
+        std::string type = consume(Token::identifier);
+        discard(Token::openParen);
+        auto args = parseExprList();
+        discard(Token::closeParen);
+        
+        return std::make_shared<Node::NewExpr>(isPointer, number, type, args);
     }
 
     // @ identifier

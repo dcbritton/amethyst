@@ -1,33 +1,22 @@
 
-
-$a:int = new int()
-$b:int* = new* int()
-$c:_float32* = new[3] _float32()
-
-def main():int
-    delete b
-    $a = 1
-    a = $a + a + ex(a, $a)
-    c:int* = $b + 1
-    d:int = ex($b + 1, c)
-
-    g:bool = a == $a and a == b
-    return 0
-end
-
 type T 
     @a:int
-    @b:int*
+    @b:int
 
-    def @getPtrToA():int*
+    def @getPtrToA():int
         return 1
     end
 
     op +(a:int):int
     end
 
-    new(first:int*)
+    new(first:int)
         @a = first
+        @b = @a + 1
     end
 end
 
+def main():int
+
+    example:T = new T(1)
+end

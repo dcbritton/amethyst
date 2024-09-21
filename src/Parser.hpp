@@ -584,7 +584,7 @@ struct Parser {
         }
 
         else {
-            std::cout << "Parser error on line " << it->lineNumber << ". Unrecognizable primary beginning with token " << it->toString() << " instead.\n";
+            std::cout << "Parser error on line " << it->lineNumber << ". Unrecognizable primary beginning with token " << it->toString() << ".\n";
             exit(1);
         }
     }

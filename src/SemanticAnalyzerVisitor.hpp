@@ -95,7 +95,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     bool typeExists(const std::string& name) {
-        // remove trailing *'s: if a type exists, it's pointers do, too
+        // remove trailing *'s, b/c if a type exists, its pointers do, too
         std::string nonPtr = name;
         if (name.back() == '*') {
             nonPtr = std::string(name.begin(), std::find(name.begin(), name.end(), '*'));
@@ -108,6 +108,11 @@ struct SemanticAnalyzerVisitor : Visitor {
         // otherwise, check types map
         return types.find(nonPtr) != types.end();
     }
+
+    // when evaluating a dot operation, points to the type in the types map of the LHS
+    // @NOTE: set only in visit(Node::AccessExpr) and must be returned to nullptr immediately after RHS is visited
+    // @NOTE: points to memory in a std::unordered map. do not interact with types map when currentDotLHS is not nullptr
+    Type* currentDotLHS = nullptr;
 
 
     // VARIABLES
@@ -197,8 +202,8 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::make_pair<std::string, Procedure>(formOpSignature("!=", "bool"), Procedure("bool")),
         }, {}));
 
-        types.emplace("_float32", Type("_float32", {}, {}, {}, {}));
-        types.emplace("_string", Type("_string", {}, {}, {}, {}));
+        types.emplace("float", Type("float", {}, {}, {}, {}));
+        types.emplace("char", Type("char", {}, {}, {}, {}));
 
         for (auto definition : n->definitions) {
             definition->accept(shared_from_this());
@@ -514,10 +519,38 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::AccessExpr> n) override {
-        // @TODO: type inside [] does not have to match outside
-        // requires special interaction with call stack
-        // @TODO: make sure lhs of . has member rhs 
-        process(n);
+        // process lhs and rhs
+        n->LHS->accept(shared_from_this());
+
+        // get lhs and rhs types of expr type stack
+        std::string lhsType = exprTypes.back();
+        exprTypes.pop_back();
+
+        // all ptr types must have op[](:int): available 
+        if (n->op == "[]") {
+
+        }
+        // @TODO: type inside [] does not have to match outside // requires special interaction with expr type stack?
+
+        // lhs type must have member/method rhs
+        else if (n->op == ".") {
+            // @TODO: replace all '.back() == "*"' with an isPointer(const std::string&) method 
+            if (lhsType.back() == '*') {
+                std::cout << "Error. Tried to use dot operator on a pointer.\n";
+                exit(1);
+            }
+
+            // @NOTE: points to the type in types map
+            currentDotLHS = &types[lhsType];
+            n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
+            currentDotLHS = nullptr;
+
+            // get the rhs' type
+            std::string rhsType = exprTypes.back();
+            exprTypes.pop_back();
+
+            exprTypes.push_back(rhsType);
+        }
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
@@ -610,14 +643,13 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit float literal
     void visit(std::shared_ptr<Node::FloatLiteral> n) override {
         // expression stack
-        exprTypes.push_back("_float32");
+        exprTypes.push_back("float");
     }
 
     // visit string literal
     void visit(std::shared_ptr<Node::StringLiteral> n) override {
         // expression stack
-        // @TODO: should in fact be an array of char/_uint8
-        exprTypes.push_back("_string");
+        exprTypes.push_back("char*");
     }
     
     // visit variable
@@ -652,14 +684,32 @@ struct SemanticAnalyzerVisitor : Visitor {
             signature += "@" + type;
         }
 
-        // function exists?
-        if (!functionExists(signature)) {
-            std::cout << "Could not find a matching definition for call with signature " << signature << ".\n";
-            exit(1);
+        std::string type;
+
+        // in RHS of dot operation?
+        if (currentDotLHS) {
+            // if so, check the LHS type for the method
+            if (currentDotLHS->methods.find(signature) == currentDotLHS->methods.end()) {
+                std::cout << "Error in dot operation. Type " << currentDotLHS->name << " has no method with signature " << signature << ".\n";
+                exit(1);
+            }
+
+            // return type of method
+            type = currentDotLHS->methods[signature].returnType;
+        }
+        // otherwise, check free functions map
+        else {
+            // function exists?
+            if (!functionExists(signature)) {
+                std::cout << "Could not find a matching definition for call with signature " << signature << ".\n";
+                exit(1);
+            }
+
+            // return type of free function
+            type = functions.find(signature)->second.returnType;
         }
 
-        // push type to expression stack
-        std::string type = functions.find(signature)->second.returnType;
+        // push return type to expression stack
         exprTypes.push_back(type);
     }
 

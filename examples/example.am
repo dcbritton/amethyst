@@ -1,24 +1,23 @@
 $a:int = 1
-type T 
-    @a:T
-    @b:T
+$c:char* = "string!"
 
-    new(first:int)
+type Member
+    @name:char*
+    @age:int
+    @luckyNumbers:int*
+
+    new(name:char*, age:int, luckyNumbers:int*)
+        @name = name
+        @age = age
+        @luckyNumbers = luckyNumbers
     end
 
-   op *(T:T):T
-        @a*T
-    end
-
-    op +(T:T):T
-        @a+T
-    end
+    def @getNumber():int
+        return 1
+    end 
 end
-$b:T = new T(1)
 
 def main():int
-        a:T* = new[5] T(1)
-        b:T* = [new T(1), new T(2), $b]
-
-
+    example:Member = new Member("David", 22, [1,2,3])
+    example.getNumber()
 end

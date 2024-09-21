@@ -20,8 +20,7 @@ parameter   -   identifier : identifier
 func_body   -   [stmt TERM]*
 
 stmt        -   var_def
-            |   logic_expr
-            |   assignment
+            |   assgn_expr
             |   conditional
             |   while_loop
             |   return_stmt
@@ -37,12 +36,11 @@ conditional -   if logic_expr func_body [elsif logic_expr func_body]* [else func
             
 return_stmt -   return logic_expr
 
-assignment  -   identifier = logic_expr
-            |   @ identifier = logic_expr
-            |   $ identifier = logic_expr
-            |   access_expr = logic_expr
-
 var_def     -   identifier : identifier [*] = logic_expr
+
+// semantically, the LHS access_expr must be a variable, member, global, dot_expr with RHS identifier, or [] expr
+assignment  -   access_expr = logic_expr
+            |   logic_expr
 
 logic_expr  -   eq_expr
             |   logic_expr and eq_expr   

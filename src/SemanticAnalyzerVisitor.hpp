@@ -378,66 +378,21 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // visit assignment
     void visit(std::shared_ptr<Node::Assignment> n) override {
-        std::string type;
-        // split on sigil of lhs
-        // global
-        if (n->sigil == "$") {
-            // exists?
-            if (!globalExists(n->lhs)) {
-                std::cout << "In some scope, tried to assign a value to global $" << n->lhs << ", which has not been defined.\n";
-                exit(1);  
-            }
+        // process lhs and rhs
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
 
-            // find type
-            type = getGlobalType(n->lhs);
-        }
-
-        // member
-        else if (n->sigil == "@") {
-            // not allowed outside of a type definition
-            if (!inTypeDefn()) {
-                std::cout << "Tried to assign to member @" << n->lhs << " when not in a type definition.\n";
-                exit(1);
-            }
-            // exists?
-            if (currentType->members.find(n->lhs) == currentType->members.end()) {
-                std::cout << "In definition of type " << currentType->name
-                          << ", tried to assign to member @" << n->lhs
-                          << ", which has not yet been defined.\n";
-                exit(1);
-            }
-            // find type
-            type = currentType->members.find(n->lhs)->second.type;
-        }
-
-        // variable
-        else if (n->sigil == "") {
-            // exists?
-            if (!variableExists(n->lhs)) {
-                std::cout << "In some scope, tried to assign a value to " << n->lhs << ", which has not been defined.\n";
-                exit(1);
-            }
-            // find type
-            type = getVariableType(n->lhs);
-        }
-
-        // otherwise, error
-        else {
-            std::cout << "Internal error. Unrecognized sigil " << n->sigil << " in assignment.\n";
-            exit(1);
-        }
-
-       // match lhs and rhs type
-        n->expr->accept(shared_from_this());
-        if (exprTypes.back() != type) {
-            std::cout << "In an assignment of variable (@? $?)" << n->lhs
-                      << ", its type " << type
-                      << " does not match the expression type " << exprTypes.back()
-                      << ".\n";
-            exit(1);
-        }
-        // empty the stack
+        // get lhs and rhs types of expr type stack
+        std::string rhsType = exprTypes.back();
         exprTypes.pop_back();
+        std::string lhsType = exprTypes.back();
+        exprTypes.pop_back();
+        
+        // match lhs and rhs type
+        if (lhsType != rhsType) {
+            std::cout << "Error in assignment. LHS type " << lhsType << " did not match RHS type " << rhsType << ".\n";
+            exit(1);
+        }
     }
 
     // visit return
@@ -473,7 +428,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string lhsType = exprTypes.back();
         exprTypes.pop_back();
 
-        // @TODO: handle pointers more gracefully. currently, no operators may be used (other than perhaps [] and .)
+        // @TODO: handle pointers more gracefully. currently, no operators may be used (other than perhaps [])
         if (lhsType.back() == '*') {
             std::cout << "May not use operator " << n->op << " on a pointer type.\n";
             exit(1);
@@ -526,7 +481,6 @@ struct SemanticAnalyzerVisitor : Visitor {
         process(n);
     }
 
-    // @TODO: separate into DotExpr and SubscriptExpr
     void visit(std::shared_ptr<Node::AccessExpr> n) override {
         // process lhs and rhs
         n->LHS->accept(shared_from_this());
@@ -570,7 +524,7 @@ struct SemanticAnalyzerVisitor : Visitor {
             // check existence of method or member
             // in lhs type's own definition
             if (inTypeDefn() && currentType->name == lhsType) {
-                // @TODO: currentType briefly gives its memory to currentDotLHS, and that memory is copied back. this is gracelessss
+                // @TODO: currentType briefly gives its memory to currentDotLHS, and that memory is copied back. this is graceless
                 currentDotLHS = currentType.release();
                 currentType = std::make_unique<Type>(currentDotLHS);
                 n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)

@@ -468,13 +468,12 @@ namespace Node {
 
     // assignment
     struct Assignment : Statement, std::enable_shared_from_this<Assignment> {
-        std::string sigil;
-        std::string lhs;
-        std::shared_ptr<Node> expr;
+        std::shared_ptr<Node> LHS;
+        std::shared_ptr<Node> RHS;
 
         // constuctor
-        Assignment(const std::string& sigil, const std::string& lhs, std::shared_ptr<Node> expr) 
-            : sigil(sigil), lhs(lhs), expr(expr) {}
+        Assignment(std::shared_ptr<Node> LHS, std::shared_ptr<Node> RHS) 
+            : LHS(LHS), RHS(RHS) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {

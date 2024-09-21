@@ -486,17 +486,18 @@ struct DotVisitor : Visitor {
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "assign\n"
-                << n->sigil
-                << n->lhs << "\"];\n";
+                << " [label=\"=\"];\n";
 
         // process child(ren)
-        int exprId = nodeId;
-        n->expr->accept(shared_from_this());
+        int lhsId = nodeId;
+        n->LHS->accept(shared_from_this());
+        int rhsId = nodeId;
+        n->RHS->accept(shared_from_this());
+        
 
         // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(lhsId) << ";\n";
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
     // visit return

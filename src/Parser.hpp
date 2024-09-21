@@ -101,16 +101,6 @@ struct Parser {
                 statements.push_back(parseReturn());
             }
 
-            // assignment of $global / @member
-            else if ((*it == Token::globalSigil || *it == Token::memberSigil) && *(it+2) == Token::opAssign) {
-                statements.push_back(parseAssignment());
-            }
-
-            // assignment of standard variable
-            else if (*it == Token::identifier && *(it+1) == Token::opAssign) {
-                statements.push_back(parseAssignment());
-            }
-
             // delete
             else if (*it == Token::kwDelete) {
                 statements.push_back(parseDelete());
@@ -131,9 +121,9 @@ struct Parser {
                 break;
             }
 
-            // otherwise, it must be an expression
+            // otherwise, it must be an assignment or an expression
             else {
-                statements.push_back(parseLogicalExpr());
+                statements.push_back(parseAssignment());
             }
 
             // statement must be terminated with newline
@@ -141,21 +131,6 @@ struct Parser {
         }
 
         return std::make_shared<Node::FunctionBody>(statements);
-    }
-
-    // identifier = expr
-    std::shared_ptr<Node::Assignment> parseAssignment() {
-        currentContext = "assignment";
-        
-        std::string sigil;
-        if (*it == Token::globalSigil || *it == Token::memberSigil) {
-           sigil = consume(*it);
-        }
-        std::string name = consume(Token::identifier);
-        discard(Token::opAssign);
-        auto expr = parseLogicalExpr();
-
-        return std::make_shared<Node::Assignment>(sigil, name, expr);
     }
 
     // return expr
@@ -343,6 +318,85 @@ struct Parser {
         }
 
         return std::make_shared<Node::Parameter>(name, type);
+    }
+
+    // determines if the token range is a valid assignment LHS
+    // follows token pattern [@ | $] identifier [. identifier | [ logic_expr ]]* 
+    bool isValidLHS(const std::vector<Token>::const_iterator begin, const std::vector<Token>::const_iterator end) {
+        auto current = begin;
+        
+        // must begin with @, $ or identifier
+        if (*current != Token::memberSigil && *current != Token::globalSigil && *current != Token::identifier) {
+            return false;
+        }
+        
+        // move to first identifier if @ or $
+        if (*current == Token::memberSigil || *current == Token::globalSigil) {
+            ++current;
+        }
+
+        // require identifier
+        if (*current != Token::identifier) {
+            return false;
+        }
+        ++current;
+
+        // followed by any number of [ logic_expr ] or . identifier
+        while (current != end) {
+            // . identifier
+            if (*current == Token::opDot && *(current+1) == Token::identifier) {
+                current += 2;
+            }
+
+            // [ logic_expr ]
+            else if (*current == Token::openBracket)  {
+                // move to beginning of logical expr
+                ++current;
+                
+                // use 'it' and a parsing method to validate the logical expr
+                auto placeholder = it;
+                it = current;
+                parseLogicalExpr();
+                current = it;
+                it = placeholder;
+
+                // verify closing ]
+                if (*current != Token::closeBracket) {
+                    return false;
+                }
+                ++current;
+            }
+
+            // otherwise, it is invalid
+            else {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    // assignment  -   access_expr = assgn_expr
+    //             |   logic_expr
+    std::shared_ptr<Node::Node> parseAssignment() {
+
+        auto startLHS = it;
+        std::shared_ptr<Node::Node> LHS = parseLogicalExpr();
+        // assignment path
+        if (*it == Token::opAssign) {
+            discard(Token::opAssign);
+
+            if (!isValidLHS(startLHS, it-1)) {
+                std::cout << "Parser error on line " << startLHS->lineNumber << ". Invalid LHS in assignemnt.\n";
+                exit(1);
+            }
+            auto RHS = parseLogicalExpr();
+
+            return std::make_shared<Node::Assignment>(LHS, RHS); 
+        }
+
+        // logic_expr path
+        return LHS;
     }
 
     // parseLogicalExpr

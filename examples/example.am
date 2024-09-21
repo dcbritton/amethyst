@@ -1,20 +1,18 @@
-
+$a:int = 1
 type T 
     @a:T
     @b:T
 
     new(first:int)
-
-    end
-
-    op +(T:T):T
-     
-
     end
 
    op *(T:T):T
         @a*T
+    end
 
+    op +(T:T):T
+        @a+T
+        @a/T
     end
 end
 

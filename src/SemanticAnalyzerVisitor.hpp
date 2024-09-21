@@ -454,14 +454,27 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string lhsType = exprTypes.back();
         exprTypes.pop_back();
 
-        // check the type and see if it has
+        // check the type and see if it has the operator
         std::string signature = formOpSignature(n->op, rhsType);
-        Type& type = types.find(lhsType)->second;
-        if (!type.has(signature)) {
-            std::cout << "Type " << type.name << " has no defined op " << signature << ".\n";
-            exit(1);
+        // in own definition, check its own operators
+        if (inTypeDefn() && currentType->name == lhsType) {
+            // check for existence of operator
+            if (!currentType->has(signature)) {
+                std::cout << "Type " << currentType->name << " has no defined op " << signature << ".\n";
+                exit(1);
+            }
+            exprTypes.push_back(currentType->getOperator(signature).returnType);
         }
-        exprTypes.push_back(type.getOperator(signature).returnType);
+        // otherwise, check types map
+        else {
+            Type& type = types.find(lhsType)->second;
+            // check for existence of operator
+            if (!type.has(signature)) {
+                std::cout << "Type " << type.name << " has no defined op " << signature << ".\n";
+                exit(1);
+            }
+            exprTypes.push_back(type.getOperator(signature).returnType);
+        }
     }
 
     void visit(std::shared_ptr<Node::LogicalExpr> n) override {

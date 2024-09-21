@@ -363,6 +363,14 @@ struct SemanticAnalyzerVisitor : Visitor {
                       << " has not yet been defined.\n";
             exit(1);
         }
+
+        // no parameters with the same name
+        for (const auto& parameter : currentProcedure->parameters) {
+            if (parameter.name == n->name) {
+                std::cout << "In a procedure definition, the parameter name \"" << parameter.name << "\" is used more than once.\n";
+                exit(1);
+            }
+        }
         
         // put in function/method/operator defn
         currentProcedure->parameters.push_back(Variable(n->name, n->type));
@@ -781,6 +789,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // enter scope
         enterScope(typeDefn, n->name);
 
+        // build full type
         TypeDefinitionScanner tds;
         currentType = std::move(tds.visit(n));
 

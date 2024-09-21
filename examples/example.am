@@ -19,5 +19,6 @@ end
 
 def main():int
     example:Member = new Member("David", 22, [1,2,3])
-    example.getNumber()
+    example.getNumber() + $a / 2
+    example.name
 end

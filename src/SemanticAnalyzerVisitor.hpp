@@ -534,7 +534,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // lhs type must have member/method rhs
         else if (n->op == ".") {
-            // @TODO: replace all '.back() == "*"' with an isPointer(const std::string&) method 
+            // @TODO: replace all ".back() == '*'" with an isPointer(const std::string&) method 
             if (lhsType.back() == '*') {
                 std::cout << "Error. Tried to use dot operator on a pointer.\n";
                 exit(1);
@@ -654,14 +654,30 @@ struct SemanticAnalyzerVisitor : Visitor {
     
     // visit variable
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // exists?
-        if (!variableExists(n->name)) {
-            std::cout << "Variable " << n->name << " referenced, but it has not yet been defined.\n";
-            exit(1);
-        }
+        std::string type;
 
-        // find type
-        std::string type = getVariableType(n->name);
+        // in RHS of dot operation?
+        if (currentDotLHS) {
+            // if so, check the LHS type for the member
+            if (currentDotLHS->members.find(n->name) == currentDotLHS->members.end()) {
+                std::cout << "Error in dot operation. Type " << currentDotLHS->name << " has no member " << n->name << ".\n";
+                exit(1);
+            }
+
+            // return type of method
+            type = currentDotLHS->members.find(n->name)->second.type;
+        }
+        // otherwise, check variables in scope
+        else {
+            // exists?
+            if (!variableExists(n->name)) {
+                std::cout << "Variable " << n->name << " referenced, but it has not yet been defined.\n";
+                exit(1);
+            }
+
+            // find type
+            type = getVariableType(n->name);
+        }
 
         // expression stack
         exprTypes.push_back(type);

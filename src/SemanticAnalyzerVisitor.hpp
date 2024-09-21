@@ -592,11 +592,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // expr stack
+        // @TODO: allow empty arrays, current type "empty array" is, of course, impossible to match
         if (types.empty()) {
-            exprTypes.push_back("any&0");
+            exprTypes.push_back("empty array");
         }
         else {
-            exprTypes.push_back(types.front() + "&" + std::to_string(types.size()));
+            exprTypes.push_back(types.front() + "*");
         }
     }
 

@@ -73,8 +73,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     std::vector<Scope>::const_iterator getProcedureDefnScope() {
         auto it = scopeTable.begin();
         for (; it != scopeTable.end(); ++it) {
-            // @TODO: add constructor
-            if (it->type == functionDefn || it->type == methodDefn || it->type == operatorDefn) {
+            if (it->type == functionDefn || it->type == methodDefn || it->type == operatorDefn || it->type == constructorDefn) {
                 return it;
             }
         }

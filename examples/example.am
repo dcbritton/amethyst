@@ -27,7 +27,7 @@ end
 
 def main():int
     example:Member* = new* Member("David", 22, [1,2,3])
-
+    a:bool = true or false
 
     return 0
 end

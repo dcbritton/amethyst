@@ -637,6 +637,11 @@ struct Parser {
             return parseNewExpr();
         }
 
+        else if (*it == Token::kwTrue || *it == Token::kwFalse) {
+            std::string value = consume(*it);
+            return std::make_shared<Node::BoolLiteral>(value);
+        }
+
         else {
             std::cout << "Parser error on line " << it->lineNumber << ". Unrecognizable primary beginning with token " << it->toString() << ".\n";
             exit(1);

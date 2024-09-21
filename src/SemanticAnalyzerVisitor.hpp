@@ -645,6 +645,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         // expression stack
         exprTypes.push_back("char*");
     }
+
+    // visit bool literal
+    void visit(std::shared_ptr<Node::BoolLiteral> n) override {
+        // expression stack
+        exprTypes.push_back("bool");
+    }
     
     // visit variable
     void visit(std::shared_ptr<Node::Variable> n) override {

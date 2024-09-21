@@ -281,6 +281,20 @@ namespace Node {
         }
     };
 
+    // bool literal
+    struct BoolLiteral : Primary, std::enable_shared_from_this<BoolLiteral> {
+        std::string value;
+
+        // constructor
+        BoolLiteral(const std::string& value)
+            : value(value) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     // variable
     struct Variable : Primary, std::enable_shared_from_this<Variable> {
         std::string name;

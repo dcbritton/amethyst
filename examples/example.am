@@ -17,7 +17,7 @@ end
 $b:T* = new* T(1)
 
 def main():int
-        a:T = new T(1)
+        a:T* = new[5] T(1)
         b:T = new T(2)
         c:T = a+b
 end

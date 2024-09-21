@@ -97,7 +97,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     bool typeExists(const std::string& name) {
         // remove trailing *'s: if a type exists, it's pointers do, too
         std::string nonPtr = name;
-        if (name[name.length()-1] == '*') {
+        if (name.back() == '*') {
             nonPtr = std::string(name.begin(), std::find(name.begin(), name.end(), '*'));
         }
 
@@ -459,6 +459,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.pop_back();
         std::string lhsType = exprTypes.back();
         exprTypes.pop_back();
+
+        // @TODO: handle pointers more gracefully. currently, no operators may be used (other than perhaps [] and .)
+        if (lhsType.back() == '*') {
+            std::cout << "May not use operator " << n->op << " on a pointer type.\n";
+            exit(1);
+        }
 
         // check the type and see if it has the operator
         std::string signature = formOpSignature(n->op, rhsType);

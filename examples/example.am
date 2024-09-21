@@ -12,6 +12,13 @@ type Member
         @luckyNumbers = luckyNumbers
     end
 
+    new(other:Member)
+        a:Member = new Member("?", 0, [1])
+        @name = other.name
+        @age = other.age
+        @luckyNumbers = other.luckyNumbers
+    end
+
     def @getNumber():int
         return 1
     end 
@@ -20,5 +27,7 @@ end
 def main():int
     example:Member = new Member("David", 22, [1,2,3])
     example.getNumber() + $a / 2
-    example.name
+    firstLetter:char = example.name[0]
+
+    return 0
 end

@@ -73,11 +73,12 @@ struct SemanticAnalyzerVisitor : Visitor {
     std::vector<Scope>::const_iterator getProcedureDefnScope() {
         auto it = scopeTable.begin();
         for (; it != scopeTable.end(); ++it) {
+            // @TODO: add constructor
             if (it->type == functionDefn || it->type == methodDefn || it->type == operatorDefn) {
                 return it;
             }
         }
-        
+
         std::cout << "Internal error. getProcedureDefnScope() called when not in a function, method, or operator definition.\n";
         exit(1);
     }
@@ -526,20 +527,39 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string lhsType = exprTypes.back();
         exprTypes.pop_back();
 
-        // all ptr types must have op[](:int): available 
+        // subscript
         if (n->op == "[]") {
+            // is ptr?
+            if (lhsType.back() == '*') {
+                // get rhs type
+                n->RHS->accept(shared_from_this());
+                std::string rhsType = exprTypes.back();
+                exprTypes.pop_back();
+                // verify that rhs type is an int
+                if (rhsType != "int") {
+                    std::cout << "Error. Tried to subscript access a pointer with something other than an int!\n";
+                    exit(1);
+                }
 
+                // return type is a dereferenced ptr, i.e. the type minus one *
+                exprTypes.push_back(std::string(lhsType.begin(), lhsType.end()-1));
+            }
+            // otherwise, process as normal operator
+            else {
+                process(n);
+            }
         }
-        // @TODO: type inside [] does not have to match outside // requires special interaction with expr type stack?
 
-        // lhs type must have member/method rhs
+        // dot
         else if (n->op == ".") {
             // @TODO: replace all ".back() == '*'" with an isPointer(const std::string&) method 
+            // is ptr?
             if (lhsType.back() == '*') {
                 std::cout << "Error. Tried to use dot operator on a pointer.\n";
                 exit(1);
             }
 
+            // check existence of method or member
             // @NOTE: points to the type in types map
             currentDotLHS = &types[lhsType];
             n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
@@ -549,6 +569,7 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::string rhsType = exprTypes.back();
             exprTypes.pop_back();
 
+            // push to express type stack
             exprTypes.push_back(rhsType);
         }
     }

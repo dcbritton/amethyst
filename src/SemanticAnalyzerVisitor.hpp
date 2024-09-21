@@ -95,12 +95,18 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     bool typeExists(const std::string& name) {
+        // remove trailing *'s: if a type exists, it's pointers do, too
+        std::string nonPtr = name;
+        if (name[name.length()-1] == '*') {
+            nonPtr = std::string(name.begin(), std::find(name.begin(), name.end(), '*'));
+        }
+
         // allow a type to be used in its own definition
-        if (inTypeDefn() && currentType->name == name) {
+        if (inTypeDefn() && currentType->name == nonPtr) {
             return true;
         }
-        // otherwise, check 
-        return types.find(name) != types.end();
+        // otherwise, check types map
+        return types.find(nonPtr) != types.end();
     }
 
 

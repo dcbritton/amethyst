@@ -12,9 +12,9 @@ type T
 
     op +(T:T):T
         @a+T
-        @a/T
     end
 end
+$b:T* = new* T(1)
 
 def main():int
         a:T = new T(1)

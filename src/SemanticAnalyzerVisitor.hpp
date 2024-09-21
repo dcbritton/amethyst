@@ -422,7 +422,7 @@ struct SemanticAnalyzerVisitor : Visitor {
        // match lhs and rhs type
         n->expr->accept(shared_from_this());
         if (exprTypes.back() != type) {
-            std::cout << "In an assignment of variable " << n->lhs
+            std::cout << "In an assignment of variable (@? $?)" << n->lhs
                       << ", its type " << type
                       << " does not match the expression type " << exprTypes.back()
                       << ".\n";
@@ -518,6 +518,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         process(n);
     }
 
+    // @TODO: separate into DotExpr and SubscriptExpr
     void visit(std::shared_ptr<Node::AccessExpr> n) override {
         // process lhs and rhs
         n->LHS->accept(shared_from_this());
@@ -559,10 +560,21 @@ struct SemanticAnalyzerVisitor : Visitor {
             }
 
             // check existence of method or member
-            // @NOTE: points to the type in types map
-            currentDotLHS = &types[lhsType];
-            n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
-            currentDotLHS = nullptr;
+            // in lhs type's own definition
+            if (inTypeDefn() && currentType->name == lhsType) {
+                // @TODO: currentType briefly gives its memory to currentDotLHS, and that memory is copied back. this is gracelessss
+                currentDotLHS = currentType.release();
+                currentType = std::make_unique<Type>(currentDotLHS);
+                n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
+                delete currentDotLHS;
+                currentDotLHS = nullptr;
+            }
+            // otherwise, check types map
+            else {
+                currentDotLHS = &types[lhsType];
+                n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
+                currentDotLHS = nullptr;
+            }
 
             // get the rhs' type
             std::string rhsType = exprTypes.back();

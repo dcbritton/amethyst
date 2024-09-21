@@ -1,20 +1,24 @@
 $a:int = 1
 $c:char* = "string!"
 
+def problemParams(a:int, a:int):int
+
+end
+
 type Member
     @name:char*
     @age:int
     @luckyNumbers:int*
 
     new(name:char*, age:int, luckyNumbers:int*)
-        @name = name
+        @name = name[0]
         @age = age
         @luckyNumbers = luckyNumbers
     end
 
     new(other:Member)
         a:Member = new Member("?", 0, [1])
-        @name = other.name
+        @name = a.name
         @age = other.age
         @luckyNumbers = other.luckyNumbers
     end
@@ -25,9 +29,11 @@ type Member
 end
 
 def main():int
-    example:Member = new Member("David", 22, [1,2,3])
-    example.getNumber() + $a / 2
-    firstLetter:char = example.name[0]
+    example:Member* = new* Member("David", 22, [1,2,3])
+    example2:Member = example[0]
+    example[0].getNumber() + $a / 2
+    firstLetter:char = example[0].name[0]
 
     return 0
 end
+

@@ -58,6 +58,9 @@ struct Type {
     Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Procedure>& methods, const std::unordered_map<std::string, Procedure>& operators, const std::unordered_map<std::string, Procedure>& constructors)
         : name(name), members(members), methods(methods), operators(operators), constructors(constructors) {}
 
+    Type(Type*& other) 
+        : name(other->name), members(other->members), methods(other->methods), operators(other->operators), constructors(other->constructors) {}
+
     bool has(const std::string& signature) {
         return operators.find(signature) != operators.end();
     }

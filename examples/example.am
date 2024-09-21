@@ -1,22 +1,25 @@
 
 type T 
-    @a:int
-    @b:int
-
-    def @getPtrToA():int
-        return 1
-    end
-
-    op +(a:int):int
-    end
+    @a:T
+    @b:T
 
     new(first:int)
-        @a = first
-        @b = @a + 1
+
+    end
+
+    op +(T:T):T
+     
+
+    end
+
+   op *(T:T):T
+        @a*T
+
     end
 end
 
 def main():int
-
-    example:T = new T(1)
+        a:T = new T(1)
+        b:T = new T(2)
+        c:T = a+b
 end

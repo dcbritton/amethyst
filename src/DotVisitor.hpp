@@ -475,7 +475,7 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId)
                 << " [label=\""
-                << n->name << " " << n->type
+                << n->name << " : " << n->type
                 << "\"];\n";
     }
 
@@ -530,14 +530,26 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
 
         // process child(ren)
-        std::vector<int> definitionIds = {};
-        for (auto member : n->definitions) {
-            definitionIds.push_back(nodeId);
+        std::vector<int> memberIds = {};
+        for (auto member : n->members) {
+            memberIds.push_back(nodeId);
             member->accept(shared_from_this());
+        }
+        for (auto constructor : n->constructors) {
+            memberIds.push_back(nodeId);
+            constructor->accept(shared_from_this());
+        }
+        for (auto method : n->methods) {
+            memberIds.push_back(nodeId);
+            method->accept(shared_from_this());
+        }
+        for (auto op : n->operators) {
+            memberIds.push_back(nodeId);
+            op->accept(shared_from_this());
         }
 
         // connect child(ren) to this node
-        for (auto id : definitionIds) {
+        for (auto id : memberIds) {
             dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(id) << ";\n";
         }
 

@@ -360,11 +360,14 @@ namespace Node {
     // type definition
     struct TypeDefn : Node, std::enable_shared_from_this<TypeDefn> {
         std::string name;
-        std::vector<std::shared_ptr<Node>> definitions;
+        std::vector<std::shared_ptr<MemberDecl>> members;
+        std::vector<std::shared_ptr<ConstructorDefn>> constructors; 
+        std::vector<std::shared_ptr<MethodDefn>> methods;
+        std::vector<std::shared_ptr<OperatorDefn>> operators;
 
         // constuctor
-        TypeDefn(const std::string& name, const std::vector<std::shared_ptr<Node>>& definitions) 
-            : name(name), definitions(definitions) {}
+        TypeDefn(const std::string& name, const std::vector<std::shared_ptr<MemberDecl>>& members, const std::vector<std::shared_ptr<ConstructorDefn>>& constructors, const std::vector<std::shared_ptr<MethodDefn>>& methods, const std::vector<std::shared_ptr<OperatorDefn>>& operators) 
+            : name(name), members(members), constructors(constructors), methods(methods), operators(operators) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {

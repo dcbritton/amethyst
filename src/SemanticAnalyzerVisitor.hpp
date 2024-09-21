@@ -3,85 +3,11 @@
 #ifndef SEMANTICANALYZERVISITOR
 #define SEMANTICANALYZERVISITOR
 
-#include <iostream>
 #include <unordered_map>
+#include "AnalysisHelper.hpp"
 #include "Visitor.hpp"
 
 struct SemanticAnalyzerVisitor : Visitor {
-
-    enum ScopeType {
-        undefined,
-        global,
-        functionDefn,
-
-        typeDefn,
-        methodDefn,
-        operatorDefn,
-        constructorDefn,
-
-        whileLoop,
-        conditionalBlock
-    };
-
-    struct Variable {
-        std::string name;
-        std::string type;
-
-        Variable(const std::string& name, const std::string& type)
-            : name(name), type(type) {}
-    };
-
-    // used for functions, methods, and operators
-    struct Procedure {
-        std::string name;
-        std::string signature;
-        std::string returnType;
-        std::vector<Variable> parameters;
-
-        Procedure() {}
-
-        Procedure(const std::string& returnType)
-            : returnType(returnType) {}
-
-        Procedure(const std::string& name, const std::string& signature, const std::string& returnType, const std::vector<Variable>& parameters) 
-            : name(name), signature(signature), returnType(returnType), parameters(parameters) {}
-    };
-
-    std::string formOpSignature(const std::string& op, const std::string& rhsType) {
-        return op + "@" + rhsType;
-    }
-
-    struct Type {
-        std::string name;
-        std::unordered_map<std::string, Variable> members;
-        std::unordered_map<std::string, Procedure> methods;
-        std::unordered_map<std::string, Procedure> operators;
-        std::unordered_map<std::string, Procedure> constructors;
-
-        Type(const std::string& name) 
-            : name(name) {}
-
-        Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Procedure>& methods, const std::unordered_map<std::string, Procedure>& operators, const std::unordered_map<std::string, Procedure>& constructors)
-            : name(name), members(members), methods(methods), operators(operators), constructors(constructors) {}
-
-        bool has(const std::string& signature) {
-            return operators.find(signature) != operators.end();
-        }
-
-        Procedure getOperator(const std::string& signature) {
-            return operators.find(signature)->second;
-        }
-    };
-
-    struct Scope {
-        ScopeType type = undefined;
-        std::unordered_map<std::string, Variable> variables;
-        std::string name; // name of function/type/method/operator for definition
-
-        // constructor
-        Scope(ScopeType type, const std::string& name)
-            : type(type), name(name) {}
-    };
 
     // stack used for tracking the types of subexpressions as an expression is evaluated
     std::vector<std::string> exprTypes;
@@ -169,19 +95,12 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     bool typeExists(const std::string& name) {
-        return types.find(name) != types.end();
-    }
-
-    // PRE: must be in type definition, as verified by inTypeDefn()
-    std::vector<Scope>::const_iterator getTypeDefnScope() {
-        auto it = scopeTable.begin();
-        for (; it != scopeTable.end(); ++it) {
-            if (it->type == typeDefn) {
-                return it;
-            }
+        // allow a type to be used in its own definition
+        if (inTypeDefn() && currentType->name == name) {
+            return true;
         }
-        std::cout << "Internal error. getTypeDefnScope() called when not in a type definition.\n";
-        exit(1); 
+        // otherwise, check 
+        return types.find(name) != types.end();
     }
 
 
@@ -581,8 +500,8 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit new expression
     void visit(std::shared_ptr<Node::NewExpr> n) override {
         // type exists?
-        auto type = types.find(n->type);
-        if (type == types.end()) {
+        
+        if (!typeExists(n->type)) {
             std::cout << "Undefined type " << n->type << " mentioned in new expression.\n";
             exit(1);
         }
@@ -596,15 +515,23 @@ struct SemanticAnalyzerVisitor : Visitor {
             exprTypes.pop_back();
         }
 
-        // create function signature
+        // create constructor signature
         std::string signature = "new";
         for (const std::string& typeName : typeNames) {
             signature += "@" + typeName;
         }
 
         // signature exists?
-        if (type->second.constructors.find(signature) == type->second.constructors.end()) {
-            std::cout << "Could not find constructor for " << n->type << " with signature " << signature << ".\n";
+        // in own definition, check currentType
+        if (inTypeDefn() && currentType->name == n->type) {
+            if (currentType->constructors.find(signature) == currentType->constructors.end()) {
+                std::cout << "In new_expr, could not find constructor for " << n->type << " with signature " << signature << ".\n";
+                exit(1);
+            }
+        }
+        // otherwise, check types
+        else if (types[n->type].constructors.find(signature) == types[n->type].constructors.end()) {
+            std::cout << "In new_expr, could not find constructor for " << n->type << " with signature " << signature << ".\n";
             exit(1);
         }
 
@@ -730,9 +657,21 @@ struct SemanticAnalyzerVisitor : Visitor {
         // enter scope
         enterScope(typeDefn, n->name);
 
+        TypeDefinitionScanner tds;
+        currentType = std::move(tds.visit(n));
+
         // process definitions
-        for (const auto& definition : n->definitions) {
-            definition->accept(shared_from_this());
+        for (auto member : n->members) {
+            member->accept(shared_from_this());
+        }
+        for (auto constructor : n->constructors) {
+            constructor->accept(shared_from_this());
+        }
+        for (auto method : n->methods) {
+            method->accept(shared_from_this());
+        }
+        for (auto op : n->operators) {
+            op->accept(shared_from_this());
         }
 
         // end scope
@@ -748,25 +687,6 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit operator defn
     void visit(std::shared_ptr<Node::OperatorDefn> n) override {
 
-       // set currentProcedure to an empty Procedure
-        currentProcedure = std::make_unique<Procedure>();
-
-        // process parameters, this adds the parameters to currentProcedure
-        n->parameter->accept(shared_from_this());
-
-        // construct signature
-        std::string signature = n->op;
-        for (const auto& parameter : currentProcedure->parameters) {
-            signature += "@" + parameter.type;
-        }
-
-        // signature check
-        if (currentType->operators.find(signature) != currentType->operators.end()) {
-            std::cout << "In definition of type " << currentType->name << " operator " << n->op << " is defined more than once with the same parameter types.\n"
-                        << "(Mangled: " << signature << ")\n";
-            exit(1);    
-        }
-
         // return type check
         if (!typeExists(n->returnType)) {
             std::cout << "In the definition of type " << currentType->name << ", the return type " << n->returnType
@@ -775,71 +695,38 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // fully define currentProcedure with name, signature, and type (parameters already added when visited)
-        currentProcedure->returnType = n->returnType;
-        currentProcedure->name = n->op;
-        currentProcedure->signature = signature;
-        
-        // make new scope
+        // get signature by creating a temporary Procedure
+        currentProcedure = std::make_unique<Procedure>();
+        n->parameter->accept(shared_from_this());
+        std::string signature = n->op;
+        for (const auto& parameter : currentProcedure->parameters) {
+            signature += "@" + parameter.type;
+        }
+        currentProcedure.reset();
+            
+        // copy fully defined operator from currentType
+        currentProcedure = std::make_unique<Procedure>(currentType->operators[signature]);
+
+        // process body
         enterScope(operatorDefn, signature);
-
-        // add to type's operators (allows it to be used in itself)
-        currentType->operators.emplace(signature, *currentProcedure);
-
-        // process functionBody
         n->stmts->accept(shared_from_this());
-
-        // end its own scope
         endScope();
 
         // clear currentProcedure, leaves nullptr
         currentProcedure.reset();
     }
 
-    // visit member definition
+    // visit member declaration
     void visit(std::shared_ptr<Node::MemberDecl> n) override {
-        // exists?
-        if (currentType->members.find(n->name) != currentType->members.end()) {
-            std::cout << "In the definition of type " << currentType->name << ", member @" << n->name << " is defined more than once.\n";
-            exit(1);
-        }
-
         // does n->type exist?
         if (!typeExists(n->type)) {
-            std::cout << "The given type " << n->type
-                      << " of member @" << n->name
-                      << " has not yet been defined.\n";
+            std::cout << "The given type " << n->type << " of member @" << n->name << " has not yet been defined.\n";
             exit(1);
         }
-
-        // add to currentType
-        currentType->members.emplace(n->name, Variable(n->name, n->type));
-
-        // add to scope
-        // @TODO: probably redundant. members are checked for existence in currentType->members
-        addToScope(Variable(n->name, n->type));
     }
 
     // visit method definition
     void visit(std::shared_ptr<Node::MethodDefn> n) override {
-        // set currentProcedure to an empty Procedure
-        currentProcedure = std::make_unique<Procedure>();
-
-        // process parameters, this adds the parameters to currentProcedure
-        n->paramList->accept(shared_from_this());
-
-        // construct signature
-        std::string signature = n->name;
-        for (const auto& parameter : currentProcedure->parameters) {
-            signature += "@" + parameter.type;
-        }
-
-        // signature check
-        if (currentType->methods.find(signature) != currentType->methods.end()) {
-            std::cout << "In definition of type " << currentType->name << " method @" << n->name << " is defined more than once with the same parameter types.\n"
-                        << "(Mangled: " << signature << ")\n";
-            exit(1);    
-        }
 
         // return type check
         if (!typeExists(n->returnType)) {
@@ -849,21 +736,21 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // fully define currentProcedure with name, signature, and type (parameters already added when visited)
-        currentProcedure->name = n->name;
-        currentProcedure->signature = signature;
-        currentProcedure->returnType = n->returnType;
+        // get signature by creating a temporary Procedure
+        currentProcedure = std::make_unique<Procedure>();
+        n->paramList->accept(shared_from_this());
+        std::string signature = n->name;
+        for (const auto& parameter : currentProcedure->parameters) {
+            signature += "@" + parameter.type;
+        }
+        currentProcedure.reset();
 
-        // make new scope
+        // copy fully defined method from currentType
+        currentProcedure = std::make_unique<Procedure>(currentType->methods[signature]);
+
+        // process body
         enterScope(methodDefn, signature);
-
-        // add to type's methods (allows it to be used in itself)
-        currentType->methods.emplace(signature, *currentProcedure);
-
-        // process functionBody
         n->functionBody->accept(shared_from_this());
-
-        // end its own scope
         endScope();
 
         // clear currentProcedure, leaves nullptr
@@ -927,6 +814,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     }
 
+    // visit constructor definition
     void visit(std::shared_ptr<Node::ConstructorDefn> n) override {
         // set currentProcedure to an empty Procedure
         currentProcedure = std::make_unique<Procedure>();
@@ -934,33 +822,21 @@ struct SemanticAnalyzerVisitor : Visitor {
         // process parameters, this adds the parameters to currentProcedure
         n->parameters->accept(shared_from_this());
 
-        // construct signature
+        // get signature by creating a temporary Procedure
+        currentProcedure = std::make_unique<Procedure>();
+        n->parameters->accept(shared_from_this());
         std::string signature = "new";
         for (const auto& parameter : currentProcedure->parameters) {
             signature += "@" + parameter.type;
         }
+        currentProcedure.reset();
 
-        // signature check
-        if (currentType->constructors.find(signature) != currentType->constructors.end()) {
-            std::cout << "In definition of type " << currentType->name << " the constructor with signature " << signature << " is defined more than once.\n";
-            exit(1);    
-        }
+        // copy fully defined constructor from currentType
+        currentProcedure = std::make_unique<Procedure>(currentType->constructors[signature]);
 
-        // fully define currentProcedure with name, signature, and type (parameters already added when visited)
-        currentProcedure->name = "new";
-        currentProcedure->signature = signature;
-        currentProcedure->returnType = currentType->name;
-
-        // make new scope
+        // process body
         enterScope(constructorDefn, signature);
-
-        // add to type's methods (allows it to be used in itself)
-        currentType->constructors.emplace(signature, *currentProcedure);
-
-        // process functionBody
         n->body->accept(shared_from_this());
-
-        // end its own scope
         endScope();
 
         // clear currentProcedure, leaves nullptr

@@ -174,19 +174,22 @@ struct Parser {
         std::string name = consume(Token::identifier);
         discard(Token::terminator);
         
-        std::vector<std::shared_ptr<Node::Node>> definitions; 
+        std::vector<std::shared_ptr<Node::MemberDecl>> members;
+        std::vector<std::shared_ptr<Node::MethodDefn>> methods; 
+        std::vector<std::shared_ptr<Node::OperatorDefn>> operators; 
+        std::vector<std::shared_ptr<Node::ConstructorDefn>> constructors; 
         while (true) {
             if (*it == Token::memberSigil) {
-                definitions.push_back(parseMemberDecl());
+                members.push_back(parseMemberDecl());
             }
             else if (*it == Token::kwDef) {
-                definitions.push_back(parseMethodDefn());
+                methods.push_back(parseMethodDefn());
             }
             else if (*it == Token::kwOp) {
-                definitions.push_back(parseOperatorOverload());
+                operators.push_back(parseOperatorOverload());
             }
             else if (*it == Token::kwNew) {
-                definitions.push_back(parseConstructorDefn());
+                constructors.push_back(parseConstructorDefn());
             }
             else {
                 break;
@@ -195,7 +198,7 @@ struct Parser {
         }
         discard(Token::kwEnd);
 
-        return std::make_shared<Node::TypeDefn>(name, definitions);
+        return std::make_shared<Node::TypeDefn>(name, members, constructors, methods, operators);
     }
 
     // constructor - new ( param_list ) TERM func_body end

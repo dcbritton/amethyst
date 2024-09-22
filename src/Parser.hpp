@@ -116,6 +116,18 @@ struct Parser {
                 statements.push_back(parseWhileLoop());
             }
 
+            // @NOTE: non-standard increment of 'it' here
+            // break
+            else if (*it == Token::kwBreak) {
+                statements.push_back(std::make_shared<Node::Break>());
+                ++it;
+            }
+            // continue
+            else if  (*it == Token::kwContinue) {
+                statements.push_back(std::make_shared<Node::Continue>());
+                ++it;
+            }
+
             // end of function body
             else if (*it == Token::kwEnd) {
                 break;

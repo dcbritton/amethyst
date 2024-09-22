@@ -563,7 +563,22 @@ namespace Node {
             v->visit(shared_from_this());
         }
     };
+    
+    // break
+    struct Break : Statement, std::enable_shared_from_this<Break> {
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
 
+    // continue
+    struct Continue : Statement, std::enable_shared_from_this<Continue> {
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
 }
 
 #endif

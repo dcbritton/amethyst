@@ -761,6 +761,24 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(stmtsId) << ";\n";
     }
+
+    // break
+    void visit(std::shared_ptr<Node::Break> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId) << " [label=\"break\"];\n";
+    }
+
+    // continue
+    void visit(std::shared_ptr<Node::Continue> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId) << " [label=\"continue\"];\n";
+    }
 };
 
 #endif

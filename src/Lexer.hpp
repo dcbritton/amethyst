@@ -51,6 +51,7 @@ private:
         {"and", Token::kwAnd},
         {"begin", Token::kwBegin},
         {"break", Token::kwBreak},
+        {"continue", Token::kwContinue},
         {"case", Token::kwCase},
         {"type", Token::kwType},
         {"def", Token::kwDef},

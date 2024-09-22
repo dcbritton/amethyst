@@ -69,6 +69,7 @@ struct Token {
         kwAnd,
         kwBegin,
         kwBreak,
+        kwContinue,
         kwCase,
         kwType,
         kwDef,
@@ -191,6 +192,7 @@ struct Token {
             case kwAnd: return "kwAnd";
             case kwBegin: return "kwBegin";
             case kwBreak: return "kwBreak";
+            case kwContinue: return "kwContinue";
             case kwCase: return "kwCase";
             case kwType: return "kwType";
             case kwDef: return "kwDef";

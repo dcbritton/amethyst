@@ -39,6 +39,8 @@ namespace Node {
     struct ConditionalBlock;
     struct ForLoop;
     struct WhileLoop;
+    struct Break;
+    struct Continue;
     struct AccessExpr;
     struct ExprList;
     struct Call;
@@ -127,6 +129,10 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::ConditionalBlock> n) {}
 
     virtual void visit(std::shared_ptr<Node::WhileLoop> n) {}
+
+    virtual void visit(std::shared_ptr<Node::Break> n) {}
+
+    virtual void visit(std::shared_ptr<Node::Continue> n) {}
 };
 
 #endif

@@ -114,6 +114,18 @@ struct SemanticAnalyzerVisitor : Visitor {
     // @NOTE: points to memory in a std::unordered map. do not interact with types map when currentDotLHS is not nullptr
     Type* currentDotLHS = nullptr;
 
+    
+    // LOOPS
+    bool inLoop() {
+        for (const auto& scope : scopeTable) {
+            if (scope.type == whileLoop) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     // VARIABLES
     bool variableExists(const std::string& name) {
@@ -947,10 +959,28 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // process body
+        enterScope(whileLoop, "while");
         n->stmts->accept(shared_from_this());
+        endScope();
     }
 
+    // break
+    void visit(std::shared_ptr<Node::Break> n) override {
+        // must be in a loop
+        if (!inLoop()) {
+           std::cout << "Tried to use a break statement when not in a loop.\n";
+           exit(1);
+        }
+    }
 
+    // continue
+    void visit(std::shared_ptr<Node::Continue> n) override {
+        // must be in a loop
+        if (!inLoop()) {
+           std::cout << "Tried to use a continue statement when not in a loop.\n";
+           exit(1);
+        }
+    }
 };
 
 #endif

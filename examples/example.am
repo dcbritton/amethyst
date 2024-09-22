@@ -31,8 +31,13 @@ def main(first:int):int
 
     while first < 1 or first > 2 do
         example[0].name.first = "Daviid"
+        example[0].luckyNumbers[0]= $a
+        while first < 1 or first > 2 do
+            break
+        end
+        continue
     end
-
+    break
     return 0
 end
 

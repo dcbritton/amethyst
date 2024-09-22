@@ -948,7 +948,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentProcedure.reset();
     }
 
-    void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
+    void visit(std::shared_ptr<Node::ConditionalBlock> n) override {
+        
+    }
 
     void visit(std::shared_ptr<Node::WhileLoop> n) override {
         // condition must evaluate to bool

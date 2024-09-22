@@ -13,14 +13,14 @@ global      -   $ identifier
 
 func_def    -   def identifier ( param_list ) : identifier [*] TERM func_body end
 
-param_list  -   [[parameter ,]* parameter]
+param_list  -   [parameter [, parameter]*]
 
 parameter   -   identifier : identifier
 
 func_body   -   [stmt TERM]*
 
 stmt        -   var_def
-            |   assgn_expr
+            |   assignment
             |   conditional
             |   while_loop
             |   return_stmt
@@ -38,7 +38,7 @@ return_stmt -   return logic_expr
 
 var_def     -   identifier : identifier [*] = logic_expr
 
-// semantically, the LHS access_expr must be a variable, member, global, dot_expr with RHS identifier, or [] expr
+@note: LHS of assignment must follow the token pattern: [@ | $] identifier [. identifier | [ logic_expr ]]* 
 assignment  -   access_expr = logic_expr
             |   logic_expr
 
@@ -92,7 +92,7 @@ array       -   [ expr_list? ] identifier
 
 call        -   identifier ( expr_list )
 
-expr_list   -   [[logic_expr ,]* logic_expr] 
+expr_list   -   [logic_expr [, logic_expr]*]
 
 type_def    -   type identifier TERM [temp TERM]* end
 

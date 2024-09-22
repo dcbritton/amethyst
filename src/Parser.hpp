@@ -301,19 +301,25 @@ struct Parser {
         return std::make_shared<Node::FunctionDefn>(name, returnType, parameters, functionBody);
     }
 
-    // [parameter, ]* parameter
+    // param_list - [parameter [, parameter]*]
     std::shared_ptr<Node::ParamList> parseParamList() {
-        currentContext = "parameter list";
+        std::vector<std::shared_ptr<Node::Parameter>> params = {};
 
-        std::vector<std::shared_ptr<Node::Parameter>> parameters;
-        while (*it != Token::closeParen) {
-            parameters.push_back(parseParameter());
-            if (*it == Token::closeParen)
-                break;
-            discard(Token::comma);
+        // empty
+        if (*it == Token::closeParen || *it == Token::closeBracket) {
+            return std::make_shared<Node::ParamList>(params);
         }
 
-        return std::make_shared<Node::ParamList>(parameters);
+        // not empty, get first param
+        params.push_back(parseParameter());
+
+        // until ) or ], get any number of ', param'
+        while (*it != Token::closeParen && *it != Token::closeBracket) {
+            discard(Token::comma);
+            params.push_back(parseParameter());
+        }
+
+        return std::make_shared<Node::ParamList>(params);
     }
 
     // identifier : identifier [*]
@@ -717,14 +723,22 @@ struct Parser {
         return std::make_shared<Node::Call>(name, callArgs);
     }
 
-    // [expr, ]* expr 
+    // expr_list - [logic_expr [, logic_expr]*]
     std::shared_ptr<Node::ExprList> parseExprList() {
         std::vector<std::shared_ptr<Node::Node>> exprs = {};
+
+        // empty
+        if (*it == Token::closeParen || *it == Token::closeBracket) {
+            return std::make_shared<Node::ExprList>(exprs);
+        }
+
+        // not empty, get first expr
+        exprs.push_back(parseLogicalExpr());
+
+        // until ) or ], get any number of , logical_expr
         while (*it != Token::closeParen && *it != Token::closeBracket) {
-            exprs.push_back(parseLogicalExpr());
-            if (*it == Token::closeParen || *it == Token::closeBracket)
-                break;
             discard(Token::comma);
+            exprs.push_back(parseLogicalExpr());
         }
 
         return std::make_shared<Node::ExprList>(exprs);

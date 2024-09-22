@@ -777,13 +777,14 @@ struct Parser {
         return std::make_shared<Node::ConditionalBlock>(ifExpr, ifStmt, elsifs, elseStmts);
     }
 
-    // while expr do comp_stmt end
+    // while expr do TERM func_body end
     std::shared_ptr<Node::WhileLoop> parseWhileLoop() {
         currentContext = "while loop";
 
         discard(Token::kwWhile);
         auto expr = parseLogicalExpr();
         discard(Token::kwDo);
+        discard(Token::terminator);
         auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
 

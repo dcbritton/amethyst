@@ -25,9 +25,13 @@ type Member
     end 
 end
 
-def main():int
+def main(first:int):int
     example:Member* = new* Member("David", 22, [1,2,3])
     a:bool = true or false
+
+    while first < 1 or first > 2 do
+        example[0].name.first = "Daviid"
+    end
 
     return 0
 end

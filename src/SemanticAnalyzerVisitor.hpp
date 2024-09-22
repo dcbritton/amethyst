@@ -186,10 +186,10 @@ struct SemanticAnalyzerVisitor : Visitor {
             // std::make_pair<std::string, Procedure>(formOpSignature("^", "int"), Procedure("^", "int", "int")),
             std::make_pair<std::string, Procedure>(formOpSignature("<<", "int"), Procedure("int")),
             std::make_pair<std::string, Procedure>(formOpSignature(">>", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("<", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("<=", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature(">", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature(">=", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("<", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("<=", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature(">", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature(">=", "int"), Procedure("bool")),
             std::make_pair<std::string, Procedure>(formOpSignature("and", "int"), Procedure("bool")),
             std::make_pair<std::string, Procedure>(formOpSignature("or", "int"), Procedure("bool")),
             // std::make_pair<std::string, Procedure>(formOpSignature("[]", "int"), Procedure("[]", "int", "int")),
@@ -938,7 +938,17 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
 
-    void visit(std::shared_ptr<Node::WhileLoop> n) override {}
+    void visit(std::shared_ptr<Node::WhileLoop> n) override {
+        // condition must evaluate to bool
+        n->expr->accept(shared_from_this());
+        if (exprTypes.back() != "bool") {
+            std::cout << "While condition does not evaluate to a bool.\n";
+            exit(1);
+        }
+
+        // process body
+        n->stmts->accept(shared_from_this());
+    }
 
 
 };

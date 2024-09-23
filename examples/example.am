@@ -1,9 +1,10 @@
 
 $arr:int* = [1, 2, 3]
+$size:int = 3
 
-def func(a:int):int
-    i:int = 3
-    while i < 3 do
+def main():int
+    i:int = 0
+    while i < $size do
         $arr[i] = $arr[i] * 2
         i = i + 1
     end

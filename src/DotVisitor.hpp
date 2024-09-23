@@ -328,7 +328,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit call
-    virtual void visit(std::shared_ptr<Node::Call> n) {
+    virtual void visit(std::shared_ptr<Node::Call> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -347,7 +347,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit expr list
-    virtual void visit(std::shared_ptr<Node::ExprList> n) {
+    virtual void visit(std::shared_ptr<Node::ExprList> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -655,7 +655,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit member
-    void visit(std::shared_ptr<Node::Member> n) {
+    void visit(std::shared_ptr<Node::Member> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -667,7 +667,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit method call
-    void visit(std::shared_ptr<Node::MethodCall> n) {
+    void visit(std::shared_ptr<Node::MethodCall> n) override {
         int thisId = nodeId;
         ++nodeId;
 

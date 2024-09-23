@@ -7,6 +7,7 @@
 #include "Parser.hpp"
 #include "DotVisitor.hpp"
 #include "SemanticAnalyzerVisitor.hpp"
+#include "GeneratorVisitor.hpp"
 
 int main(int argc, char** argv) {
     try {
@@ -36,6 +37,10 @@ int main(int argc, char** argv) {
         // semantic analysis
         auto sa = std::make_shared<SemanticAnalyzerVisitor>();
         ast->accept(sa);
+
+        // code generation
+        auto cg = std::make_shared<GeneratorVisitor>("../examples/out.ll");
+        ast->accept(cg);
     }
     catch (InvalidSymbolException& e) {
         std::cerr << "Lexer error: " << e.what() << '\n';

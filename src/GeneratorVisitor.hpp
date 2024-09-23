@@ -4,11 +4,22 @@
 #define GENERATORVISITOR
 
 #include <fstream>
+#include <unordered_map>
 #include "Visitor.hpp"
 
 struct GeneratorVisitor : Visitor {
 
     std::ofstream out;
+
+    uint32_t Register = 0;
+
+    std::unordered_map<std::string, std::string> typeMap {
+        {"int", "i32"},
+        {"float", "float"},
+        {"bool", "i1"}
+    };
+
+    std::unordered_map<std::string, uint32_t> nameToRegister;
 
     GeneratorVisitor(const std::string& filename) {
         out.open(filename);
@@ -32,11 +43,35 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
-    void visit(std::shared_ptr<Node::FunctionDefn> n) override {}
+    void visit(std::shared_ptr<Node::FunctionDefn> n) override {
+        //
+        out << "define dso_local "
+            << typeMap[n->returnType]
+            << " @"
+            << n->name
+            << "(";
+        n->paramList->accept(shared_from_this());
+        out << ")";
 
-    void visit(std::shared_ptr<Node::ParamList> n) override {}
+        out << " {\n";
+        n->functionBody->accept(shared_from_this());
+        out << "}\n";
+    }
 
-    void visit(std::shared_ptr<Node::Parameter> n) override {}
+    void visit(std::shared_ptr<Node::ParamList> n) override {
+        for (auto it = n->parameters.begin(); it != n->parameters.end(); ++it) {
+            (*it)->accept(shared_from_this());
+            if (it != n->parameters.end() - 1) {
+                out << ", ";
+            }
+        }
+    }
+
+    void visit(std::shared_ptr<Node::Parameter> n) override {
+        out << typeMap[n->type] << " noundef %" << Register;
+        nameToRegister.emplace(n->name, Register);
+        ++Register;
+    }
 
     void visit(std::shared_ptr<Node::FunctionBody> n) override {}
 

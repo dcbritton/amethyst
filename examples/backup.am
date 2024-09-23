@@ -1,3 +1,5 @@
+
+#
 $a:int = 1
 $c:char* = "string!"
 
@@ -44,3 +46,16 @@ def main(first:int):int
     return 0
 end
 
+#
+$arr:int* = [1, 2, 3]
+$size:int = 3
+
+def main():int
+    i:int = 0
+    while i < $size do
+        $arr[i] = $arr[i] * 2
+        i = i + 1
+    end
+
+    return 0
+end

@@ -9,9 +9,12 @@
 
 struct GeneratorVisitor : Visitor {
 
+    // output file
     std::ofstream out;
 
-    uint32_t Register = 0;
+    uint32_t currentRegister = 0;
+
+    std::unique_ptr<Procedure> currentProcedure = nullptr;
 
     std::unordered_map<std::string, std::string> typeMap {
         {"int", "i32"},
@@ -20,6 +23,42 @@ struct GeneratorVisitor : Visitor {
     };
 
     std::unordered_map<std::string, uint32_t> nameToRegister;
+
+    struct RegisterType {
+        const uint32_t reg;
+        std::string type;
+    };
+    std::vector<RegisterType> ExprStack; 
+
+    // methods for output of certain statement types
+
+    // output an alloca instuction
+    void allocation(const std::string& type) {
+        out << "  %" << currentRegister
+            << " = alloca " << typeMap[type]
+            << ", align 4\n";
+            // @NOTE: alignment handling may change
+        ++currentRegister;
+    }
+
+    // output a load instruction
+    void store(const int fromReg, const int toReg, const std::string& type) {
+        out << "  store " << typeMap[type]
+            << " %" << fromReg << ", "
+            << typeMap[type] << "*"
+            << " %" << toReg
+            << ", align 4\n";
+    }
+
+    // load
+    void load(const int toReg, const std::string& type) {
+        out << "  %" << currentRegister
+            << " = load "  << typeMap[type] << ", "
+            << typeMap[type] << "*"
+            << " %" <<toReg
+            << ", align 4\n";
+        ++currentRegister;
+    }
 
     GeneratorVisitor(const std::string& filename) {
         out.open(filename);
@@ -44,36 +83,49 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
-        //
-        out << "define dso_local "
-            << typeMap[n->returnType]
-            << " @"
-            << n->name
-            << "(";
-        n->paramList->accept(shared_from_this());
-        out << ")";
+        // move the Procedure info into currentProcedure
+        currentProcedure = std::move(n->info);
 
-        out << " {\n";
-        n->functionBody->accept(shared_from_this());
-        out << "}\n";
-    }
+        // type and name
+        out << "define dso_local " << typeMap[n->returnType]
+            << " @" << n->name << "(";
 
-    void visit(std::shared_ptr<Node::ParamList> n) override {
-        for (auto it = n->parameters.begin(); it != n->parameters.end(); ++it) {
-            (*it)->accept(shared_from_this());
-            if (it != n->parameters.end() - 1) {
+        // parameters
+        for (auto it = currentProcedure->parameters.begin(); it != currentProcedure->parameters.end(); ++it) {
+            out << typeMap[it->type] << " noundef %" << currentRegister;
+            nameToRegister.emplace(it->name, currentRegister);
+            ++currentRegister;
+
+            if (it != currentProcedure->parameters.end() - 1) {
                 out << ", ";
             }
         }
+        out << ") {\n";
+
+        // allocations & stores for parameters
+        out << "  ; Handle parameters\n";
+        for (const auto& parameter : currentProcedure->parameters) {
+            allocation(parameter.type);
+            store(nameToRegister[parameter.name], currentRegister-1, parameter.type);
+            nameToRegister[parameter.name] = currentRegister-1;
+        }
+        
+        n->functionBody->accept(shared_from_this());
+        out << "}\n";
+
+        // reset current procedure
+        currentProcedure.reset();
     }
 
-    void visit(std::shared_ptr<Node::Parameter> n) override {
-        out << typeMap[n->type] << " noundef %" << Register;
-        nameToRegister.emplace(n->name, Register);
-        ++Register;
-    }
+    void visit(std::shared_ptr<Node::ParamList> n) override {}
 
-    void visit(std::shared_ptr<Node::FunctionBody> n) override {}
+    void visit(std::shared_ptr<Node::Parameter> n) override {}
+
+    void visit(std::shared_ptr<Node::FunctionBody> n) override {
+        for (const auto& statement :n->statements) {
+            statement->accept(shared_from_this());
+        }
+    }
 
     void visit(std::shared_ptr<Node::LogicalExpr> n) override {}
 
@@ -85,7 +137,42 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::AdditionExpr> n) override {}
 
-    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {}
+    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+        out << "  ; Begin mult expr\n";
+
+        // process children
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+
+        // get child registers and type
+        RegisterType Rhs = ExprStack.back();
+        ExprStack.pop_back();
+        RegisterType Lhs = ExprStack.back();
+        ExprStack.pop_back();
+
+        // get type
+        // @TODO: check overloads for structs
+        std::string type;
+        if (Lhs.type == "int" && Rhs.type == "int") {
+            type = "int";
+        }
+        else {
+            
+        }
+
+        // mul
+        out << "  %" << currentRegister 
+            << " = mul nsw " << typeMap[type]
+            << " %" << Lhs.reg
+            << ", %" << Rhs.reg
+            << "\n";
+
+        ExprStack.push_back({currentRegister, type});
+
+        ++currentRegister;
+
+        out << "  ; End mult expr\n";
+    }
 
     void visit(std::shared_ptr<Node::AccessExpr> n) override {}
 
@@ -103,13 +190,31 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::BoolLiteral> n) override {}
     
-    void visit(std::shared_ptr<Node::Variable> n) override {}
+    void visit(std::shared_ptr<Node::Variable> n) override {
+        // register type stack
+        ExprStack.push_back({currentRegister, n->type});
+
+        // load
+        load(nameToRegister[n->name], n->type);
+    }
 
     void visit(std::shared_ptr<Node::ExprList> n) override {}
 
     void visit(std::shared_ptr<Node::Call> n) override {}
 
-    void visit(std::shared_ptr<Node::VariableDefn> n) override {}
+    void visit(std::shared_ptr<Node::VariableDefn> n) override {
+        out << "\n  ; Define " << n->name << ":" << n->type << "\n";
+
+        nameToRegister[n->name] = currentRegister;
+        allocation(n->type);
+        n->expression->accept(shared_from_this());
+        store(currentRegister-1, nameToRegister[n->name], n->type);
+
+        // clear expression stack
+        ExprStack.pop_back();
+
+        out << "  ; End definition of " << n->name << ":" << n->type << "\n";
+    }
 
     void visit(std::shared_ptr<Node::Assignment> n) override {}
 

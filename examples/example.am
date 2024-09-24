@@ -2,7 +2,7 @@
 
 
 def example(first:int, second:int):int
-    c:int = 1
+    c:int = first * second * first
 
-    return 0
+    return c
 end

@@ -355,8 +355,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         // end its own scope
         endScope();
 
-        // clear currentProcedure, leaves nullptr
-        currentProcedure.reset();
+        // move the info the AST, to be used by GeneratorVisitor
+        // leaves nullptr
+        n->info = std::move(currentProcedure);
     }
 
     // visit parameter list
@@ -693,6 +694,8 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // expression stack
         exprTypes.push_back(type);
+
+        n->type = type;
     }
 
     // visit call

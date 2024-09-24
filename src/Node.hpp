@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include "Token.hpp"
+#include "Info.hpp"
 #include "Visitor.hpp"
 
 namespace Node {
@@ -299,6 +300,9 @@ namespace Node {
     struct Variable : Primary, std::enable_shared_from_this<Variable> {
         std::string name;
 
+        // @NOTE: assigned during semantic analysis
+        std::string type;
+
         // constructor
         Variable(const std::string& name)
             : name(name) {}
@@ -360,6 +364,9 @@ namespace Node {
         std::string returnType;
         std::shared_ptr<ParamList> paramList;
         std::shared_ptr<FunctionBody> functionBody;
+
+
+        std::unique_ptr<Procedure> info = nullptr;
 
         // constuctor
         FunctionDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<FunctionBody> functionBody) 

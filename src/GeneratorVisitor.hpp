@@ -182,7 +182,14 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::NewExpr> n) override {}
 
-    void visit(std::shared_ptr<Node::IntLiteral> n) override {}
+    void visit(std::shared_ptr<Node::IntLiteral> n) override {
+        // put value in register by adding to 0
+        out << "  %" << currentRegister
+            << " = add nsw i32 0, " << n->value << "\n";
+        // register & type stack
+        exprStack.push_back({currentRegister, "int"});
+        ++currentRegister;
+    }
 
     void visit(std::shared_ptr<Node::FloatLiteral> n) override {}
 
@@ -191,7 +198,7 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::BoolLiteral> n) override {}
     
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // register type stack
+        // register & type stack
         exprStack.push_back({currentRegister, n->type});
         // load
         load(nameToRegister[n->name], n->type);

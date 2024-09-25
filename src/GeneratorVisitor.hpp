@@ -104,6 +104,7 @@ struct GeneratorVisitor : Visitor {
 
         // allocations & stores for parameters
         out << "  ; Handle parameters\n";
+        ++currentRegister;
         for (const auto& parameter : currentProcedure->parameters) {
             allocation(parameter.type);
             store(nameToRegister[parameter.name], currentRegister-1, parameter.type);

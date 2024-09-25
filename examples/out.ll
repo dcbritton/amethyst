@@ -1,23 +1,11 @@
-define dso_local i32 @example(i32 noundef %0, i32 noundef %1) {
-  ; Handle parameters
-  %2 = alloca i32, align 4
-  store i32 %0, i32* %2, align 4
-  %3 = alloca i32, align 4
-  store i32 %1, i32* %3, align 4
+; ModuleID = 'out.ll'
+source_filename = "out.ll"
 
-  ; Define c:int
-  %4 = alloca i32, align 4
-  ; Begin mult expr
-  ; Begin mult expr
-  %5 = load i32, i32* %2, align 4
-  %6 = load i32, i32* %3, align 4
-  %7 = mul nsw i32 %5, %6
-  ; End mult expr
-  %8 = add nsw i32 0, 112323232
-  %9 = mul nsw i32 %7, %8
-  ; End mult expr
-  store i32 %9, i32* %4, align 4
-  ; End definition of c:int
-  %10 = load i32, i32* %4, align 4
-  ret i32 %10
+; Function Attrs: mustprogress nofree norecurse nosync nounwind readnone willreturn
+define dso_local i32 @example(i32 noundef %0, i32 noundef %1) local_unnamed_addr #0 {
+  %3 = mul i32 %0, 112323232
+  %4 = mul i32 %3, %1
+  ret i32 %4
 }
+
+attributes #0 = { mustprogress nofree norecurse nosync nounwind readnone willreturn }

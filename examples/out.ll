@@ -18,4 +18,6 @@ define dso_local i32 @example(i32 noundef %0, i32 noundef %1) {
   ; End mult expr
   store i32 %9, i32* %4, align 4
   ; End definition of c:int
+  %10 = load i32, i32* %4, align 4
+  ret i32 %10
 }

@@ -28,7 +28,7 @@ struct GeneratorVisitor : Visitor {
         const uint32_t reg;
         std::string type;
     };
-    std::vector<RegisterType> ExprStack; 
+    std::vector<RegisterType> exprStack; 
 
     // methods for output of certain statement types
 
@@ -145,15 +145,15 @@ struct GeneratorVisitor : Visitor {
         n->RHS->accept(shared_from_this());
 
         // get child registers and type
-        RegisterType Rhs = ExprStack.back();
-        ExprStack.pop_back();
-        RegisterType Lhs = ExprStack.back();
-        ExprStack.pop_back();
+        RegisterType rhs = exprStack.back();
+        exprStack.pop_back();
+        RegisterType lhs = exprStack.back();
+        exprStack.pop_back();
 
         // get type
         // @TODO: check overloads for structs
         std::string type;
-        if (Lhs.type == "int" && Rhs.type == "int") {
+        if (lhs.type == "int" && rhs.type == "int") {
             type = "int";
         }
         else {
@@ -163,11 +163,11 @@ struct GeneratorVisitor : Visitor {
         // mul
         out << "  %" << currentRegister 
             << " = mul nsw " << typeMap[type]
-            << " %" << Lhs.reg
-            << ", %" << Rhs.reg
+            << " %" << lhs.reg
+            << ", %" << rhs.reg
             << "\n";
 
-        ExprStack.push_back({currentRegister, type});
+        exprStack.push_back({currentRegister, type});
 
         ++currentRegister;
 
@@ -192,8 +192,7 @@ struct GeneratorVisitor : Visitor {
     
     void visit(std::shared_ptr<Node::Variable> n) override {
         // register type stack
-        ExprStack.push_back({currentRegister, n->type});
-
+        exprStack.push_back({currentRegister, n->type});
         // load
         load(nameToRegister[n->name], n->type);
     }
@@ -211,14 +210,23 @@ struct GeneratorVisitor : Visitor {
         store(currentRegister-1, nameToRegister[n->name], n->type);
 
         // clear expression stack
-        ExprStack.pop_back();
+        exprStack.pop_back();
 
         out << "  ; End definition of " << n->name << ":" << n->type << "\n";
     }
 
     void visit(std::shared_ptr<Node::Assignment> n) override {}
 
-    void visit(std::shared_ptr<Node::Return> n) override {}
+    void visit(std::shared_ptr<Node::Return> n) override {
+        // process expression
+        n->expr->accept(shared_from_this());
+        RegisterType expr = exprStack.back();
+        exprStack.pop_back();
+
+        // output return
+        out << "  ret " << typeMap[expr.type]
+            << " %" << expr.reg << "\n";
+    }
 
     void visit(std::shared_ptr<Node::TypeDefn> n) override {}
 

@@ -742,6 +742,10 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // push return type to expression stack
         exprTypes.push_back(type);
+
+        // attach info for code generator
+        n->type = type;
+        n->numArgs = types.size();
     }
 
     // visit expr list

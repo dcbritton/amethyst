@@ -205,9 +205,42 @@ struct GeneratorVisitor : Visitor {
         load(nameToRegister[n->name], n->type);
     }
 
-    void visit(std::shared_ptr<Node::ExprList> n) override {}
+    void visit(std::shared_ptr<Node::ExprList> n) override {
+        for (const auto& expr : n->exprs) {
+            expr->accept(shared_from_this());
+        }
+    }
 
-    void visit(std::shared_ptr<Node::Call> n) override {}
+    void visit(std::shared_ptr<Node::Call> n) override {
+        // process args
+        n->args->accept(shared_from_this());
+        // top of expr stack now contains types and registers for arg results
+
+        // output call
+        out << "  %" << currentRegister
+            << " = call " << typeMap[n->type]
+            << " @" << n->name
+            << "(";
+
+        // output args
+        for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
+            out << typeMap[argIt->type] << " noundef %" << argIt->reg;
+            if (argIt != exprStack.end()-1) {
+                out << ", ";
+            }
+        }
+        out << ")\n";
+
+        // clear the top of the args from the expr stack
+        for (int i = 0; i < n->numArgs; ++i) {
+            exprStack.pop_back();
+        }
+
+        // add this call to the expr stack
+        exprStack.push_back({currentRegister, n->type});
+
+        ++currentRegister;
+    }
 
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
         out << "\n  ; Define " << n->name << ":" << n->type << "\n";

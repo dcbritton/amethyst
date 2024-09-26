@@ -16,11 +16,30 @@ struct GeneratorVisitor : Visitor {
 
     std::unique_ptr<Procedure> currentProcedure = nullptr;
 
+    // maps amethyst non-pointer type name to an llvm type name
     std::unordered_map<std::string, std::string> typeMap {
         {"int", "i32"},
         {"float", "float"},
         {"bool", "i1"}
     };
+
+    // convert an amethyst type (including pointer types)
+    std::string convertType(const std::string amethystType) {
+        // remove *'s in order to find if non-ptr type exists
+        std::string llvmType = typeMap[amethystType];
+        auto it = amethystType.begin();
+        while (it != amethystType.end()) {
+            if (*it == '*') {
+                llvmType = typeMap[std::string(amethystType.begin(), it)];
+                break;
+            }
+            ++it;
+        }
+        // add *'s back
+        llvmType += std::string(it, amethystType.end());
+
+        return llvmType;
+    }
 
     std::unordered_map<std::string, uint32_t> nameToRegister;
 
@@ -35,7 +54,7 @@ struct GeneratorVisitor : Visitor {
     // output an alloca instuction
     void allocation(const std::string& type) {
         out << "  %" << currentRegister
-            << " = alloca " << typeMap[type]
+            << " = alloca " << convertType(type)
             << ", align 4\n";
             // @NOTE: alignment handling may change
         ++currentRegister;
@@ -43,9 +62,9 @@ struct GeneratorVisitor : Visitor {
 
     // output a load instruction
     void store(const int fromReg, const int toReg, const std::string& type) {
-        out << "  store " << typeMap[type]
+        out << "  store " << convertType(type)
             << " %" << fromReg << ", "
-            << typeMap[type] << "*"
+            << convertType(type) << "*"
             << " %" << toReg
             << ", align 4\n";
     }
@@ -53,8 +72,8 @@ struct GeneratorVisitor : Visitor {
     // load
     void load(const int toReg, const std::string& type) {
         out << "  %" << currentRegister
-            << " = load "  << typeMap[type] << ", "
-            << typeMap[type] << "*"
+            << " = load "  << convertType(type) << ", "
+            << convertType(type) << "*"
             << " %" <<toReg
             << ", align 4\n";
         ++currentRegister;
@@ -86,13 +105,15 @@ struct GeneratorVisitor : Visitor {
         // move the Procedure info into currentProcedure
         currentProcedure = std::move(n->info);
 
+        // @TODO: all struct returns should be pass by parameter
+
         // type and name
-        out << "define dso_local " << typeMap[n->returnType]
+        out << "define dso_local " << convertType(n->returnType)
             << " @" << n->name << "(";
 
         // parameters
         for (auto it = currentProcedure->parameters.begin(); it != currentProcedure->parameters.end(); ++it) {
-            out << typeMap[it->type] << " noundef %" << currentRegister;
+            out << convertType(it->type) << " noundef %" << currentRegister;
             nameToRegister.emplace(it->name, currentRegister);
             ++currentRegister;
 
@@ -117,8 +138,9 @@ struct GeneratorVisitor : Visitor {
         // reset current procedure
         currentProcedure.reset();
 
-        // reset register after each function
+        // reset register and nameToRegister map after each function
         currentRegister = 0;
+        nameToRegister.clear();
     }
 
     void visit(std::shared_ptr<Node::ParamList> n) override {}
@@ -166,7 +188,7 @@ struct GeneratorVisitor : Visitor {
 
         // mul
         out << "  %" << currentRegister 
-            << " = mul nsw " << typeMap[type]
+            << " = mul nsw " << convertType(type)
             << " %" << lhs.reg
             << ", %" << rhs.reg
             << "\n";
@@ -221,13 +243,13 @@ struct GeneratorVisitor : Visitor {
 
         // output call
         out << "  %" << currentRegister
-            << " = call " << typeMap[n->type]
+            << " = call " << convertType(n->type)
             << " @" << n->name
             << "(";
 
         // output args
         for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
-            out << typeMap[argIt->type] << " noundef %" << argIt->reg;
+            out << convertType(argIt->type) << " noundef %" << argIt->reg;
             if (argIt != exprStack.end()-1) {
                 out << ", ";
             }
@@ -268,7 +290,7 @@ struct GeneratorVisitor : Visitor {
         exprStack.pop_back();
 
         // output return
-        out << "  ret " << typeMap[expr.type]
+        out << "  ret " << convertType(expr.type)
             << " %" << expr.reg << "\n";
     }
 

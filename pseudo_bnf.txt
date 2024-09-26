@@ -7,15 +7,15 @@ def         -   global_def
             |   func_def
             |   type_def
 
-global_def  -   $ identifier : identifier [*] = logic_expr
+global_def  -   $ identifier : identifier [*]* = logic_expr
 
 global      -   $ identifier
 
-func_def    -   def identifier ( param_list ) : identifier [*] TERM func_body end
+func_def    -   def identifier ( param_list ) : identifier [*]* TERM func_body end
 
 param_list  -   [parameter [, parameter]*]
 
-parameter   -   identifier : identifier
+parameter   -   identifier : identifier [*]*
 
 func_body   -   [stmt TERM]*
 
@@ -36,7 +36,7 @@ conditional -   if logic_expr func_body [elsif logic_expr func_body]* [else func
             
 return_stmt -   return logic_expr
 
-var_def     -   identifier : identifier [*] = logic_expr
+var_def     -   identifier : identifier [*]* = logic_expr
 
 @note: LHS of assignment must follow the token pattern: [@ | $] identifier [. identifier | [ logic_expr ]]* 
 assignment  -   access_expr = logic_expr
@@ -101,11 +101,11 @@ temp        -   member_decl
             |   op_def
             |   constructor
 
-member_decl  -   @ identifier : identifier [*]
+member_decl  -   @ identifier : identifier [*]*
 
-method_def  -   def @identifier ( param_list ) : identifier [*] TERM func_body end
+method_def  -   def @identifier ( param_list ) : identifier [*]* TERM func_body end
 
-op_def      -   op operator ( parameter ) : identifier [*] TERM func_body end
+op_def      -   op operator ( parameter ) : identifier [*]* TERM func_body end
 
 constructor -   new ( param_list ) TERM func_body end
 

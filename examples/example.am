@@ -1,4 +1,8 @@
 
+def ptrFunc(first:int**):int**
+    a:int** = first
+    return a
+end
 
 
 def example(first:int, second:int):int

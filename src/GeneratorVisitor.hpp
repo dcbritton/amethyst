@@ -116,6 +116,9 @@ struct GeneratorVisitor : Visitor {
 
         // reset current procedure
         currentProcedure.reset();
+
+        // reset register after each function
+        currentRegister = 0;
     }
 
     void visit(std::shared_ptr<Node::ParamList> n) override {}

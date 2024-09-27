@@ -12,7 +12,11 @@ struct GeneratorVisitor : Visitor {
     // output file
     std::ofstream out;
 
+    // used to track register number
     uint32_t currentRegister = 0;
+
+    // used to track break label names
+    uint32_t currentLabelNumber = 0;
 
     std::unique_ptr<Procedure> currentProcedure = nullptr;
 
@@ -92,6 +96,7 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::Program> n) override {
         for (const auto& definition : n->definitions) {
             definition->accept(shared_from_this());
+            out << "\n";
         }
     }
 
@@ -138,8 +143,9 @@ struct GeneratorVisitor : Visitor {
         // reset current procedure
         currentProcedure.reset();
 
-        // reset register and nameToRegister map after each function
+        // reset registers and nameToRegister map after each function
         currentRegister = 0;
+        currentLabelNumber = 0;
         nameToRegister.clear();
     }
 
@@ -155,9 +161,48 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::LogicalExpr> n) override {}
 
-    void visit(std::shared_ptr<Node::EqualityExpr> n) override {}
+    void visit(std::shared_ptr<Node::EqualityExpr> n) override {
+        out << "  ; Begin eq expr\n";
 
-    void visit(std::shared_ptr<Node::RelationExpr> n) override {}
+        // process children
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+
+        // get child registers and type
+        RegisterType rhs = exprStack.back();
+        exprStack.pop_back();
+        RegisterType lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // get type
+        // @TODO: check overloads for structs
+        std::string type;
+        if (lhs.type == "int" && rhs.type == "int") {
+            type = "bool";
+        }
+        else {
+            
+        }
+
+        // icmp eq/ne
+        out << "  %" << currentRegister 
+            << " = icmp "
+            << (n->op == "==" ? "eq " : "ne ") 
+            << convertType(lhs.type)
+            << " %" << lhs.reg
+            << ", %" << rhs.reg
+            << "\n";
+
+        exprStack.push_back({currentRegister, type});
+
+        ++currentRegister;
+
+        out << "  ; End eq expr\n";
+    }
+
+    void visit(std::shared_ptr<Node::RelationExpr> n) override {
+        // @TODO: icmp <arg> ... - check reference search sgtx  
+    }
 
     void visit(std::shared_ptr<Node::ShiftExpr> n) override {}
 
@@ -188,7 +233,9 @@ struct GeneratorVisitor : Visitor {
 
         // mul
         out << "  %" << currentRegister 
-            << " = mul nsw " << convertType(type)
+            << " = " 
+            << (n->op == "*" ? "mul " : "sdiv ")
+            << convertType(type)
             << " %" << lhs.reg
             << ", %" << rhs.reg
             << "\n";
@@ -312,7 +359,36 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
 
-    void visit(std::shared_ptr<Node::WhileLoop> n) override {}
+    // @TODO: reintroduce loop metadata
+    void visit(std::shared_ptr<Node::WhileLoop> n) override {
+        std::string suffix = std::to_string(currentLabelNumber);
+        ++currentLabelNumber;
+        std::string conditionLabel = "cond" + suffix;
+        std::string bodyLabel = "body" + suffix;
+        std::string exitLabel = "exit" + suffix;
+
+
+        // break to condition
+        out << "  br label %" << conditionLabel << "\n\n";
+
+        // condition
+        out << conditionLabel << ":\n";
+        n->expr->accept(shared_from_this());
+        out << "  br i1 %" << currentRegister-1
+            << ", label %" << bodyLabel
+            << ", label %" << exitLabel
+            << "\n\n";
+
+        // body
+        out << bodyLabel << ":\n";
+        n->stmts->accept(shared_from_this());
+        out << "  br label %" << conditionLabel
+            << "\n\n";
+
+        // exit
+        out << exitLabel <<  ":\n";
+
+    }
 
     void visit(std::shared_ptr<Node::Break> n) override {}
 

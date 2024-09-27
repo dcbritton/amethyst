@@ -1,18 +1,30 @@
 
 def ptrFunc(first:int**):int**
-    a:int** = first
-    return a
+    return first
 end
 
-
-def example(first:int, second:int):int
-    c:int = first * second * 112323232
+def example(first:int, second:int):bool
+    c:bool = first == second
 
     return c
 end
 
 def other(a:int, b:int):int
-    c:int = example(a * 1, a * (b * 2))
+    return a * b / b
+end
 
-    return c
+def looper():int
+    while 1 == 2 do
+        1*1
+        while 1 == 2 do
+            2*2
+        end
+        3*3
+    end
+    4*4
+    return 1
+end
+
+def main(): int
+    return 0
 end

@@ -38,9 +38,9 @@ int main(int argc, char** argv) {
         auto sa = std::make_shared<SemanticAnalyzerVisitor>();
         ast->accept(sa);
 
-        // // code generation
-        // auto cg = std::make_shared<GeneratorVisitor>("../examples/out.ll");
-        // ast->accept(cg);
+        // code generation
+        auto cg = std::make_shared<GeneratorVisitor>("../examples/out.ll");
+        ast->accept(cg);
     }
     catch (InvalidSymbolException& e) {
         std::cerr << "Lexer error: " << e.what() << '\n';

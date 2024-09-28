@@ -1,44 +1,44 @@
-define dso_local i32** @ptrFunc(i32** noundef %0) {
+define dso_local i32* @ptrFunc(i32* noundef %0) {
   ; Handle parameters
-  %2 = alloca i32**, align 4
-  store i32** %0, i32*** %2, align 4
-  %3 = load i32**, i32*** %2, align 4
-  ret i32** %3
+  %2 = alloca i32*
+  store i32* %0, i32** %2
+  %3 = load i32*, i32** %2
+  ret i32* %3
 }
 
 define dso_local i1 @example(i32 noundef %0, i32 noundef %1) {
   ; Handle parameters
-  %3 = alloca i32, align 4
-  store i32 %0, i32* %3, align 4
-  %4 = alloca i32, align 4
-  store i32 %1, i32* %4, align 4
+  %3 = alloca i32
+  store i32 %0, i32* %3
+  %4 = alloca i32
+  store i32 %1, i32* %4
 
   ; Define c:bool
-  %5 = alloca i1, align 4
+  %5 = alloca i1
   ; Begin eq expr
-  %6 = load i32, i32* %3, align 4
-  %7 = load i32, i32* %4, align 4
+  %6 = load i32, i32* %3
+  %7 = load i32, i32* %4
   %8 = icmp eq i32 %6, %7
   ; End eq expr
-  store i1 %8, i1* %5, align 4
+  store i1 %8, i1* %5
   ; End definition of c:bool
-  %9 = load i1, i1* %5, align 4
+  %9 = load i1, i1* %5
   ret i1 %9
 }
 
 define dso_local i32 @other(i32 noundef %0, i32 noundef %1) {
   ; Handle parameters
-  %3 = alloca i32, align 4
-  store i32 %0, i32* %3, align 4
-  %4 = alloca i32, align 4
-  store i32 %1, i32* %4, align 4
+  %3 = alloca i32
+  store i32 %0, i32* %3
+  %4 = alloca i32
+  store i32 %1, i32* %4
   ; Begin mult expr
   ; Begin mult expr
-  %5 = load i32, i32* %3, align 4
-  %6 = load i32, i32* %4, align 4
+  %5 = load i32, i32* %3
+  %6 = load i32, i32* %4
   %7 = mul i32 %5, %6
   ; End mult expr
-  %8 = load i32, i32* %4, align 4
+  %8 = load i32, i32* %4
   %9 = sdiv i32 %7, %8
   ; End mult expr
   ret i32 %9

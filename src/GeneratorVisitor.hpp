@@ -59,8 +59,7 @@ struct GeneratorVisitor : Visitor {
     void allocation(const std::string& type) {
         out << "  %" << currentRegister
             << " = alloca " << convertType(type)
-            << ", align 4\n";
-            // @NOTE: alignment handling may change
+            << "\n";
         ++currentRegister;
     }
 
@@ -70,7 +69,7 @@ struct GeneratorVisitor : Visitor {
             << " %" << fromReg << ", "
             << convertType(type) << "*"
             << " %" << toReg
-            << ", align 4\n";
+            << "\n";
     }
 
     // load
@@ -79,7 +78,7 @@ struct GeneratorVisitor : Visitor {
             << " = load "  << convertType(type) << ", "
             << convertType(type) << "*"
             << " %" <<toReg
-            << ", align 4\n";
+            << "\n";
         ++currentRegister;
     }
 
@@ -254,6 +253,12 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::Array> n) override {}
 
     void visit(std::shared_ptr<Node::NewExpr> n) override {}
+
+    void visit(std::shared_ptr<Node::StackExpr> n) override {
+
+    }
+
+    void visit(std::shared_ptr<Node::HeapExpr> n) override {}
 
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
         // put value in register by adding to 0

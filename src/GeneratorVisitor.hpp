@@ -255,7 +255,26 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::NewExpr> n) override {}
 
     void visit(std::shared_ptr<Node::StackExpr> n) override {
+        // @TODO: call functions, will require changing their logic
 
+        // allocate array
+        std::string arrayType = "[" + n->number + " x " + convertType(n->type) + "]";
+        out << "  %" << currentRegister
+            << " = alloca " << arrayType
+            << "\n";
+        ++currentRegister;
+
+        // bitcast array type to ptr type
+        std::string ptrType = convertType(n->type) + "*";
+        out << "  %" << currentRegister
+            << " = bitcast " << arrayType 
+            << "* %" << currentRegister-1
+            << " to " << ptrType
+            << "\n";
+
+        ++currentRegister;
+
+        exprStack.push_back({currentRegister-1, ptrType});
     }
 
     void visit(std::shared_ptr<Node::HeapExpr> n) override {}

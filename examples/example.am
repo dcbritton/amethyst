@@ -2,29 +2,8 @@
 
 
 def ptrFunc(first:int*):int*
+    a:int** = stack [3] int*
     return first
-end
-
-def example(first:int, second:int):bool
-    c:bool = first == second
-
-    return c
-end
-
-def other(a:int, b:int):int
-    return a * b / b
-end
-
-def looper():int
-    while 1 == 2 do
-        1*1
-        while 1 == 2 do
-            2*2
-        end
-        3*3
-    end
-    4*4
-    return 1
 end
 
 def main(): int

@@ -367,7 +367,6 @@ struct GeneratorVisitor : Visitor {
         std::string bodyLabel = "body" + suffix;
         std::string exitLabel = "exit" + suffix;
 
-
         // break to condition
         out << "  br label %" << conditionLabel << "\n\n";
 

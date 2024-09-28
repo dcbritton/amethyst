@@ -43,6 +43,8 @@ private:
     std::unordered_map<std::string, Token::Type> keywordMap {
 
         {"new", Token::kwNew},
+        {"stack", Token::kwStack},
+        {"heap", Token::kwHeap},
         {"delete", Token::kwDelete},
         {"op", Token::kwOp},
         {"BEGIN", Token::kwBEGIN},

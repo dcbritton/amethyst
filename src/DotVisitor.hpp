@@ -289,17 +289,47 @@ struct DotVisitor : Visitor {
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "new";
-        if (n->isPointer) {
-            if (n->number == "0") {
-                dotFile << "*";
-            }
-            else {
-                dotFile << "[" << n->number << "]";
-            }
-        }
-        dotFile << "\"];\n";
+                << " [label=\"new "
+                << n->type
+                << "\"];\n";
+
+        // process child(ren)
+        int exprsId = nodeId;
+        n->args->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprsId) << ";\n";  
+    }
+
+    // stack expression
+    void visit(std::shared_ptr<Node::StackExpr> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\"stack["
+                << n->number << "] "
+                << n->type << "\"];\n";
+
+        // process child(ren)
+        int exprsId = nodeId;
+        n->args->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprsId) << ";\n";  
+    }
+
+    // heap expression
+    void visit(std::shared_ptr<Node::HeapExpr> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\"heap["
+                << n->number << "] "
+                << n->type << "\"];\n";
 
         // process child(ren)
         int exprsId = nodeId;

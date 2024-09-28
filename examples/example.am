@@ -1,4 +1,22 @@
 
+type Type
+    @a:int
+    @b:int
+
+    new(a:int, b:int)
+        @a = a
+        @b = b
+    end
+end
+
+def allocs():int
+    n:Type = new Type(1,2)
+    s:Type* = stack [1] Type(1,2)
+    h:Type* = heap [1] Type(1,2)
+    return 0
+end
+
+
 def ptrFunc(first:int**):int**
     return first
 end

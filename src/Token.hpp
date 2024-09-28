@@ -61,6 +61,8 @@ struct Token {
 
         // reserved words
         kwNew,
+        kwStack,
+        kwHeap,
         kwDelete,
         kwOp,
         kwBEGIN,
@@ -184,6 +186,8 @@ struct Token {
 
             // reserved words
             case kwNew: return "kwNew";
+            case kwStack: return "kwStack";
+            case kwHeap: return "kwHeap";
             case kwDelete: return "kwDelete";
             case kwOp: return "kwOp";
             case kwBEGIN: return "kwBEGIN";

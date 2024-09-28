@@ -655,6 +655,16 @@ struct Parser {
             return parseNewExpr();
         }
 
+        // stack_expr
+        else if (*it == Token::kwStack) {
+            return parseStackExpr();
+        }
+
+        // heap_expr
+        else if (*it == Token::kwHeap) {
+            return parseHeapExpr();
+        }
+
         else if (*it == Token::kwTrue || *it == Token::kwFalse) {
             std::string value = consume(*it);
             return std::make_shared<Node::BoolLiteral>(value);
@@ -666,32 +676,46 @@ struct Parser {
         }
     }
 
-    // new_expr - new [[ int_literal ] | * ] identifier ( expr_list )
+    // new_expr - new identifier ( expr_list )
     std::shared_ptr<Node::NewExpr> parseNewExpr() {
-        bool isPointer = false;
-        std::string number = "0";
 
         discard(Token::kwNew);
-
-        // *
-        if (*it == Token::opMultiply) {
-            isPointer = true;
-            discard(Token::opMultiply);
-        }
-        // [ int_literal ]
-        else if (*it == Token::openBracket) {
-            isPointer = true;
-            discard(Token::openBracket);
-            number = consume(Token::intLiteral);
-            discard(Token::closeBracket);
-        }
-
         std::string type = consume(Token::identifier);
         discard(Token::openParen);
         auto args = parseExprList();
         discard(Token::closeParen);
         
-        return std::make_shared<Node::NewExpr>(isPointer, number, type, args);
+        return std::make_shared<Node::NewExpr>(type, args);
+    }
+
+    // stack_expr - stack [ int_literal ] identifier ( expr_list )
+    std::shared_ptr<Node::StackExpr> parseStackExpr() {
+
+        discard(Token::kwStack);
+        discard(Token::openBracket);
+        std::string number = consume(Token::intLiteral);
+        discard(Token::closeBracket);
+        std::string type = consume(Token::identifier);
+        discard(Token::openParen);
+        auto args = parseExprList();
+        discard(Token::closeParen);
+        
+        return std::make_shared<Node::StackExpr>(type, number, args);
+    }
+
+    // heap_expr - heap [ int_literal ] identifier ( expr_list )
+    std::shared_ptr<Node::HeapExpr> parseHeapExpr() {
+
+        discard(Token::kwHeap);
+        discard(Token::openBracket);
+        std::string number = consume(Token::intLiteral);
+        discard(Token::closeBracket);
+        std::string type = consume(Token::identifier);
+        discard(Token::openParen);
+        auto args = parseExprList();
+        discard(Token::closeParen);
+        
+        return std::make_shared<Node::HeapExpr>(type, number, args);
     }
 
     // @ identifier

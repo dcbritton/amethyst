@@ -169,19 +169,49 @@ namespace Node {
 
     // new expr
     struct NewExpr : Node, std::enable_shared_from_this<NewExpr> {
-        bool isPointer;
-        std::string number;
         std::string type;
         std::shared_ptr<ExprList> args;
 
         // constructor
-        NewExpr(bool isPointer, const std::string& number, const std::string& type, std::shared_ptr<ExprList> args)
-            : isPointer(isPointer), number(number), type(type), args(args) {}
+        NewExpr(const std::string& type, std::shared_ptr<ExprList> args)
+            : type(type), args(args) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
             v->visit(shared_from_this());
         }
+    };
+
+    // stack expr
+    struct StackExpr : Node, std::enable_shared_from_this<StackExpr> {
+        std::string type;
+        std::string number;
+        std::shared_ptr<ExprList> args;
+
+        // constructor
+        StackExpr(const std::string& type, const std::string& number, std::shared_ptr<ExprList> args)
+            : type(type), number(number), args(args) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }   
+    };
+
+    // heap expr
+    struct HeapExpr : Node, std::enable_shared_from_this<HeapExpr> {
+        std::string type;
+        std::string number;
+        std::shared_ptr<ExprList> args;
+
+        // constructor
+        HeapExpr(const std::string& type, const std::string& number, std::shared_ptr<ExprList> args)
+            : type(type), number(number), args(args) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }   
     };
 
     // global

@@ -83,10 +83,16 @@ primary     -   ( logic_expr )
             |   method_call
             |   global
             |   new_expr
+            |   stack_expr
+            |   heap_expr
             |   true
             |   false
 
-new_expr    -   new [[ int_literal ] | * ] identifier ( expr_list )
+new_expr    -   new identifier ( expr_list )
+
+stack_expr  -   stack [ int_literal ] identifier ( expr_list )
+
+heap_expr   -   heap [ int_literal ] identifier ( expr_list )
 
 array       -   [ expr_list? ] identifier
 

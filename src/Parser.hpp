@@ -688,7 +688,7 @@ struct Parser {
         return std::make_shared<Node::NewExpr>(type, args);
     }
 
-    // stack_expr - stack [ int_literal ] identifier ( expr_list )
+    // stack_expr - stack [ int_literal ] identifier [*]*
     std::shared_ptr<Node::StackExpr> parseStackExpr() {
 
         discard(Token::kwStack);
@@ -696,14 +696,16 @@ struct Parser {
         std::string number = consume(Token::intLiteral);
         discard(Token::closeBracket);
         std::string type = consume(Token::identifier);
-        discard(Token::openParen);
-        auto args = parseExprList();
-        discard(Token::closeParen);
+
+        // pointer
+        while (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
         
-        return std::make_shared<Node::StackExpr>(type, number, args);
+        return std::make_shared<Node::StackExpr>(type, number);
     }
 
-    // heap_expr - heap [ int_literal ] identifier ( expr_list )
+    // heap_expr - heap [ int_literal ] identifier [*]*
     std::shared_ptr<Node::HeapExpr> parseHeapExpr() {
 
         discard(Token::kwHeap);
@@ -711,11 +713,13 @@ struct Parser {
         std::string number = consume(Token::intLiteral);
         discard(Token::closeBracket);
         std::string type = consume(Token::identifier);
-        discard(Token::openParen);
-        auto args = parseExprList();
-        discard(Token::closeParen);
         
-        return std::make_shared<Node::HeapExpr>(type, number, args);
+        // pointer
+        while (*it == Token::opMultiply) {
+            type += consume(Token::opMultiply);
+        }
+        
+        return std::make_shared<Node::HeapExpr>(type, number);
     }
 
     // @ identifier

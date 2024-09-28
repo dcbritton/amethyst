@@ -562,7 +562,6 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
-    // @TODO: factor out common logic between NewExpr, HeapExpr, and StackExpr
     // visit new expression
     void visit(std::shared_ptr<Node::NewExpr> n) override {
         // type exists?
@@ -613,73 +612,15 @@ struct SemanticAnalyzerVisitor : Visitor {
             exit(1);
         }
 
-        // process args
-        // @NOTE: violates visitor pattern, directly accesses expr list
-        std::vector<std::string> typeNames;
-        for (auto& expr : n->args->exprs) {
-            expr->accept(shared_from_this());
-            typeNames.push_back(exprTypes.back());
-            exprTypes.pop_back();
-        }
-
-        // create constructor signature
-        std::string signature = "new";
-        for (const std::string& typeName : typeNames) {
-            signature += "@" + typeName;
-        }
-
-        // signature exists?
-        // in own definition, check currentType
-        if (inTypeDefn() && currentType->name == n->type) {
-            if (currentType->constructors.find(signature) == currentType->constructors.end()) {
-                std::cout << "In stack expression, could not find constructor for " << n->type << " with signature " << signature << ".\n";
-                exit(1);
-            }
-        }
-        // otherwise, check types
-        else if (types[n->type].constructors.find(signature) == types[n->type].constructors.end()) {
-            std::cout << "In stack expression, could not find constructor for " << n->type << " with signature " << signature << ".\n";
-            exit(1);
-        }
-
         // push a ptr to the type to the expr type stack
         exprTypes.push_back(n->type + "*");
     }
 
-    // visit stack expression
+    // visit heap expression
     void visit(std::shared_ptr<Node::HeapExpr> n) override {
         // type exists?
         if (!typeExists(n->type)) {
             std::cout << "Undefined type " << n->type << " mentioned in heap expression.\n";
-            exit(1);
-        }
-
-        // process args
-        // @NOTE: violates visitor pattern, directly accesses expr list
-        std::vector<std::string> typeNames;
-        for (auto& expr : n->args->exprs) {
-            expr->accept(shared_from_this());
-            typeNames.push_back(exprTypes.back());
-            exprTypes.pop_back();
-        }
-
-        // create constructor signature
-        std::string signature = "new";
-        for (const std::string& typeName : typeNames) {
-            signature += "@" + typeName;
-        }
-
-        // signature exists?
-        // in own definition, check currentType
-        if (inTypeDefn() && currentType->name == n->type) {
-            if (currentType->constructors.find(signature) == currentType->constructors.end()) {
-                std::cout << "In heap expression, could not find constructor for " << n->type << " with signature " << signature << ".\n";
-                exit(1);
-            }
-        }
-        // otherwise, check types
-        else if (types[n->type].constructors.find(signature) == types[n->type].constructors.end()) {
-            std::cout << "In heap expression, could not find constructor for " << n->type << " with signature " << signature << ".\n";
             exit(1);
         }
 

@@ -10,9 +10,9 @@ type Type
 end
 
 def allocs():int
-    n:Type = new Type(1,2)
-    s:Type* = stack [1] Type(1,2)
-    h:Type* = heap [1] Type(1,2)
+    n:Type = new Type(1, 2)
+    s:int** = stack [12] int*
+    h:Type* = heap [12] Type
     return 0
 end
 

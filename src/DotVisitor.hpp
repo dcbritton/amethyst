@@ -311,13 +311,6 @@ struct DotVisitor : Visitor {
                 << " [label=\"stack["
                 << n->number << "] "
                 << n->type << "\"];\n";
-
-        // process child(ren)
-        int exprsId = nodeId;
-        n->args->accept(shared_from_this());
-
-        // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprsId) << ";\n";  
     }
 
     // heap expression
@@ -330,13 +323,6 @@ struct DotVisitor : Visitor {
                 << " [label=\"heap["
                 << n->number << "] "
                 << n->type << "\"];\n";
-
-        // process child(ren)
-        int exprsId = nodeId;
-        n->args->accept(shared_from_this());
-
-        // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprsId) << ";\n";  
     }
 
     // visit array

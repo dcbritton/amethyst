@@ -186,11 +186,10 @@ namespace Node {
     struct StackExpr : Node, std::enable_shared_from_this<StackExpr> {
         std::string type;
         std::string number;
-        std::shared_ptr<ExprList> args;
 
         // constructor
-        StackExpr(const std::string& type, const std::string& number, std::shared_ptr<ExprList> args)
-            : type(type), number(number), args(args) {}
+        StackExpr(const std::string& type, const std::string& number)
+            : type(type), number(number) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {
@@ -202,11 +201,10 @@ namespace Node {
     struct HeapExpr : Node, std::enable_shared_from_this<HeapExpr> {
         std::string type;
         std::string number;
-        std::shared_ptr<ExprList> args;
 
         // constructor
-        HeapExpr(const std::string& type, const std::string& number, std::shared_ptr<ExprList> args)
-            : type(type), number(number), args(args) {}
+        HeapExpr(const std::string& type, const std::string& number)
+            : type(type), number(number) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {

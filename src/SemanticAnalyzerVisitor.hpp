@@ -495,10 +495,8 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::AccessExpr> n) override {
-        // process lhs and rhs
+        // process lhs & get type
         n->LHS->accept(shared_from_this());
-
-        // get lhs and rhs types of expr type stack
         std::string lhsType = exprTypes.back();
         exprTypes.pop_back();
 

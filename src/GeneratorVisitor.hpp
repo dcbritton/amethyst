@@ -22,7 +22,7 @@ struct GeneratorVisitor : Visitor {
 
     // maps amethyst non-pointer type name to an llvm type name
     std::unordered_map<std::string, std::string> typeMap {
-        {"int", "i32"},
+        {"int", "i64"},
         {"float", "float"},
         {"bool", "i1"}
     };
@@ -73,11 +73,11 @@ struct GeneratorVisitor : Visitor {
     }
 
     // load
-    void load(const int toReg, const std::string& type) {
+    void load(const int fromReg, const std::string& type) {
         out << "  %" << currentRegister
             << " = load "  << convertType(type) << ", "
             << convertType(type) << "*"
-            << " %" <<toReg
+            << " %" << fromReg
             << "\n";
         ++currentRegister;
     }
@@ -246,7 +246,51 @@ struct GeneratorVisitor : Visitor {
         out << "  ; End mult expr\n";
     }
 
-    void visit(std::shared_ptr<Node::AccessExpr> n) override {}
+    void visit(std::shared_ptr<Node::AccessExpr> n) override {
+        // process lhs & get type
+        n->LHS->accept(shared_from_this());
+        auto lhs = exprStack.back();
+        exprStack.pop_back();
+        
+        // subscript
+        if (n->op == "[]") {
+            // is ptr?
+            if (lhs.type.back() == '*') {
+                // evaluate expression in subscript
+                n->RHS->accept(shared_from_this());
+                auto rhs = exprStack.back();
+                exprStack.pop_back();
+
+                // get ptr to index
+                std::string dereferencedType = lhs.type.substr(0, lhs.type.length()-1);
+                out << "  %" << currentRegister
+                    << " = getelementptr " << convertType(dereferencedType)
+                    << ", " << convertType(lhs.type)
+                    << " %" << lhs.reg
+                    << ", i64 %" << rhs.reg
+                    << "\n";
+                ++currentRegister;
+
+                // load value at that index into new register
+                load(currentRegister-1, dereferencedType);
+
+                // push back a dereferenced LHS type
+                exprStack.push_back({currentRegister-1, dereferencedType});
+            }
+            // otherwise, use overloads
+            else {
+                // @TODO: subscript overloads
+            }
+        }
+        // dot operator
+        else if (n->op == ".") {
+
+        }
+
+        else {
+
+        }
+    }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
@@ -280,9 +324,10 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::HeapExpr> n) override {}
 
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
+        // @NOTE: all int literals are i64
         // put value in register by adding to 0
         out << "  %" << currentRegister
-            << " = add nsw i32 0, " << n->value << "\n";
+            << " = add i64 0, " << n->value << "\n";
         // register & type stack
         exprStack.push_back({currentRegister, "int"});
         ++currentRegister;

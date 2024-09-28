@@ -1,9 +1,20 @@
 
 
 
-def ptrFunc(first:int*):int*
-    a:int** = stack [3] int*
-    return first
+def ptrFunc(arr:int*):int
+
+    i:int = 0
+    while i != 10 do
+        
+
+        a:int* = arr
+        b:int = arr[i]
+
+
+        i = i + 1
+    end
+
+    return 0
 end
 
 def main(): int

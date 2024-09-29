@@ -405,7 +405,7 @@ struct Parser {
             discard(Token::opAssign);
 
             if (!isValidLHS(startLHS, it-1)) {
-                std::cout << "Parser error on line " << startLHS->lineNumber << ". Invalid LHS in assignemnt.\n";
+                std::cout << "Parser error on line " << startLHS->lineNumber << ". Invalid LHS in assignment.\n";
                 exit(1);
             }
             auto RHS = parseLogicalExpr();

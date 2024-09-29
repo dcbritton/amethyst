@@ -27,6 +27,29 @@ struct GeneratorVisitor : Visitor {
         {"bool", "i1"}
     };
 
+    std::unordered_map<std::string, uint32_t> nameToRegister;
+
+    // is the current expression being evaluated an "lvalue" ?
+    // or, are we in something that needs to return an for storing in assignment
+    bool isOuterLHS = false;
+
+    struct SubExprInfo {
+        const uint32_t reg;
+        std::string type;
+    };
+
+    std::vector<SubExprInfo> exprStack; 
+
+    // constructor
+    GeneratorVisitor(const std::string& filename) {
+        out.open(filename);
+    }
+
+    // destructor
+    ~GeneratorVisitor() {
+        out.close();
+    }
+
     // convert an amethyst type (including pointer types)
     std::string convertType(const std::string amethystType) {
         // remove *'s in order to find if non-ptr type exists
@@ -44,14 +67,6 @@ struct GeneratorVisitor : Visitor {
 
         return llvmType;
     }
-
-    std::unordered_map<std::string, uint32_t> nameToRegister;
-
-    struct RegisterType {
-        const uint32_t reg;
-        std::string type;
-    };
-    std::vector<RegisterType> exprStack; 
 
     // methods for output of certain statement types
 
@@ -80,14 +95,6 @@ struct GeneratorVisitor : Visitor {
             << " %" << fromReg
             << "\n";
         ++currentRegister;
-    }
-
-    GeneratorVisitor(const std::string& filename) {
-        out.open(filename);
-    }
-
-    ~GeneratorVisitor() {
-        out.close();
     }
 
     void visit(std::shared_ptr<Node::Node> n) override {}
@@ -168,9 +175,9 @@ struct GeneratorVisitor : Visitor {
         n->RHS->accept(shared_from_this());
 
         // get child registers and type
-        RegisterType rhs = exprStack.back();
+        SubExprInfo rhs = exprStack.back();
         exprStack.pop_back();
-        RegisterType lhs = exprStack.back();
+        SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
         // get type
@@ -215,9 +222,9 @@ struct GeneratorVisitor : Visitor {
         n->RHS->accept(shared_from_this());
 
         // get child registers and type
-        RegisterType rhs = exprStack.back();
+        SubExprInfo rhs = exprStack.back();
         exprStack.pop_back();
-        RegisterType lhs = exprStack.back();
+        SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
         // get type
@@ -247,13 +254,18 @@ struct GeneratorVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::AccessExpr> n) override {
-        // process lhs & get type
-        n->LHS->accept(shared_from_this());
-        auto lhs = exprStack.back();
-        exprStack.pop_back();
-        
+
         // subscript
         if (n->op == "[]") {
+            
+            bool outerLHS = isOuterLHS;
+            isOuterLHS = false;
+
+            // process lhs & get type
+            n->LHS->accept(shared_from_this());
+            auto lhs = exprStack.back();
+            exprStack.pop_back();
+
             // is ptr?
             if (lhs.type.back() == '*') {
                 // evaluate expression in subscript
@@ -271,8 +283,11 @@ struct GeneratorVisitor : Visitor {
                     << "\n";
                 ++currentRegister;
 
-                // load value at that index into new register
-                load(currentRegister-1, dereferencedType);
+                // outer lhs means a pointer for storing in assignment
+                if (!outerLHS) {
+                    // load value at that index into new register
+                    load(currentRegister-1, dereferencedType);
+                }
 
                 // push back a dereferenced LHS type
                 exprStack.push_back({currentRegister-1, dereferencedType});
@@ -288,7 +303,8 @@ struct GeneratorVisitor : Visitor {
         }
 
         else {
-
+            std::cout << "Error. Code generator reached an access expression that was neither a dot operator nor subscript.\n";
+            exit(1);
         }
     }
 
@@ -340,10 +356,17 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::BoolLiteral> n) override {}
     
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // register & type stack
-        exprStack.push_back({currentRegister, n->type});
-        // load
-        load(nameToRegister[n->name], n->type);
+        // in LHS
+        if (isOuterLHS) {
+            // give the assignment the register of the variable
+            exprStack.push_back({nameToRegister[n->name], n->type});   
+        }
+        else {
+            // register & type stack
+            exprStack.push_back({currentRegister, n->type});
+            // load
+            load(nameToRegister[n->name], n->type);
+        }
     }
 
     void visit(std::shared_ptr<Node::ExprList> n) override {
@@ -397,12 +420,27 @@ struct GeneratorVisitor : Visitor {
         out << "  ; End definition of " << n->name << ":" << n->type << "\n";
     }
 
-    void visit(std::shared_ptr<Node::Assignment> n) override {}
+    void visit(std::shared_ptr<Node::Assignment> n) override {
+        // evaluate rhs
+        n->RHS->accept(shared_from_this());
+        SubExprInfo rhs = exprStack.back();
+        exprStack.pop_back();
+
+        // evaluate lhs
+        isOuterLHS = true;
+        n->LHS->accept(shared_from_this());
+        isOuterLHS = false;
+        SubExprInfo lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // store
+        store(rhs.reg, lhs.reg, lhs.type);
+    }
 
     void visit(std::shared_ptr<Node::Return> n) override {
         // process expression
         n->expr->accept(shared_from_this());
-        RegisterType expr = exprStack.back();
+        SubExprInfo expr = exprStack.back();
         exprStack.pop_back();
 
         // output return

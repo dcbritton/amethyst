@@ -1,71 +1,115 @@
-define dso_local i64 @ptrFunc(i64* noundef %0) {
+define dso_local i64 @main() {
   ; Handle parameters
-  %2 = alloca i64*
-  store i64* %0, i64** %2
+
+  ; Define arr:int**
+  %1 = alloca i64**
+  %2 = alloca [3 x i64*]
+  %3 = bitcast [3 x i64*]* %2 to i64**
+  store i64** %3, i64*** %1
+  ; End definition of arr:int**
 
   ; Define i:int
-  %3 = alloca i64
-  %4 = add i64 0, 1
-  store i64 %4, i64* %3
+  %4 = alloca i64
+  %5 = add i64 0, 0
+  store i64 %5, i64* %4
   ; End definition of i:int
   br label %cond0
 
 cond0:
   ; Begin eq expr
-  %5 = load i64, i64* %3
-  %6 = add i64 0, 33
-  %7 = icmp ne i64 %5, %6
+  %6 = load i64, i64* %4
+  %7 = add i64 0, 3
+  %8 = icmp ne i64 %6, %7
   ; End eq expr
-  br i1 %7, label %body0, label %exit0
+  br i1 %8, label %body0, label %exit0
 
 body0:
-  %8 = add i64 0, 1
-  %9 = load i64*, i64** %2
-  %10 = load i64, i64* %3
-  %11 = getelementptr i64, i64* %9, i64 %10
-  store i64 %8, i64* %11
-  ; Begin mult expr
-  %12 = load i64, i64* %3
-  %13 = add i64 0, 2
-  %14 = mul i64 %12, %13
-  ; End mult expr
-  store i64 %14, i64* %3
+  %9 = alloca [3 x i64]
+  %10 = bitcast [3 x i64]* %9 to i64*
+  %11 = load i64**, i64*** %1
+  %12 = load i64, i64* %4
+  %13 = getelementptr i64*, i64** %11, i64 %12
+  store i64* %10, i64** %13
+  ; Begin add expr
+  %14 = load i64, i64* %4
+  %15 = add i64 0, 1
+  %16 = add i64 %14, %15
+  ; End add expr
+  store i64 %16, i64* %4
   br label %cond0
 
 exit0:
-  %15 = add i64 0, 0
-  ret i64 %15
-}
 
-define dso_local i64 @doubleSubscript(i64** noundef %0, i64 noundef %1) {
-  ; Handle parameters
-  %3 = alloca i64**
-  store i64** %0, i64*** %3
-  %4 = alloca i64
-  store i64 %1, i64* %4
-  %5 = add i64 0, 1
-  %6 = load i64**, i64*** %3
-  %7 = add i64 0, 0
-  %8 = getelementptr i64*, i64** %6, i64 %7
-  %9 = load i64*, i64** %8
-  %10 = add i64 0, 0
-  %11 = getelementptr i64, i64* %9, i64 %10
-  store i64 %5, i64* %11
-  %12 = load i64**, i64*** %3
-  %13 = add i64 0, 0
-  %14 = getelementptr i64*, i64** %12, i64 %13
-  %15 = load i64*, i64** %14
-  %16 = add i64 0, 0
-  %17 = getelementptr i64, i64* %15, i64 %16
-  %18 = load i64, i64* %17
-  store i64 %18, i64* %4
-  %19 = add i64 0, 1
-  ret i64 %19
-}
+  ; Define k:int
+  %17 = alloca i64
+  %18 = add i64 0, 0
+  store i64 %18, i64* %17
+  ; End definition of k:int
+  br label %cond1
 
-define dso_local i64 @main() {
-  ; Handle parameters
-  %1 = add i64 0, 0
-  ret i64 %1
+cond1:
+  ; Begin eq expr
+  %19 = load i64, i64* %17
+  %20 = add i64 0, 3
+  %21 = icmp ne i64 %19, %20
+  ; End eq expr
+  br i1 %21, label %body1, label %exit1
+
+body1:
+
+  ; Define j:int
+  %22 = alloca i64
+  %23 = add i64 0, 0
+  store i64 %23, i64* %22
+  ; End definition of j:int
+  br label %cond2
+
+cond2:
+  ; Begin eq expr
+  %24 = load i64, i64* %22
+  %25 = add i64 0, 3
+  %26 = icmp ne i64 %24, %25
+  ; End eq expr
+  br i1 %26, label %body2, label %exit2
+
+body2:
+  ; Begin add expr
+  %27 = load i64, i64* %17
+  %28 = load i64, i64* %22
+  %29 = add i64 %27, %28
+  ; End add expr
+  %30 = load i64**, i64*** %1
+  %31 = load i64, i64* %17
+  %32 = getelementptr i64*, i64** %30, i64 %31
+  %33 = load i64*, i64** %32
+  %34 = load i64, i64* %22
+  %35 = getelementptr i64, i64* %33, i64 %34
+  store i64 %29, i64* %35
+  ; Begin add expr
+  %36 = load i64, i64* %22
+  %37 = add i64 0, 1
+  %38 = add i64 %36, %37
+  ; End add expr
+  store i64 %38, i64* %22
+  br label %cond2
+
+exit2:
+  ; Begin add expr
+  %39 = load i64, i64* %17
+  %40 = add i64 0, 1
+  %41 = add i64 %39, %40
+  ; End add expr
+  store i64 %41, i64* %17
+  br label %cond1
+
+exit1:
+  %42 = load i64**, i64*** %1
+  %43 = add i64 0, 2
+  %44 = getelementptr i64*, i64** %42, i64 %43
+  %45 = load i64*, i64** %44
+  %46 = add i64 0, 0
+  %47 = getelementptr i64, i64* %45, i64 %46
+  %48 = load i64, i64* %47
+  ret i64 %48
 }
 

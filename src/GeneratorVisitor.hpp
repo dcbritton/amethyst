@@ -212,7 +212,44 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::ShiftExpr> n) override {}
 
-    void visit(std::shared_ptr<Node::AdditionExpr> n) override {}
+    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
+        out << "  ; Begin add expr\n";
+
+        // process children
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+
+        // get child registers and type
+        SubExprInfo rhs = exprStack.back();
+        exprStack.pop_back();
+        SubExprInfo lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // get type
+        // @TODO: check overloads for structs
+        std::string type;
+        if (lhs.type == "int" && rhs.type == "int") {
+            type = "int";
+        }
+        else {
+            
+        }
+
+        // add / sub
+        out << "  %" << currentRegister 
+            << " = " 
+            << (n->op == "+" ? "add " : "sub ")
+            << convertType(type)
+            << " %" << lhs.reg
+            << ", %" << rhs.reg
+            << "\n";
+
+        exprStack.push_back({currentRegister, type});
+
+        ++currentRegister;
+
+        out << "  ; End add expr\n";  
+    }
 
     void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
         out << "  ; Begin mult expr\n";

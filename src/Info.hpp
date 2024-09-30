@@ -75,7 +75,7 @@ struct Type {
 };
 
 std::string formOpSignature(const std::string& op, const std::string& rhsType) {
-    return op + "@" + rhsType;
+    return op + "$" + rhsType;
 }
 
 struct Scope {

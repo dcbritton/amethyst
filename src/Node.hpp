@@ -23,6 +23,9 @@ namespace Node {
     struct Program : Node, std::enable_shared_from_this<Program> {
         std::vector<std::shared_ptr<Node>> definitions;
 
+        // assigned during semantic analysis
+        std::unique_ptr<std::unordered_map<std::string, Type>> types;
+
         // constructor
         Program(const std::vector<std::shared_ptr<Node>>& definitions) 
         : definitions(definitions) {}

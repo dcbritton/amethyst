@@ -27,6 +27,8 @@ struct GeneratorVisitor : Visitor {
         {"bool", "i1"}
     };
 
+    std::unique_ptr<std::unordered_map<std::string, Type>> types;
+
     std::unordered_map<std::string, uint32_t> nameToRegister;
 
     // is the current expression being evaluated an "lvalue" ?
@@ -100,6 +102,17 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::Node> n) override {}
 
     void visit(std::shared_ptr<Node::Program> n) override {
+        
+        // move type 
+        types = std::move(n->types);
+
+        for (auto it = types->begin(); it != types->end(); ++it) {
+            if (it->first != "int" && it->first != "float" && it->first != "char" && it->first != "bool") {
+                typeMap[it->first] = "%struct." + it->first;
+            }
+        }
+
+        // visit children
         for (const auto& definition : n->definitions) {
             definition->accept(shared_from_this());
             out << "\n";
@@ -349,7 +362,9 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Array> n) override {}
 
-    void visit(std::shared_ptr<Node::NewExpr> n) override {}
+    void visit(std::shared_ptr<Node::NewExpr> n) override {
+        //types
+    }
 
     void visit(std::shared_ptr<Node::StackExpr> n) override {
         // @TODO: call functions, will require changing their logic
@@ -485,11 +500,25 @@ struct GeneratorVisitor : Visitor {
             << " %" << expr.reg << "\n";
     }
 
-    void visit(std::shared_ptr<Node::TypeDefn> n) override {}
+    void visit(std::shared_ptr<Node::TypeDefn> n) override {
+        
+        // declare struct
+        // @NOTE: violates visitor pattern
+        out << "%" << "struct." << n->name << " = type { ";
+        for (const auto& member : n->members) {
+            member->accept(shared_from_this());
+            if (member != n->members.back()) {
+                out << ", ";
+            }
+        }
+        out  << " }\n";
+    }
 
     void visit(std::shared_ptr<Node::ConstructorDefn> n) override {}
 
-    void visit(std::shared_ptr<Node::MemberDecl> n) override {}
+    void visit(std::shared_ptr<Node::MemberDecl> n) override {
+        out << convertType(n->type);
+    }
 
     void visit(std::shared_ptr<Node::MethodDefn> n) override {}
 

@@ -184,7 +184,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
         types.emplace("int", Type("int", {}, {}, {
-            std::make_pair<std::string, Procedure>("+@int", Procedure("int")),
+            std::make_pair<std::string, Procedure>("+$int", Procedure("int")),
             std::make_pair<std::string, Procedure>(formOpSignature("-", "int"), Procedure("int")),
             std::make_pair<std::string, Procedure>(formOpSignature("!=", "int"), Procedure("bool")),
             // std::make_pair<std::string, Procedure>(formOpSignature("!", "int"), Procedure("!", "int", "int")),
@@ -217,9 +217,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         types.emplace("float", Type("float", {}, {}, {}, {}));
         types.emplace("char", Type("char", {}, {}, {}, {}));
 
+        // visit statement
         for (auto definition : n->definitions) {
             definition->accept(shared_from_this());
         }
+
+        n->types = std::make_unique<std::unordered_map<std::string, Type>>(std::move(types));
     }
 
     // variable definition
@@ -320,7 +323,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // construct signature
         std::string signature = n->name;
         for (const auto& parameter : currentProcedure->parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
 
         // check signature
@@ -581,7 +584,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // create constructor signature
         std::string signature = "new";
         for (const std::string& typeName : typeNames) {
-            signature += "@" + typeName;
+            signature += "$" + typeName;
         }
 
         // signature exists?
@@ -728,7 +731,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // create function signature
         std::string signature = n->name;
         for (const std::string& type : types) {
-            signature += "@" + type;
+            signature += "$" + type;
         }
 
         std::string type;
@@ -828,7 +831,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->parameter->accept(shared_from_this());
         std::string signature = n->op;
         for (const auto& parameter : currentProcedure->parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
         currentProcedure.reset();
             
@@ -869,7 +872,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->paramList->accept(shared_from_this());
         std::string signature = n->name;
         for (const auto& parameter : currentProcedure->parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
         currentProcedure.reset();
 
@@ -926,7 +929,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // create signature
         std::string signature = n->name;
         for (const std::string& type : types) {
-            signature += "@" + type;
+            signature += "$" + type;
         }
 
         // method exists?
@@ -955,7 +958,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->parameters->accept(shared_from_this());
         std::string signature = "new";
         for (const auto& parameter : currentProcedure->parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
         currentProcedure.reset();
 

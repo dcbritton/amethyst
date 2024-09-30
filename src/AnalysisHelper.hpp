@@ -75,7 +75,7 @@ struct TypeDefinitionScanner {
         // construct signature
         std::string signature = "new";
         for (const auto& parameter : currentProcedure.parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
 
         // signature check
@@ -104,7 +104,7 @@ struct TypeDefinitionScanner {
         // construct signature
         std::string signature = n->name;
         for (const auto& parameter : currentProcedure.parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
 
         // signature check
@@ -133,7 +133,7 @@ struct TypeDefinitionScanner {
         // construct signature
         std::string signature = n->op;
         for (const auto& parameter : currentProcedure.parameters) {
-            signature += "@" + parameter.type;
+            signature += "$" + parameter.type;
         }
 
         // signature check

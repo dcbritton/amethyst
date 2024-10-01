@@ -148,7 +148,12 @@ struct Parser {
     // return expr
     std::shared_ptr<Node::Return> parseReturn() {
         discard(Token::kwReturn);
-        auto expr = parseLogicalExpr();
+
+        // non-void return, require expression
+        std::shared_ptr<Node::Node> expr = nullptr;
+        if (*it != Token::terminator) {
+            expr = parseLogicalExpr();
+        }
 
         return std::make_shared<Node::Return>(expr);
     }
@@ -202,7 +207,7 @@ struct Parser {
         return std::make_shared<Node::ConstructorDefn>(parameters, body);
     } 
 
-    // op operator ( parameter ) : typename [*]* TERM func_body end
+    // op operator ( parameter ) [: identifier [*]*] TERM func_body end
     // @TODO: rename to OperatorDefinition
     std::shared_ptr<Node::OperatorDefn> parseOperatorOverload() {
 
@@ -219,19 +224,24 @@ struct Parser {
         discard(Token::openParen);
         auto parameter = parseParameter();
         discard(Token::closeParen);
-        discard(Token::colon);
-        std::string type = consume(Token::identifier);
 
-        // pointer
-        while (*it == Token::opMultiply) {
-            type += consume(Token::opMultiply);
+        std::string returnType = "nil";
+        // non-void
+        if (*it != Token::terminator) {
+            discard(Token::colon);
+            returnType = consume(Token::identifier);
+
+            // pointer type
+            while (*it == Token::opMultiply) {
+                returnType += consume(Token::opMultiply);
+            }
         }
 
         discard(Token::terminator);
         auto stmts = parseFunctionBody();
         discard(Token::kwEnd);
 
-        return std::make_shared<Node::OperatorDefn>(op, parameter, type, stmts);
+        return std::make_shared<Node::OperatorDefn>(op, parameter, returnType, stmts);
     }
 
     // member_decl - @ identifier : identifier [*]*
@@ -251,7 +261,7 @@ struct Parser {
         return std::make_shared<Node::MemberDecl>(name, type);
     }
 
-    // method_def - def @ identifier ( param_list ) : identifier [*]* TERM func_body end
+    // method_def - def @ identifier ( param_list ) [: identifier [*]*] TERM func_body end
     std::shared_ptr<Node::MethodDefn> parseMethodDefn() {
 
         discard(Token::kwDef);
@@ -261,12 +271,17 @@ struct Parser {
         std::shared_ptr<Node::ParamList> parameters = nullptr;
         parameters = parseParamList();
         discard(Token::closeParen);
-        discard(Token::colon);
-        std::string returnType = consume(Token::identifier);
 
-        // pointer
-        while (*it == Token::opMultiply) {
-            returnType += consume(Token::opMultiply);
+        std::string returnType = "nil";
+        // non-void function
+        if (*it != Token::terminator) {
+            discard(Token::colon);
+            returnType = consume(Token::identifier);
+
+            // pointer type
+            while (*it == Token::opMultiply) {
+                returnType += consume(Token::opMultiply);
+            }
         }
 
         discard(Token::terminator);
@@ -276,7 +291,7 @@ struct Parser {
         return std::make_shared<Node::MethodDefn>(name, returnType, parameters, functionBody);  
     }
 
-    // def identifier ( param_list ) : typename [*]* TERM func_body end
+    // def identifier ( param_list ) [: identifier [*]*] TERM func_body end
     std::shared_ptr<Node::FunctionDefn> parseFunctionDefn() {
         currentContext = "function definition";
 
@@ -286,12 +301,17 @@ struct Parser {
         std::shared_ptr<Node::ParamList> parameters = nullptr;
         parameters = parseParamList();
         discard(Token::closeParen);
-        discard(Token::colon);
-        std::string returnType = consume(Token::identifier);
 
-        // pointer
-        while (*it == Token::opMultiply) {
-            returnType += consume(Token::opMultiply);
+        std::string returnType = "nil";
+        // non-void function
+        if (*it != Token::terminator) {
+            discard(Token::colon);
+            returnType = consume(Token::identifier);
+
+            // pointer type
+            while (*it == Token::opMultiply) {
+                returnType += consume(Token::opMultiply);
+            }
         }
 
         discard(Token::terminator);

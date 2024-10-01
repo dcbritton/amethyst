@@ -87,7 +87,7 @@ struct TypeDefinitionScanner {
         // fully define currentProcedure with name, signature, and type (parameters already added when visited)
         currentProcedure.name = "new";
         currentProcedure.signature = signature;
-        currentProcedure.returnType = currentType.name;
+        currentProcedure.returnType = "nil";
 
         // add to type's constructors
         currentType.constructors.emplace(signature, currentProcedure);

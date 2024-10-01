@@ -19,12 +19,14 @@ struct GeneratorVisitor : Visitor {
     uint32_t currentLabelNumber = 0;
 
     std::unique_ptr<Procedure> currentProcedure = nullptr;
+    std::unique_ptr<Type> currentType = nullptr;
 
     // maps amethyst non-pointer type name to an llvm type name
     std::unordered_map<std::string, std::string> typeMap {
         {"int", "i64"},
         {"float", "float"},
-        {"bool", "i1"}
+        {"bool", "i1"},
+        {"nil", "void"}
     };
 
     std::unique_ptr<std::unordered_map<std::string, Type>> types;
@@ -103,11 +105,11 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Program> n) override {
         
-        // move type 
+        // move types
         types = std::move(n->types);
 
         for (auto it = types->begin(); it != types->end(); ++it) {
-            if (it->first != "int" && it->first != "float" && it->first != "char" && it->first != "bool") {
+            if (it->first != "int" && it->first != "float" && it->first != "char" && it->first != "bool" && it->first != "nil") {
                 typeMap[it->first] = "%struct." + it->first;
             }
         }
@@ -490,17 +492,23 @@ struct GeneratorVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::Return> n) override {
-        // process expression
-        n->expr->accept(shared_from_this());
-        SubExprInfo expr = exprStack.back();
-        exprStack.pop_back();
-
-        // output return
-        out << "  ret " << convertType(expr.type)
-            << " %" << expr.reg << "\n";
+        // non-void
+        if (n->expr) {
+            // process expression
+            n->expr->accept(shared_from_this());
+            SubExprInfo expr = exprStack.back();
+            exprStack.pop_back();
+            out << "  ret " << convertType(expr.type)
+                << " %" << expr.reg << "\n";
+        }
+        // void
+        else {
+            out << "  ret void\n";
+        }
     }
 
     void visit(std::shared_ptr<Node::TypeDefn> n) override {
+        currentType = std::make_unique<Type>((*types)[n->name]);
         
         // declare struct
         // @NOTE: violates visitor pattern
@@ -512,9 +520,57 @@ struct GeneratorVisitor : Visitor {
             }
         }
         out  << " }\n";
+
+        // define constructors
+        for (const auto& constructor : n->constructors) {
+            constructor->accept(shared_from_this());
+        }
+
+
+        currentType.reset();
     }
 
-    void visit(std::shared_ptr<Node::ConstructorDefn> n) override {}
+    // constructor
+    void visit(std::shared_ptr<Node::ConstructorDefn> n) override {
+        
+        // @NOTE: several violations of visitor pattern
+        std::string thisType = currentType->name +  "*";
+
+        // type and name
+        out << "define dso_local void @new(";
+
+        // parameters
+        for (const auto& parameter : n->parameters->parameters) {
+            out << convertType(parameter->type) << " noundef %" << currentRegister;
+            nameToRegister.emplace(parameter->name, currentRegister);
+            ++currentRegister;
+            out << ", ";
+        }
+        
+        // secret pointer to struct parameter
+        out << convertType(thisType) << " noalias sret(" << convertType(currentType->name) << ") %" << currentRegister;
+        nameToRegister.emplace("@this", currentRegister);
+        ++currentRegister;
+
+        out << ") {\n";
+
+        // allocations & stores for parameters
+        out << "  ; Handle parameters\n";
+        ++currentRegister;
+        for (const auto& parameter : n->parameters->parameters) {
+            allocation(parameter->type);
+            store(nameToRegister[parameter->name], currentRegister-1, parameter->type);
+            nameToRegister[parameter->name] = currentRegister-1;
+        }
+        
+        // n->body->accept(shared_from_this());
+        out << "}\n";
+
+        // reset registers and nameToRegister map after each function
+        currentRegister = 0;
+        currentLabelNumber = 0;
+        nameToRegister.clear();
+    }
 
     void visit(std::shared_ptr<Node::MemberDecl> n) override {
         out << convertType(n->type);

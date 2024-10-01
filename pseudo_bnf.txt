@@ -11,7 +11,7 @@ global_def  -   $ identifier : identifier [*]* = logic_expr
 
 global      -   $ identifier
 
-func_def    -   def identifier ( param_list ) : identifier [*]* TERM func_body end
+func_def    -   def identifier ( param_list ) [: identifier [*]*] TERM func_body end
 
 param_list  -   [parameter [, parameter]*]
 
@@ -109,9 +109,9 @@ temp        -   member_decl
 
 member_decl  -   @ identifier : identifier [*]*
 
-method_def  -   def @identifier ( param_list ) : identifier [*]* TERM func_body end
+method_def  -   def @identifier ( param_list ) [: identifier [*]*] TERM func_body end
 
-op_def      -   op operator ( parameter ) : identifier [*]* TERM func_body end
+op_def      -   op operator ( parameter ) [: identifier [*]*] TERM func_body end
 
 constructor -   new ( param_list ) TERM func_body end
 

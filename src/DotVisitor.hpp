@@ -540,11 +540,13 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
 
         // process child(ren)
+        if (n->expr) {
         int exprId = nodeId;
         n->expr->accept(shared_from_this());
 
         // connect child(ren) to this node
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
+        }
     }
 
     // visit type defn

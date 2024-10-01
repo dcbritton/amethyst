@@ -1,4 +1,20 @@
+define dso_local void @bar(i64* noundef %0) {
+  ; Handle parameters
+  %2 = alloca i64*
+  store i64* %0, i64** %2
+  ret void
+}
+
 %struct.T = type { i64, float, i1** }
+define dso_local void @new(i64 noundef %0, float noundef %1, i1** noundef %2, %struct.T* noalias sret(%struct.T) %3) {
+  ; Handle parameters
+  %5 = alloca i64
+  store i64 %0, i64* %5
+  %6 = alloca float
+  store float %1, float* %6
+  %7 = alloca i1**
+  store i1** %2, i1*** %7
+}
 
 define dso_local i64 @foo(i64 noundef %0, i64 noundef %1) {
   ; Handle parameters

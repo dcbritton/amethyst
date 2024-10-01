@@ -216,6 +216,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         types.emplace("float", Type("float", {}, {}, {}, {}));
         types.emplace("char", Type("char", {}, {}, {}, {}));
+        types.emplace("nil", Type("nil", {}, {}, {}, {}));
 
         // visit statement
         for (auto definition : n->definitions) {
@@ -413,21 +414,29 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // visit return
     void visit(std::shared_ptr<Node::Return> n) override {
+        // expression present (for non-void procedures)
+        if (n->expr) {
+            // process expression
+            n->expr->accept(shared_from_this());
+            
+            // match return type to expression type
+            if (currentProcedure->returnType != exprTypes.back()) {
+                std::cout << "In a return in the definition of " << currentProcedure->signature
+                            << ", the return type " << currentProcedure->returnType
+                            << " does not match the expression type " << exprTypes.back() << ".\n";
+                exit(1);
+            }
 
-        // process expression
-        n->expr->accept(shared_from_this());
-        
-        // match return type to expression type
-        if (currentProcedure->returnType != exprTypes.back()) {
-            std::cout << "In a return in the definition of " << currentProcedure->signature
-                        << ", the return type " << currentProcedure->returnType
-                        << " does not match the expression type " << exprTypes.back()
-                        << ".\n";
-            exit(1);
+            // empty the stack
+            exprTypes.pop_back();
         }
-
-        // empty the stack
-        exprTypes.pop_back();
+        // void return
+        else {
+            if (currentProcedure->returnType != "nil") {
+                std::cout << "Nil return in defintion non-nil procedure " << currentProcedure->signature << ".\n";
+                exit(1);
+            }
+        }
     }
 
     void visit(std::shared_ptr<Node::Statement> n) override {}

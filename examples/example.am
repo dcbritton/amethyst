@@ -1,13 +1,17 @@
 
+def bar(a:int*)
+return
+end
+
 type T
     @a:int
     @b:float
     @c:bool**
 
     new(a:int, b:float, c:bool**)
-        @a = a
-        @b = b
-        @c = c
+        @a
+
+        return
     end
 
 end

@@ -544,22 +544,10 @@ struct SemanticAnalyzerVisitor : Visitor {
                 exit(1);
             }
 
-            // check existence of method or member
-            // in lhs type's own definition
-            if (inTypeDefn() && currentType->name == lhsType) {
-                // @TODO: currentType briefly gives its memory to currentDotLHS, and that memory is copied back. this is graceless
-                currentDotLHS = currentType.release();
-                currentType = std::make_unique<Type>(currentDotLHS);
-                n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
-                delete currentDotLHS;
-                currentDotLHS = nullptr;
-            }
-            // otherwise, check types map
-            else {
-                currentDotLHS = &types[lhsType];
-                n->RHS->accept(shared_from_this()); // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
-                currentDotLHS = nullptr;
-            }
+            // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
+            currentDotLHS = &types[lhsType];
+            n->RHS->accept(shared_from_this());
+            currentDotLHS = nullptr;
 
             // get the rhs' type
             std::string rhsType = exprTypes.back();
@@ -723,6 +711,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // expression stack
         exprTypes.push_back(type);
 
+        // set node's type to confirmed type, to be used in code gen
         n->type = type;
     }
 
@@ -799,6 +788,8 @@ struct SemanticAnalyzerVisitor : Visitor {
         // build full type
         TypeDefinitionScanner tds;
         currentType = std::move(tds.visit(n));
+        // add to types map, can be used in self!
+        types.emplace(n->name, *currentType);
 
         // process definitions
         for (auto member : n->members) {
@@ -816,9 +807,6 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // end scope
         endScope();
-
-        // add
-        types.emplace(n->name, std::move(*currentType));
         
         // reset currentType to nullptr. It currently points to garbage
         currentType.reset();

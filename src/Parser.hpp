@@ -580,15 +580,8 @@ struct Parser {
         while (true) {
             if (*it == Token::opDot) {
                 discard(Token::opDot);
-                // only variables and calls may follow opDot
-                std::shared_ptr<Node::Node> RHS;
-                if (*it == Token::identifier) {
-                    RHS = parsePrimary();
-                }
-                else {
-                    std::cout << "Parser error on line " << it->lineNumber << ". Only variables and calls may follow opDot.\n";
-                    exit(1);
-                }
+                // only a DotRHS may follow a dot operation
+                std::shared_ptr<Node::Node> RHS = parseDotRHS();
                 LHS = std::make_shared<Node::AccessExpr>(LHS, ".", RHS);
             }
             else if (*it == Token::openBracket) {
@@ -603,6 +596,15 @@ struct Parser {
         }
 
         return LHS;
+    }
+
+    // parseDotRHS
+    std::shared_ptr<Node::DotRHS> parseDotRHS() {
+
+        // @TODO: method call RHS
+        std::string name = consume(Token::identifier);
+
+        return std::make_shared<Node::DotRHS>(name);
     }
 
     // parsePrimary

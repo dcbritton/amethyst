@@ -70,9 +70,11 @@ mult_expr   -   access_expr
             |   mult_expr % access_expr
 
 access_expr -   primary
-            |   access_expr . identifier
-            |   access_expr . call
+            |   access_expr . dot_rhs
             |   access_expr [ logic_expr ]
+
+dot_rhs     -    identifier
+            |    call
 
 primary     -   ( logic_expr )
             |   call

@@ -280,6 +280,18 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
+    // visit dot rhs
+    void visit(std::shared_ptr<Node::DotRHS> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\"member\n"
+                << n->name
+                << "\"];\n";
+    }
+
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
     // new expression

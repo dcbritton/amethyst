@@ -170,6 +170,23 @@ namespace Node {
 
     };
 
+    // variable
+    struct DotRHS : Primary, std::enable_shared_from_this<DotRHS> {
+        std::string name;
+
+        // @NOTE: assigned during semantic analysis
+        std::string type;
+
+        // constructor
+        DotRHS(const std::string& name)
+            : name(name) {}
+
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
+
     // new expr
     struct NewExpr : Node, std::enable_shared_from_this<NewExpr> {
         std::string type;
@@ -496,6 +513,9 @@ namespace Node {
     // member
     struct Member : Primary, std::enable_shared_from_this<Member> {
         std::string name;
+
+        // @NOTE: assigned during semantic analysis
+        std::string type;
 
         // constructor
         Member(const std::string& name)

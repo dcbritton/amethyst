@@ -111,8 +111,8 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     // when evaluating a dot operation, points to the type in the types map of the LHS
     // @NOTE: set only in visit(Node::AccessExpr) and must be returned to nullptr immediately after RHS is visited
-    // @NOTE: points to memory in a std::unordered map. do not interact with types map when currentDotLHS is not nullptr
-    Type* currentDotLHS = nullptr;
+    // @NOTE: points to memory in a std::unordered map. do not interact with types map when currentDotLhsType is not nullptr
+    Type* currentDotLhsType = nullptr;
 
     
     // LOOPS
@@ -544,18 +544,44 @@ struct SemanticAnalyzerVisitor : Visitor {
                 exit(1);
             }
 
-            // existence verified during this call in visit(Node::Call) or visit(Node::Variable)
-            currentDotLHS = &types[lhsType];
+            // existence verified during this call in visit(Node::DotRHS
+            currentDotLhsType = &types[lhsType];
             n->RHS->accept(shared_from_this());
-            currentDotLHS = nullptr;
+            currentDotLhsType = nullptr;
 
             // get the rhs' type
             std::string rhsType = exprTypes.back();
             exprTypes.pop_back();
 
-            // push to express type stack
+            // push the RHS' type to type stack
             exprTypes.push_back(rhsType);
         }
+    }
+
+    void visit(std::shared_ptr<Node::DotRHS> n) override {
+
+        std::string type;
+        
+        // in a DotRHS, there definitionally must be an LHS
+        if (currentDotLhsType == nullptr) {
+            std::cout << "Internal error during semantic analysis. Visiting DotRHS, but found no LHS type.\nThis should not be syntactically possible.\n";
+            exit(1);
+        }
+
+        // if so, check the LHS type for the member
+        if (currentDotLhsType->members.find(n->name) == currentDotLhsType->members.end()) {
+            std::cout << "Error in dot operation. Type " << currentDotLhsType->name << " has no member " << n->name << ".\n";
+            exit(1);
+        }
+
+        // return type of method
+        type = currentDotLhsType->members.find(n->name)->second.type;
+
+        // expression stack
+        exprTypes.push_back(type);
+
+        // set node's type to confirmed type, to be used in code gen
+        n->type = type;
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
@@ -685,28 +711,14 @@ struct SemanticAnalyzerVisitor : Visitor {
     void visit(std::shared_ptr<Node::Variable> n) override {
         std::string type;
 
-        // in RHS of dot operation?
-        if (currentDotLHS) {
-            // if so, check the LHS type for the member
-            if (currentDotLHS->members.find(n->name) == currentDotLHS->members.end()) {
-                std::cout << "Error in dot operation. Type " << currentDotLHS->name << " has no member " << n->name << ".\n";
-                exit(1);
-            }
-
-            // return type of method
-            type = currentDotLHS->members.find(n->name)->second.type;
+        // exists?
+        if (!variableExists(n->name)) {
+            std::cout << "Variable " << n->name << " referenced, but it has not yet been defined.\n";
+            exit(1);
         }
-        // otherwise, check variables in scope
-        else {
-            // exists?
-            if (!variableExists(n->name)) {
-                std::cout << "Variable " << n->name << " referenced, but it has not yet been defined.\n";
-                exit(1);
-            }
 
-            // find type
-            type = getVariableType(n->name);
-        }
+        // find type
+        type = getVariableType(n->name);
 
         // expression stack
         exprTypes.push_back(type);
@@ -735,15 +747,15 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string type;
 
         // in RHS of dot operation?
-        if (currentDotLHS) {
+        if (currentDotLhsType) {
             // if so, check the LHS type for the method
-            if (currentDotLHS->methods.find(signature) == currentDotLHS->methods.end()) {
-                std::cout << "Error in dot operation. Type " << currentDotLHS->name << " has no method with signature " << signature << ".\n";
+            if (currentDotLhsType->methods.find(signature) == currentDotLhsType->methods.end()) {
+                std::cout << "Error in dot operation. Type " << currentDotLhsType->name << " has no method with signature " << signature << ".\n";
                 exit(1);
             }
 
             // return type of method
-            type = currentDotLHS->methods[signature].returnType;
+            type = currentDotLhsType->methods[signature].returnType;
         }
         // otherwise, check free functions map
         else {
@@ -904,6 +916,9 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // expression stack
         exprTypes.push_back(type);
+
+        // set node's type to confirmed type, to be used in code gen
+        n->type = type;
     }
 
     // visit method call

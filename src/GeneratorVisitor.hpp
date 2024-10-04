@@ -27,22 +27,27 @@ struct GeneratorVisitor : Visitor {
         {"float", "float"},
         {"bool", "i1"},
         {"nil", "void"}
+
+        // @TODO: add char
     };
 
+    // types map
     std::unique_ptr<std::unordered_map<std::string, Type>> types;
 
+    // associates variable names to register numbers
     std::unordered_map<std::string, uint32_t> nameToRegister;
 
     // is the current expression being evaluated an "lvalue" ?
     // or, are we in something that needs to return an for storing in assignment
-    bool isOuterLHS = false;
+    bool rootOfLhsOfAssignment = false;
 
     struct SubExprInfo {
         const uint32_t reg;
         std::string type;
     };
 
-    std::vector<SubExprInfo> exprStack; 
+    // stores registers and types of subexpressions
+    std::vector<SubExprInfo> exprStack;
 
     // constructor
     GeneratorVisitor(const std::string& filename) {
@@ -52,6 +57,10 @@ struct GeneratorVisitor : Visitor {
     // destructor
     ~GeneratorVisitor() {
         out.close();
+    }
+
+    bool isPrimitive(const std::string& typeName) {
+        return typeName == "int" || typeName == "float" || typeName == "bool" || typeName == "nil" || typeName.back() == '*';
     }
 
     // convert an amethyst type (including pointer types)
@@ -109,7 +118,7 @@ struct GeneratorVisitor : Visitor {
         types = std::move(n->types);
 
         for (auto it = types->begin(); it != types->end(); ++it) {
-            if (it->first != "int" && it->first != "float" && it->first != "char" && it->first != "bool" && it->first != "nil") {
+            if (!isPrimitive(it->first)) {
                 typeMap[it->first] = "%struct." + it->first;
             }
         }
@@ -119,6 +128,10 @@ struct GeneratorVisitor : Visitor {
             definition->accept(shared_from_this());
             out << "\n";
         }
+
+        // @TODO: declarations for llvm intrinsics
+        out << "; Declarations of llvm intrinstics, may be unused\n";
+        out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
     }
 
     void visit(std::shared_ptr<Node::GlobalDefn> n) override {}
@@ -310,8 +323,9 @@ struct GeneratorVisitor : Visitor {
         // subscript
         if (n->op == "[]") {
             
-            bool outerLHS = isOuterLHS;
-            isOuterLHS = false;
+            // root of LHS of assignment? set false, because no children can be
+            bool outerLHS = rootOfLhsOfAssignment;
+            rootOfLhsOfAssignment = false;
 
             // process lhs & get type
             n->LHS->accept(shared_from_this());
@@ -336,7 +350,7 @@ struct GeneratorVisitor : Visitor {
                 ++currentRegister;
 
                 // outer lhs means a pointer for storing in assignment
-                if (!outerLHS) {
+                if (!outerLHS && isPrimitive(dereferencedType)) {
                     // load value at that index into new register
                     load(currentRegister-1, dereferencedType);
                 }
@@ -350,8 +364,41 @@ struct GeneratorVisitor : Visitor {
             }
         }
         // dot operator
-        else if (n->op == ".") {
+        else if (n->op == ".") {    
 
+            // root of LHS of assignment? set false, because no children can be
+            bool dotRootOfLhsOfAssignment = rootOfLhsOfAssignment;
+            rootOfLhsOfAssignment = false;
+            
+            // process lhs & get type
+            n->LHS->accept(shared_from_this());
+            auto lhs = exprStack.back();
+            // dont pop_back() b/c DotRHS needs the lhs' info
+            // popped in DotRHS
+
+            // @TODO: redundant? should be caught in semantic analysis
+            if (lhs.type.back() == '*') {
+                std::cout << "Internal error. Code generator found a dot operator with a pointer LHS.\nThis ought to have been caught in semantic analysis.\n";
+                exit(1);
+            }
+            // @TODO: redundant? should be caught in semantic analysis
+            if (isPrimitive(lhs.type)) {
+                std::cout << "Internal error. Code generator found a dot access with a primitive-type LHS.\nThis ought to have been caught in semantic analysis.\n";
+                exit(1);
+            }
+
+            // process DotRHS
+            n->RHS->accept(shared_from_this());
+            auto rhs = exprStack.back();
+
+            // if a dot expr results in a primitive, it should always load
+            // UNLESS it is the dot root of the lhs of an assignment
+            if (!dotRootOfLhsOfAssignment && isPrimitive(rhs.type)) {
+                // load value at that index into new register
+                load(currentRegister-1, rhs.type);
+                exprStack.pop_back();
+                exprStack.push_back({currentRegister-1, rhs.type});
+            }
         }
 
         else {
@@ -360,17 +407,64 @@ struct GeneratorVisitor : Visitor {
         }
     }
 
+    void visit(std::shared_ptr<Node::DotRHS> n) override {
+        // get lhs info
+        auto lhs = exprStack.back();
+        exprStack.pop_back();
+        auto offset = (*types)[lhs.type].members.find(n->name)->second.offset;
+
+        out << "  %" << currentRegister
+            << " = getelementptr inbounds " << convertType(lhs.type)
+            << ", " << convertType(lhs.type)
+            << "* %" << lhs.reg
+            << ", i32 0, i32 " << offset
+            << " ; Getting ptr to member\n";
+        ++ currentRegister;
+
+        // push a register to allocation to expr stack
+        exprStack.push_back({currentRegister-1, n->type});
+    }
+
     void visit(std::shared_ptr<Node::Primary> n) override {}
 
     void visit(std::shared_ptr<Node::Array> n) override {}
 
     void visit(std::shared_ptr<Node::NewExpr> n) override {
-        //types
+
+        uint32_t placeholderRegister = currentRegister;
+        ++currentRegister;
+        out << "  %" << placeholderRegister
+            << " = alloca " << convertType(n->type)
+            << " ; Placeholder allocating space for struct return\n";
+            
+        // visit args
+        n->args->accept(shared_from_this());
+
+        // @NOTE:violation of visitor pattern
+        int numArgs = n->args->exprs.size();
+
+        // output call
+        out << "  call " << convertType("nil") << " @new(";
+        for (auto argIt = exprStack.end() - numArgs; argIt != exprStack.end(); ++argIt) {
+            out << convertType(argIt->type) << " noundef %" << argIt->reg << ", ";
+        }
+        // secret sret arg
+        out << convertType(n->type + "*") << " sret("
+            << convertType(n->type) << ") %"
+            << placeholderRegister << ")\n";
+
+        // clear the top of the args from the expr stack
+        for (int i = 0; i < numArgs; ++i) {
+            exprStack.pop_back();
+        }
+        std::cout << exprStack.size() << "\n";
+
+
+        // add this to the exprStack
+        exprStack.push_back({placeholderRegister, n->type});
     }
 
     void visit(std::shared_ptr<Node::StackExpr> n) override {
-        // @TODO: call functions, will require changing their logic
-
         // allocate array
         std::string arrayType = "[" + n->number + " x " + convertType(n->type) + "]";
         out << "  %" << currentRegister
@@ -410,8 +504,16 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::BoolLiteral> n) override {}
     
     void visit(std::shared_ptr<Node::Variable> n) override {
-        // in LHS
-        if (isOuterLHS) {
+
+        // structs always push their allocation pointer and their type
+        if (!isPrimitive(n->type)) {
+            exprStack.push_back({nameToRegister[n->name], n->type});
+            return;
+        }
+
+        // primitives
+        // if the assignment is literally `name = expression`, with no . or [] on lhs
+        if (rootOfLhsOfAssignment) {
             // give the assignment the register of the variable
             exprStack.push_back({nameToRegister[n->name], n->type});   
         }
@@ -466,7 +568,46 @@ struct GeneratorVisitor : Visitor {
         nameToRegister[n->name] = currentRegister;
         allocation(n->type);
         n->expression->accept(shared_from_this());
-        store(currentRegister-1, nameToRegister[n->name], n->type);
+
+        if (isPrimitive(exprStack.back().type)) {
+            store(exprStack.back().reg, nameToRegister[n->name], n->type);
+        }
+        // type (llvm struct)
+        else {
+            // determine size of struct by pretending there is an instance at address 0 (null)
+            out << "  %" << currentRegister
+                << " = getelementptr " << convertType(n->type)
+                << ", " << convertType(n->type)
+                << "* null, i32 1\n";
+            ++currentRegister;
+
+            uint32_t sizeRegister = currentRegister;
+            ++currentRegister;
+            out << "  %" << sizeRegister
+                << " = ptrtoint " << convertType(n->type)
+                << "* %" << sizeRegister-1
+                << " to i64\n";
+
+            // cast lhs allocation to i8*
+            out << "  %" << currentRegister
+                << " = bitcast " << convertType(n->type)
+                << "* %" << nameToRegister[n->name]
+                << " to i8*\n";
+            ++currentRegister;
+
+            // cast rhs allocation to i8*
+            out << "  %" << currentRegister
+                << " = bitcast " << convertType(n->type)
+                << "* %" << exprStack.back().reg
+                << " to i8*\n";
+            ++currentRegister;
+
+            // memcpy rhs to lhs
+            out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %" << currentRegister-2
+                << ", i8* %" << currentRegister-1
+                << ", i64 %" << sizeRegister
+                << ", i1 false)\n";
+        }
 
         // clear expression stack
         exprStack.pop_back();
@@ -481,14 +622,54 @@ struct GeneratorVisitor : Visitor {
         exprStack.pop_back();
 
         // evaluate lhs
-        isOuterLHS = true;
+        rootOfLhsOfAssignment = true;
         n->LHS->accept(shared_from_this());
-        isOuterLHS = false;
+        rootOfLhsOfAssignment = false;
         SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
-        // store
-        store(rhs.reg, lhs.reg, lhs.type);
+
+
+        // primitive, store
+        if (isPrimitive(rhs.type)) {
+            store(rhs.reg, lhs.reg, lhs.type);
+        }
+        // struct/type memcpy
+        else {
+            // determine size of struct by pretending there is an instance at address 0 (null)
+            out << "  %" << currentRegister
+                << " = getelementptr " << convertType(rhs.type)
+                << ", " << convertType(rhs.type)
+                << "* null, i32 1\n";
+            ++currentRegister;
+
+            uint32_t sizeRegister = currentRegister;
+            ++currentRegister;
+            out << "  %" << sizeRegister
+                << " = ptrtoint " << convertType(rhs.type)
+                << "* %" << sizeRegister-1
+                << " to i64\n";
+
+            // cast lhs allocation to i8*
+            out << "  %" << currentRegister
+                << " = bitcast " << convertType(rhs.type)
+                << "* %" << lhs.reg
+                << " to i8*\n";
+            ++currentRegister;
+
+            // cast rhs allocation to i8*
+            out << "  %" << currentRegister
+                << " = bitcast " << convertType(rhs.type)
+                << "* %" << rhs.reg
+                << " to i8*\n";
+            ++currentRegister;
+
+            // memcpy rhs to lhs
+            out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %" << currentRegister-2
+                << ", i8* %" << currentRegister-1
+                << ", i64 %" << sizeRegister
+                << ", i1 false)\n";
+        }
     }
 
     void visit(std::shared_ptr<Node::Return> n) override {
@@ -563,7 +744,7 @@ struct GeneratorVisitor : Visitor {
             nameToRegister[parameter->name] = currentRegister-1;
         }
         
-        // n->body->accept(shared_from_this());
+        n->body->accept(shared_from_this());
         out << "}\n";
 
         // reset registers and nameToRegister map after each function
@@ -578,7 +759,40 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::MethodDefn> n) override {}
 
-    void visit(std::shared_ptr<Node::Member> n) override {}
+    void visit(std::shared_ptr<Node::Member> n) override {
+            
+        // get member offset in type
+        uint32_t offset = currentType->members.find(n->name)->second.offset;
+
+        uint32_t memberLocationRegister = currentRegister;
+
+        // get element ptr from "this" struct
+        out << "  %" << memberLocationRegister << " = getelementptr inbounds "
+            << convertType(currentType->name) << ", "
+            << convertType(currentType->name) << "* %"
+            << nameToRegister["@this"] << ", i32 0, "
+            << "i32 " << offset << "\n";
+        ++currentRegister;
+        
+        // structs always push their allocation pointer and their type
+        if (!isPrimitive(n->type)) {
+            exprStack.push_back({memberLocationRegister, n->type});
+            return;
+        }
+
+        // primitives
+        // if the assignment is literally `name = expression`, with no . or [] on lhs
+        if (rootOfLhsOfAssignment) {
+            // give the assignment the register of the variable
+            exprStack.push_back({memberLocationRegister, n->type});   
+        }
+        else {
+            // register & type stack
+            exprStack.push_back({currentRegister, n->type});
+            // load
+            load(memberLocationRegister, n->type);
+        }
+    }
 
     void visit(std::shared_ptr<Node::MethodCall> n) override {}
 

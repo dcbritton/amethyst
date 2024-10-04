@@ -1,44 +1,39 @@
 
-def bar(a:int*)
-return
+type U
+    @c:int
+    @ptr:int*
+
 end
 
 type T
+    @ptr:int*
     @a:int
-    @b:float
-    @c:bool**
+    @b:U*
+    @d:T*
+    @c:int
 
-    new(a:int, b:float, c:bool**)
-        @a
+    new(a:int)
+        @a = a
+        @c = @a
+        
+        @b = stack [4] U
+        i:int = 0
+        while i != 4 do
+            @b[i].c = i
+            i = i + 1
+        end
 
+        @c = @b[2].c
         return
     end
-
-end
-
-def foo(a:int, b:int):int
-
-    return (a + b) * a
 end
 
 def main():int
-    arr:int** = stack [5] int*
 
-    i:int = 0
-    while i != 5 do
-        arr[i] = stack [5] int
-        i = i + 1
-    end
+    a:T = new T(13)
 
-    k:int = 0
-    while k != 5 do
-        j:int = 0
-        while j != 5 do
-            arr[k][j] = foo(k, j)
-            j = j + 1
-        end
-        k = k + 1
-    end
 
-    return arr[4][3]
+
+
+    return a.c + a.a
 end

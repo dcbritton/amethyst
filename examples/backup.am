@@ -59,3 +59,30 @@ def main():int
 
     return 0
 end
+
+def foo(a:int, b:int):int
+
+    return (a + b) * a
+end
+
+def main():int
+    arr:int** = stack [5] int*
+
+    i:int = 0
+    while i != 5 do
+        arr[i] = stack [5] int
+        i = i + 1
+    end
+
+    k:int = 0
+    while k != 5 do
+        j:int = 0
+        while j != 5 do
+            arr[k][j] = foo(k, j)
+            j = j + 1
+        end
+        k = k + 1
+    end
+
+    return arr[4][3]
+end

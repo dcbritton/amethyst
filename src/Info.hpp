@@ -27,8 +27,14 @@ struct Variable {
     std::string name;
     std::string type;
 
+    // if a member, offset for getelement pointer
+    uint32_t offset;
+
     Variable(const std::string& name, const std::string& type)
         : name(name), type(type) {}
+
+    Variable(const std::string& name, const std::string& type, uint32_t offset)
+        : name(name), type(type), offset(offset) {}
 };
 
 // used for functions, methods, and operators
@@ -61,9 +67,6 @@ struct Type {
 
     Type(const std::string& name, const std::unordered_map<std::string, Variable>& members, const std::unordered_map<std::string, Procedure>& methods, const std::unordered_map<std::string, Procedure>& operators, const std::unordered_map<std::string, Procedure>& constructors)
         : name(name), members(members), methods(methods), operators(operators), constructors(constructors) {}
-
-    Type(Type*& other) 
-        : name(other->name), members(other->members), methods(other->methods), operators(other->operators), constructors(other->constructors) {}
 
     bool has(const std::string& signature) {
         return operators.find(signature) != operators.end();

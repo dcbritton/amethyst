@@ -1,149 +1,88 @@
-define dso_local void @bar(i64* noundef %0) {
-  ; Handle parameters
-  %2 = alloca i64*
-  store i64* %0, i64** %2
-  ret void
-}
+%struct.U = type { i64, i64* }
 
-%struct.T = type { i64, float, i1** }
-define dso_local void @new(i64 noundef %0, float noundef %1, i1** noundef %2, %struct.T* noalias sret(%struct.T) %3) {
-  ; Handle parameters
-  %5 = alloca i64
-  store i64 %0, i64* %5
-  %6 = alloca float
-  store float %1, float* %6
-  %7 = alloca i1**
-  store i1** %2, i1*** %7
-}
-
-define dso_local i64 @foo(i64 noundef %0, i64 noundef %1) {
+%struct.T = type { i64*, i64, %struct.U*, %struct.T*, i64 }
+define dso_local void @new(i64 noundef %0, %struct.T* noalias sret(%struct.T) %1) {
   ; Handle parameters
   %3 = alloca i64
   store i64 %0, i64* %3
-  %4 = alloca i64
-  store i64 %1, i64* %4
-  ; Begin mult expr
-  ; Begin add expr
-  %5 = load i64, i64* %3
-  %6 = load i64, i64* %4
-  %7 = add i64 %5, %6
-  ; End add expr
-  %8 = load i64, i64* %3
-  %9 = mul i64 %7, %8
-  ; End mult expr
-  ret i64 %9
-}
-
-define dso_local i64 @main() {
-  ; Handle parameters
-
-  ; Define arr:int**
-  %1 = alloca i64**
-  %2 = alloca [5 x i64*]
-  %3 = bitcast [5 x i64*]* %2 to i64**
-  store i64** %3, i64*** %1
-  ; End definition of arr:int**
+  %4 = load i64, i64* %3
+  %5 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 1
+  store i64 %4, i64* %5
+  %6 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 1
+  %7 = load i64, i64* %6
+  %8 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 4
+  store i64 %7, i64* %8
+  %9 = alloca [4 x %struct.U]
+  %10 = bitcast [4 x %struct.U]* %9 to %struct.U*
+  %11 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 2
+  store %struct.U* %10, %struct.U** %11
 
   ; Define i:int
-  %4 = alloca i64
-  %5 = add i64 0, 0
-  store i64 %5, i64* %4
+  %12 = alloca i64
+  %13 = add i64 0, 0
+  store i64 %13, i64* %12
   ; End definition of i:int
   br label %cond0
 
 cond0:
   ; Begin eq expr
-  %6 = load i64, i64* %4
-  %7 = add i64 0, 5
-  %8 = icmp ne i64 %6, %7
+  %14 = load i64, i64* %12
+  %15 = add i64 0, 4
+  %16 = icmp ne i64 %14, %15
   ; End eq expr
-  br i1 %8, label %body0, label %exit0
+  br i1 %16, label %body0, label %exit0
 
 body0:
-  %9 = alloca [5 x i64]
-  %10 = bitcast [5 x i64]* %9 to i64*
-  %11 = load i64**, i64*** %1
-  %12 = load i64, i64* %4
-  %13 = getelementptr i64*, i64** %11, i64 %12
-  store i64* %10, i64** %13
+  %17 = load i64, i64* %12
+  %18 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 2
+  %19 = load %struct.U*, %struct.U** %18
+  %20 = load i64, i64* %12
+  %21 = getelementptr %struct.U, %struct.U* %19, i64 %20
+  %22 = getelementptr inbounds %struct.U, %struct.U* %21, i32 0, i32 0 ; Getting ptr to member
+  store i64 %17, i64* %22
   ; Begin add expr
-  %14 = load i64, i64* %4
-  %15 = add i64 0, 1
-  %16 = add i64 %14, %15
+  %23 = load i64, i64* %12
+  %24 = add i64 0, 1
+  %25 = add i64 %23, %24
   ; End add expr
-  store i64 %16, i64* %4
+  store i64 %25, i64* %12
   br label %cond0
 
 exit0:
-
-  ; Define k:int
-  %17 = alloca i64
-  %18 = add i64 0, 0
-  store i64 %18, i64* %17
-  ; End definition of k:int
-  br label %cond1
-
-cond1:
-  ; Begin eq expr
-  %19 = load i64, i64* %17
-  %20 = add i64 0, 5
-  %21 = icmp ne i64 %19, %20
-  ; End eq expr
-  br i1 %21, label %body1, label %exit1
-
-body1:
-
-  ; Define j:int
-  %22 = alloca i64
-  %23 = add i64 0, 0
-  store i64 %23, i64* %22
-  ; End definition of j:int
-  br label %cond2
-
-cond2:
-  ; Begin eq expr
-  %24 = load i64, i64* %22
-  %25 = add i64 0, 5
-  %26 = icmp ne i64 %24, %25
-  ; End eq expr
-  br i1 %26, label %body2, label %exit2
-
-body2:
-  %27 = load i64, i64* %17
-  %28 = load i64, i64* %22
-  %29 = call i64 @foo(i64 noundef %27, i64 noundef %28)
-  %30 = load i64**, i64*** %1
-  %31 = load i64, i64* %17
-  %32 = getelementptr i64*, i64** %30, i64 %31
-  %33 = load i64*, i64** %32
-  %34 = load i64, i64* %22
-  %35 = getelementptr i64, i64* %33, i64 %34
-  store i64 %29, i64* %35
-  ; Begin add expr
-  %36 = load i64, i64* %22
-  %37 = add i64 0, 1
-  %38 = add i64 %36, %37
-  ; End add expr
-  store i64 %38, i64* %22
-  br label %cond2
-
-exit2:
-  ; Begin add expr
-  %39 = load i64, i64* %17
-  %40 = add i64 0, 1
-  %41 = add i64 %39, %40
-  ; End add expr
-  store i64 %41, i64* %17
-  br label %cond1
-
-exit1:
-  %42 = load i64**, i64*** %1
-  %43 = add i64 0, 4
-  %44 = getelementptr i64*, i64** %42, i64 %43
-  %45 = load i64*, i64** %44
-  %46 = add i64 0, 3
-  %47 = getelementptr i64, i64* %45, i64 %46
-  %48 = load i64, i64* %47
-  ret i64 %48
+  %26 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 2
+  %27 = load %struct.U*, %struct.U** %26
+  %28 = add i64 0, 2
+  %29 = getelementptr %struct.U, %struct.U* %27, i64 %28
+  %30 = getelementptr inbounds %struct.U, %struct.U* %29, i32 0, i32 0 ; Getting ptr to member
+  %31 = load i64, i64* %30
+  %32 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 4
+  store i64 %31, i64* %32
+  ret void
 }
 
+define dso_local i64 @main() {
+  ; Handle parameters
+
+  ; Define a:T
+  %1 = alloca %struct.T
+  %2 = alloca %struct.T ; Placeholder allocating space for struct return
+  %3 = add i64 0, 13
+  call void @new(i64 noundef %3, %struct.T* sret(%struct.T) %2)
+  %4 = getelementptr %struct.T, %struct.T* null, i32 1
+  %5 = ptrtoint %struct.T* %4 to i64
+  %6 = bitcast %struct.T* %1 to i8*
+  %7 = bitcast %struct.T* %2 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %6, i8* %7, i64 %5, i1 false)
+  ; End definition of a:T
+  ; Begin add expr
+  %8 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 4 ; Getting ptr to member
+  %9 = load i64, i64* %8
+  %10 = getelementptr inbounds %struct.T, %struct.T* %1, i32 0, i32 1 ; Getting ptr to member
+  %11 = load i64, i64* %10
+  %12 = add i64 %9, %11
+  ; End add expr
+  ret i64 %12
+}
+
+; Declarations of llvm intrinstics, may be unused
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)

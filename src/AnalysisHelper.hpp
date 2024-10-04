@@ -13,6 +13,9 @@ struct TypeDefinitionScanner {
     //
     Procedure currentProcedure;
 
+    // offset
+    uint32_t offset = 0;
+
     // collect data for a type
     std::unique_ptr<Type> visit(std::shared_ptr<Node::TypeDefn> n)  {
 
@@ -20,7 +23,9 @@ struct TypeDefinitionScanner {
 
         for (auto member : n->members) {
             visit(member);
+            ++offset;
         }
+        offset = 0;
         for (auto constructor : n->constructors) {
             visit(constructor);
         }
@@ -31,7 +36,7 @@ struct TypeDefinitionScanner {
             visit(op);
         }
 
-        return std::make_unique<Type>(currentType);
+        return std::make_unique<Type>(std::move(currentType));
     }
 
     void visit(std::shared_ptr<Node::MemberDecl> n)  {
@@ -42,7 +47,7 @@ struct TypeDefinitionScanner {
         }
 
         // add to currentType
-        currentType.members.emplace(n->name, Variable(n->name, n->type));
+        currentType.members.emplace(n->name, Variable(n->name, n->type, offset));
     }
 
     // visit parameter list

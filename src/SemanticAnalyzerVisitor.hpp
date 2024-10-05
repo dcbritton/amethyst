@@ -647,6 +647,16 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::cout << "Undefined type " << n->type << " mentioned in heap expression.\n";
             exit(1);
         }
+        
+        // expression must evaluate to int
+        n->expr->accept(shared_from_this());
+        auto exprInfo = exprTypes.back();
+        exprTypes.pop_back();
+
+        if (exprInfo != "int") {
+            std::cout << "Expression in heap expression did not evaluate to int.\n";
+            exit(1);
+        }
 
         // push a ptr to the type to the expr type stack
         exprTypes.push_back(n->type + "*");

@@ -94,7 +94,7 @@ new_expr    -   new identifier ( expr_list )
 
 stack_expr  -   stack [ int_literal ] identifier [*]*
 
-heap_expr   -   heap [ int_literal ] identifier [*]*
+heap_expr   -   heap [ logic_expr ] identifier [*]*
 
 array       -   [ expr_list? ] identifier
 

@@ -220,11 +220,12 @@ namespace Node {
     // heap expr
     struct HeapExpr : Node, std::enable_shared_from_this<HeapExpr> {
         std::string type;
-        std::string number;
+
+        std::shared_ptr<Node> expr;
 
         // constructor
-        HeapExpr(const std::string& type, const std::string& number)
-            : type(type), number(number) {}
+        HeapExpr(const std::string& type, std::shared_ptr<Node> expr)
+            : type(type), expr(expr) {}
 
         // accept
         void accept(std::shared_ptr<Visitor> v) override {

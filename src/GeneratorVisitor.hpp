@@ -132,6 +132,7 @@ struct GeneratorVisitor : Visitor {
         // @TODO: declarations for llvm intrinsics
         out << "; Declarations of llvm intrinstics, may be unused\n";
         out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
+        out << "declare noalias i8* @malloc(i64 noundef)\n";
     }
 
     void visit(std::shared_ptr<Node::GlobalDefn> n) override {}
@@ -485,7 +486,50 @@ struct GeneratorVisitor : Visitor {
         exprStack.push_back({currentRegister-1, ptrType});
     }
 
-    void visit(std::shared_ptr<Node::HeapExpr> n) override {}
+    void visit(std::shared_ptr<Node::HeapExpr> n) override {
+
+        // determine size of n->type
+        out << "  %" << currentRegister
+            << " = getelementptr " << convertType(n->type)
+            << ", " << convertType(n->type)
+            << "* null, i32 1\n";
+        ++currentRegister;
+
+        uint32_t sizeRegister = currentRegister;
+        ++currentRegister;
+        out << "  %" << sizeRegister
+            << " = ptrtoint " << convertType(n->type)
+            << "* %" << sizeRegister-1
+            << " to i64\n";
+
+        // get the number determined by n->expr
+        n->expr->accept(shared_from_this());
+        uint32_t numberToAllocateRegsiter = exprStack.back().reg;
+        exprStack.pop_back();
+        
+        // multiply to determine how many bytes are needed
+        out << "  %" << currentRegister
+            << " = mul i64 %" << sizeRegister
+            << ", %" << numberToAllocateRegsiter
+            << "\n";
+        ++currentRegister;
+
+        // malloc i8*, the correct number of bytes
+        out << "  %" << currentRegister
+            << " = call noalias i8* @malloc(i64 noundef %"
+            << currentRegister-1 << ")\n";
+        ++currentRegister;
+
+        // cast to correct pointer type
+        out << "  %" << currentRegister
+            << " = bitcast i8* %" << currentRegister-1
+            << " to " << convertType(n->type)
+            << "*\n";
+        ++currentRegister;
+
+        // put pointer on expr stack
+        exprStack.push_back({currentRegister-1, convertType(n->type) + "*"});
+    }
 
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
         // @NOTE: all int literals are i64
@@ -628,8 +672,6 @@ struct GeneratorVisitor : Visitor {
         SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
-
-
         // primitive, store
         if (isPrimitive(rhs.type)) {
             store(rhs.reg, lhs.reg, lhs.type);
@@ -706,7 +748,6 @@ struct GeneratorVisitor : Visitor {
         for (const auto& constructor : n->constructors) {
             constructor->accept(shared_from_this());
         }
-
 
         currentType.reset();
     }

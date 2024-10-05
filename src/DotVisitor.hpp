@@ -332,9 +332,15 @@ struct DotVisitor : Visitor {
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\"heap["
-                << n->number << "] "
+                << " [label=\"heap[ ... ] "
                 << n->type << "\"];\n";
+
+        // process child(ren)
+        int exprId = nodeId;
+        n->expr->accept(shared_from_this());
+        
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
     }
 
     // visit array

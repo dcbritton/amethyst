@@ -732,7 +732,7 @@ struct Parser {
 
         discard(Token::kwHeap);
         discard(Token::openBracket);
-        std::string number = consume(Token::intLiteral);
+        auto number = parseLogicalExpr();
         discard(Token::closeBracket);
         std::string type = consume(Token::identifier);
         

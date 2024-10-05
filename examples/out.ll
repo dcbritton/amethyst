@@ -51,12 +51,46 @@ exit0:
   ret void
 }
 
+define dso_local i64 @getEntry(%struct.Matrix* noundef byval(%struct.Matrix) %0, i64 noundef %1, i64 noundef %2) {
+  ; Primitive parameter allocations and stores
+  %4 = alloca i64
+  store i64 %1, i64* %4
+  %5 = alloca i64
+  store i64 %2, i64* %5
+  ; End parameter handling
+  %6 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %0, i32 0, i32 0 ; Getting ptr to member
+  %7 = load i64**, i64*** %6
+  %8 = load i64, i64* %4
+  %9 = getelementptr i64*, i64** %7, i64 %8
+  %10 = load i64*, i64** %9
+  %11 = load i64, i64* %5
+  %12 = getelementptr i64, i64* %10, i64 %11
+  %13 = load i64, i64* %12
+  ret i64 %13
+}
+
+define dso_local i64 @add(i64 noundef %0, i64 noundef %1) {
+  ; Primitive parameter allocations and stores
+  %3 = alloca i64
+  store i64 %0, i64* %3
+  %4 = alloca i64
+  store i64 %1, i64* %4
+  ; End parameter handling
+  ; Begin add expr
+  %5 = load i64, i64* %3
+  %6 = load i64, i64* %4
+  %7 = add i64 %5, %6
+  ; End add expr
+  ret i64 %7
+}
+
 define dso_local i64 @main() {
-  ; Handle parameters
+  ; Primitive parameter allocations and stores
+  ; End parameter handling
 
   ; Define size:int
   %1 = alloca i64
-  %2 = add i64 0, 4
+  %2 = add i64 0, 12
   store i64 %2, i64* %1
   ; End definition of size:int
 
@@ -105,11 +139,9 @@ cond1:
   br i1 %19, label %body1, label %exit1
 
 body1:
-  ; Begin add expr
   %20 = load i64, i64* %10
   %21 = load i64, i64* %15
-  %22 = add i64 %20, %21
-  ; End add expr
+  %22 = call i64 @add(i64 noundef %20, i64 noundef %21)
   %23 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 0 ; Getting ptr to member
   %24 = load i64**, i64*** %23
   %25 = load i64, i64* %10
@@ -136,15 +168,18 @@ exit1:
   br label %cond0
 
 exit0:
-  %36 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 0 ; Getting ptr to member
-  %37 = load i64**, i64*** %36
-  %38 = add i64 0, 1
-  %39 = getelementptr i64*, i64** %37, i64 %38
-  %40 = load i64*, i64** %39
-  %41 = add i64 0, 3
-  %42 = getelementptr i64, i64* %40, i64 %41
-  %43 = load i64, i64* %42
-  ret i64 %43
+  ; Begin add expr
+  %36 = load i64, i64* %1
+  %37 = add i64 0, -1
+  %38 = add i64 %36, %37
+  ; End add expr
+  ; Begin add expr
+  %39 = load i64, i64* %1
+  %40 = add i64 0, -2
+  %41 = add i64 %39, %40
+  ; End add expr
+  %42 = call i64 @getEntry(%struct.Matrix* noundef byval(%struct.Matrix) %3, i64 noundef %38, i64 noundef %41)
+  ret i64 %42
 }
 
 ; Declarations of llvm intrinstics, may be unused

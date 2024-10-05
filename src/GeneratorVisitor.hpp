@@ -18,7 +18,6 @@ struct GeneratorVisitor : Visitor {
     // used to track break label names
     uint32_t currentLabelNumber = 0;
 
-    std::unique_ptr<Procedure> currentProcedure = nullptr;
     std::unique_ptr<Type> currentType = nullptr;
 
     // maps amethyst non-pointer type name to an llvm type name
@@ -142,41 +141,50 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::Statement> n) override {}
 
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
-        // move the Procedure info into currentProcedure
-        currentProcedure = std::move(n->info);
-
-        // @TODO: all struct returns should be pass by parameter
-
         // type and name
         out << "define dso_local " << convertType(n->returnType)
             << " @" << n->name << "(";
 
         // parameters
-        for (auto it = currentProcedure->parameters.begin(); it != currentProcedure->parameters.end(); ++it) {
-            out << convertType(it->type) << " noundef %" << currentRegister;
-            nameToRegister.emplace(it->name, currentRegister);
-            ++currentRegister;
+        for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
+            // primitive parameter
+            if (isPrimitive(it->type)) {
+                out << convertType(it->type) << " noundef %" << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+            // struct parameter (pass by value)
+            else {
+                out << convertType(it->type + "*") << " noundef byval("
+                    << convertType(it->type) << ") %"
+                    << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
 
-            if (it != currentProcedure->parameters.end() - 1) {
+            if (it != n->info->parameters.end() - 1) {
                 out << ", ";
             }
         }
         out << ") {\n";
 
         // allocations & stores for parameters
-        out << "  ; Handle parameters\n";
+        out << "  ; Primitive parameter allocations and stores\n";
         ++currentRegister;
-        for (const auto& parameter : currentProcedure->parameters) {
-            allocation(parameter.type);
-            store(nameToRegister[parameter.name], currentRegister-1, parameter.type);
-            nameToRegister[parameter.name] = currentRegister-1;
+        for (const auto& parameter : n->info->parameters) {
+            if (isPrimitive(parameter.type)) {
+                allocation(parameter.type);
+                store(nameToRegister[parameter.name], currentRegister-1, parameter.type);
+                nameToRegister[parameter.name] = currentRegister-1;
+            }
         }
+        out << "  ; End parameter handling\n";
         
         n->functionBody->accept(shared_from_this());
         out << "}\n";
 
         // reset current procedure
-        currentProcedure.reset();
+        n->info.reset();
 
         // reset registers and nameToRegister map after each function
         currentRegister = 0;
@@ -588,7 +596,17 @@ struct GeneratorVisitor : Visitor {
 
         // output args
         for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
-            out << convertType(argIt->type) << " noundef %" << argIt->reg;
+            // for primitive arg
+            if (isPrimitive(argIt->type)) {
+                out << convertType(argIt->type) << " noundef %" << argIt->reg;
+            }
+            // for struct args
+            else {
+                out << convertType(argIt->type + "*") << " noundef byval("
+                    << convertType(argIt->type) << ") %"
+                    << argIt->reg;
+            }
+
             if (argIt != exprStack.end()-1) {
                 out << ", ";
             }
@@ -748,6 +766,10 @@ struct GeneratorVisitor : Visitor {
         for (const auto& constructor : n->constructors) {
             constructor->accept(shared_from_this());
         }
+
+        // @TODO: method definitions
+
+        // @TODO: operator overloads
 
         currentType.reset();
     }

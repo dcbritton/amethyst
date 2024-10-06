@@ -760,30 +760,14 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
         manglePointers(signature);
 
-        std::string type;
-
-        // in RHS of dot operation?
-        if (currentDotLhsType) {
-            // if so, check the LHS type for the method
-            if (currentDotLhsType->methods.find(signature) == currentDotLhsType->methods.end()) {
-                std::cout << "Error in dot operation. Type " << currentDotLhsType->name << " has no method with signature " << signature << ".\n";
-                exit(1);
-            }
-
-            // return type of method
-            type = currentDotLhsType->methods[signature].returnType;
+        // function exists?
+        if (!functionExists(signature)) {
+            std::cout << "Could not find a matching definition for call with signature " << signature << ".\n";
+            exit(1);
         }
-        // otherwise, check free functions map
-        else {
-            // function exists?
-            if (!functionExists(signature)) {
-                std::cout << "Could not find a matching definition for call with signature " << signature << ".\n";
-                exit(1);
-            }
 
-            // return type of free function
-            type = functions.find(signature)->second.returnType;
-        }
+        // return type of free function
+        std::string type = functions.find(signature)->second.returnType;
 
         // push return type to expression stack
         exprTypes.push_back(type);

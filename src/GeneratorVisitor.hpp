@@ -143,7 +143,7 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // type and name
         out << "define dso_local " << convertType(n->returnType)
-            << " @" << n->name << "(";
+            << " @" << n->info->signature << "(";
 
         // parameters
         for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
@@ -453,9 +453,17 @@ struct GeneratorVisitor : Visitor {
         int numArgs = n->args->exprs.size();
 
         // output call
-        out << "  call " << convertType("nil") << " @new(";
+        out << "  call " << convertType("nil")
+            << " @" << n->signature << "(";
         for (auto argIt = exprStack.end() - numArgs; argIt != exprStack.end(); ++argIt) {
-            out << convertType(argIt->type) << " noundef %" << argIt->reg << ", ";
+            if (isPrimitive(argIt->type)) {
+                out << convertType(argIt->type) << " noundef %" << argIt->reg << ", ";
+            }
+            else {
+                out << convertType(argIt->type + "*") << " noundef byval("
+                    << convertType(argIt->type) << ") %"
+                    << argIt->reg << ", ";
+            }
         }
         // secret sret arg
         out << convertType(n->type + "*") << " sret("
@@ -466,8 +474,6 @@ struct GeneratorVisitor : Visitor {
         for (int i = 0; i < numArgs; ++i) {
             exprStack.pop_back();
         }
-        std::cout << exprStack.size() << "\n";
-
 
         // add this to the exprStack
         exprStack.push_back({placeholderRegister, n->type});
@@ -486,12 +492,12 @@ struct GeneratorVisitor : Visitor {
         out << "  %" << currentRegister
             << " = bitcast " << arrayType 
             << "* %" << currentRegister-1
-            << " to " << ptrType
+            << " to " << convertType(n->type + "*")
             << "\n";
 
         ++currentRegister;
 
-        exprStack.push_back({currentRegister-1, ptrType});
+        exprStack.push_back({currentRegister-1, n->type + "*"});
     }
 
     void visit(std::shared_ptr<Node::HeapExpr> n) override {
@@ -536,7 +542,7 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
 
         // put pointer on expr stack
-        exprStack.push_back({currentRegister-1, convertType(n->type) + "*"});
+        exprStack.push_back({currentRegister-1, n->type + "*"});
     }
 
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
@@ -591,7 +597,7 @@ struct GeneratorVisitor : Visitor {
         // output call
         out << "  %" << currentRegister
             << " = call " << convertType(n->type)
-            << " @" << n->name
+            << " @" << n->signature
             << "(";
 
         // output args
@@ -777,17 +783,28 @@ struct GeneratorVisitor : Visitor {
     // constructor
     void visit(std::shared_ptr<Node::ConstructorDefn> n) override {
         
-        // @NOTE: several violations of visitor pattern
         std::string thisType = currentType->name +  "*";
 
         // type and name
-        out << "define dso_local void @new(";
+        out << "define dso_local void @" << n->info->signature << "(";
 
         // parameters
-        for (const auto& parameter : n->parameters->parameters) {
-            out << convertType(parameter->type) << " noundef %" << currentRegister;
-            nameToRegister.emplace(parameter->name, currentRegister);
-            ++currentRegister;
+        for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
+            // primitive parameter
+            if (isPrimitive(it->type)) {
+                out << convertType(it->type) << " noundef %" << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+            // struct parameter (pass by value)
+            else {
+                out << convertType(it->type + "*") << " noundef byval("
+                    << convertType(it->type) << ") %"
+                    << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+            
             out << ", ";
         }
         
@@ -799,13 +816,16 @@ struct GeneratorVisitor : Visitor {
         out << ") {\n";
 
         // allocations & stores for parameters
-        out << "  ; Handle parameters\n";
+        out << "  ; Primitive parameter allocations and stores\n";
         ++currentRegister;
-        for (const auto& parameter : n->parameters->parameters) {
-            allocation(parameter->type);
-            store(nameToRegister[parameter->name], currentRegister-1, parameter->type);
-            nameToRegister[parameter->name] = currentRegister-1;
+        for (const auto& parameter : n->info->parameters) {
+            if (isPrimitive(parameter.type)) {
+                allocation(parameter.type);
+                store(nameToRegister[parameter.name], currentRegister-1, parameter.type);
+                nameToRegister[parameter.name] = currentRegister-1;
+            }
         }
+        out << "  ; End parameter handling\n";
         
         n->body->accept(shared_from_this());
         out << "}\n";
@@ -883,6 +903,9 @@ struct GeneratorVisitor : Visitor {
             << ", label %" << bodyLabel
             << ", label %" << exitLabel
             << "\n\n";
+
+        // clear expr stack
+        exprStack.pop_back();
 
         // body
         out << bodyLabel << ":\n";

@@ -78,10 +78,11 @@ struct TypeDefinitionScanner {
         visit(n->parameters);
 
         // construct signature
-        std::string signature = "new";
+        std::string signature = currentType.name + ".new";
         for (const auto& parameter : currentProcedure.parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
 
         // signature check
         if (currentType.constructors.find(signature) != currentType.constructors.end()) {
@@ -107,10 +108,11 @@ struct TypeDefinitionScanner {
         visit(n->paramList);
 
         // construct signature
-        std::string signature = n->name;
+        std::string signature = currentType.name + "." + n->name;
         for (const auto& parameter : currentProcedure.parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
 
         // signature check
         if (currentType.methods.find(signature) != currentType.methods.end()) {
@@ -136,10 +138,11 @@ struct TypeDefinitionScanner {
         visit(n->parameter);
 
         // construct signature
-        std::string signature = n->op;
+        std::string signature = currentType.name + "." + n->op;
         for (const auto& parameter : currentProcedure.parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
 
         // signature check
         if (currentType.operators.find(signature) != currentType.operators.end()) {

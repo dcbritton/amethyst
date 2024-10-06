@@ -2,8 +2,10 @@
 
 type Matrix
     @data:int**
+    @size:int
 
     new(size:int)
+        @size = size
         @data = heap [size] int*
         i:int = 0
         while i != size do
@@ -13,14 +15,63 @@ type Matrix
 
         return
     end
+
+    new(other:Matrix)
+        @size = other.size
+        @data = heap [@size] int*
+        i:int = 0
+        while i != @size do
+            @data[i] = heap [@size] int
+            i = i + 1
+        end
+        i = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                @data[i][j] = other.data[i][j]
+            j = j + 1
+            end
+            i = i + 1
+        end
+        return
+    end
+
+    new(other:Matrix*)
+        @size = other[0].size
+        @data = heap [@size] int*
+        i:int = 0
+        while i != @size do
+            @data[i] = heap [@size] int
+            i = i + 1
+        end
+        i = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                @data[i][j] = other[0].data[i][j]
+            j = j + 1
+            end
+            i = i + 1
+        end
+        return
+    end
 end
 
 def getEntry(m:Matrix, i:int, j:int):int
     return m.data[i][j]
 end
 
+def doubleStructParamTest(size:int, m:Matrix, n:Matrix):int
+    return m.size + n.size
+end
+
 def add(first:int, second:int):int
     return first + second
+end
+
+def ptrTest(mat:Matrix*, i:int**):int
+
+    return 0
 end
 
 def main():int
@@ -34,9 +85,16 @@ def main():int
         while j != size do
             mat.data[i][j] = add(i, j)
             j = j + 1
-        end
+        end 
         i = i + 1 
     end
 
-    return getEntry(mat, size+(-1), size+(-2))
+    matrices:Matrix* = stack [4] Matrix
+    matrices[0] = new Matrix(mat)
+    ptrTest(matrices, stack[1] int*)
+
+    mat2:Matrix = new Matrix(mat)
+    mat2.data[size+(-1)][size+(-2)] = 123
+
+    return getEntry(matrices[0], size+(-1), size+(-2)) + doubleStructParamTest(mat.size, mat, mat2)
 end

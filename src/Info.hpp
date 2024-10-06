@@ -77,8 +77,17 @@ struct Type {
     }
 };
 
-std::string formOpSignature(const std::string& op, const std::string& rhsType) {
-    return op + "$" + rhsType;
+std::string formOpSignature(const std::string& type, const std::string& op, const std::string& rhsType) {
+    return type + "." + op + "$" + rhsType;
+}
+
+// replace *'s with .'s for name mangling
+void manglePointers(std::string& signature) {
+    for (auto& character : signature) {
+        if (character == '*') {
+            character = '.';
+        }
+    }
 }
 
 struct Scope {

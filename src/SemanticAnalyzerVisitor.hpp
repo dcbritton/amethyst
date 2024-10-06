@@ -184,34 +184,34 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
         types.emplace("int", Type("int", {}, {}, {
-            std::make_pair<std::string, Procedure>("+$int", Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("-", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("!=", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>("int.+$int", Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "-", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "!=", "int"), Procedure("bool")),
             // std::make_pair<std::string, Procedure>(formOpSignature("!", "int"), Procedure("!", "int", "int")),
             // std::make_pair<std::string, Procedure>(formOpSignature(".", "int"), Procedure(".", "int", "int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("==", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("*", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("/", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("%", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "==", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "*", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "/", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "%", "int"), Procedure("int")),
             // std::make_pair<std::string, Procedure>(formOpSignature("&", "int"), Procedure("&", "int", "int")),
             // std::make_pair<std::string, Procedure>(formOpSignature("|", "int"), Procedure("|", "int", "int")),
             // std::make_pair<std::string, Procedure>(formOpSignature("^", "int"), Procedure("^", "int", "int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("<<", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature(">>", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("<", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("<=", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature(">", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature(">=", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("and", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("or", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "<<", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", ">>", "int"), Procedure("int")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "<", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "<=", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", ">", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", ">=", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "and", "int"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("int", "or", "int"), Procedure("bool")),
             // std::make_pair<std::string, Procedure>(formOpSignature("[]", "int"), Procedure("[]", "int", "int")),
         }, {}));
 
         types.emplace("bool", Type("bool", {}, {}, {
-            std::make_pair<std::string, Procedure>(formOpSignature("and", "bool"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("or", "bool"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("==", "bool"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("!=", "bool"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("bool", "and", "bool"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("bool", "or", "bool"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("bool", "==", "bool"), Procedure("bool")),
+            std::make_pair<std::string, Procedure>(formOpSignature("bool", "!=", "bool"), Procedure("bool")),
         }, {}));
 
         types.emplace("float", Type("float", {}, {}, {}, {}));
@@ -326,6 +326,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         for (const auto& parameter : currentProcedure->parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
 
         // check signature
         if (functionExists(signature)) {
@@ -460,7 +461,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // check the type and see if it has the operator
-        std::string signature = formOpSignature(n->op, rhsType);
+        std::string signature = formOpSignature(lhsType, n->op, rhsType);
         // in own definition, check its own operators
         if (inTypeDefn() && currentType->name == lhsType) {
             // check for existence of operator
@@ -605,10 +606,11 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // create constructor signature
-        std::string signature = "new";
+        std::string signature = n->type + ".new";
         for (const std::string& typeName : typeNames) {
             signature += "$" + typeName;
         }
+        manglePointers(signature);
 
         // signature exists?
         // in own definition, check currentType
@@ -626,6 +628,9 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // push type to expr types stack
         exprTypes.push_back(n->type);
+
+        // attach info for code generator
+        n->signature = signature;
     }
 
     // visit stack expression
@@ -747,12 +752,13 @@ struct SemanticAnalyzerVisitor : Visitor {
             types.push_back(exprTypes.back());
             exprTypes.pop_back();
         }
-
+        
         // create function signature
         std::string signature = n->name;
         for (const std::string& type : types) {
             signature += "$" + type;
         }
+        manglePointers(signature);
 
         std::string type;
 
@@ -785,6 +791,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // attach info for code generator
         n->type = type;
         n->numArgs = types.size();
+        n->signature = signature;
     }
 
     // visit expr list
@@ -848,10 +855,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         // get signature by creating a temporary Procedure
         currentProcedure = std::make_unique<Procedure>();
         n->parameter->accept(shared_from_this());
-        std::string signature = n->op;
+        std::string signature = currentType->name + "." + n->op;
         for (const auto& parameter : currentProcedure->parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
+
         currentProcedure.reset();
             
         // copy fully defined operator from currentType
@@ -889,10 +898,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         // get signature by creating a temporary Procedure
         currentProcedure = std::make_unique<Procedure>();
         n->paramList->accept(shared_from_this());
-        std::string signature = n->name;
+        std::string signature = currentType->name + "." + n->name;
         for (const auto& parameter : currentProcedure->parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
+
         currentProcedure.reset();
 
         // copy fully defined method from currentType
@@ -949,10 +960,11 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // create signature
-        std::string signature = n->name;
+        std::string signature = currentType->name + "." + n->name;
         for (const std::string& type : types) {
             signature += "$" + type;
         }
+        manglePointers(signature);
 
         // method exists?
         if (currentType->methods.find(signature) == currentType->methods.end()) {
@@ -978,10 +990,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         // get signature by creating a temporary Procedure
         currentProcedure = std::make_unique<Procedure>();
         n->parameters->accept(shared_from_this());
-        std::string signature = "new";
+        std::string signature = currentType->name + ".new";
         for (const auto& parameter : currentProcedure->parameters) {
             signature += "$" + parameter.type;
         }
+        manglePointers(signature);
+
         currentProcedure.reset();
 
         // copy fully defined constructor from currentType
@@ -992,8 +1006,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->body->accept(shared_from_this());
         endScope();
 
-        // clear currentProcedure, leaves nullptr
-        currentProcedure.reset();
+        // move the info the AST, to be used by GeneratorVisitor
+        // leaves nullptr
+        n->info = std::move(currentProcedure);
     }
 
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {

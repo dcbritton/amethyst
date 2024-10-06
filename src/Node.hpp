@@ -192,6 +192,9 @@ namespace Node {
         std::string type;
         std::shared_ptr<ExprList> args;
 
+        // assigned during semantic analysis
+        std::string signature;
+
         // constructor
         NewExpr(const std::string& type, std::shared_ptr<ExprList> args)
             : type(type), args(args) {}
@@ -282,6 +285,7 @@ namespace Node {
         // assigned in semantic analysis
         std::string type;
         uint32_t numArgs;
+        std::string signature;
 
         // constructor
         Call(const std::string& name, std::shared_ptr<ExprList> args)
@@ -418,7 +422,7 @@ namespace Node {
         std::shared_ptr<ParamList> paramList;
         std::shared_ptr<FunctionBody> functionBody;
 
-
+        // assigned during semantic analysis
         std::unique_ptr<Procedure> info = nullptr;
 
         // constuctor
@@ -469,6 +473,9 @@ namespace Node {
     struct ConstructorDefn : Node, std::enable_shared_from_this<ConstructorDefn> {
         std::shared_ptr<ParamList> parameters;
         std::shared_ptr<FunctionBody> body;
+
+        // assigned during semantic analysis
+        std::unique_ptr<Procedure> info = nullptr;
 
         ConstructorDefn(std::shared_ptr<ParamList> parameters, std::shared_ptr<FunctionBody> body)
             : parameters(parameters), body(body) {}

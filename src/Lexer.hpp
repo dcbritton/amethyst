@@ -94,6 +94,23 @@ public:
     Lexer(const std::string& text)
         : text(text), it(text.begin()) {}
 
+        bool isOpMinus() {
+            // conditions that guarantee opMinus, anything else assumed negative number
+            // last token is a straightforward determiner
+            return (tokens.back() == Token::closeParen
+                || tokens.back() == Token::closeBracket
+                || tokens.back() == Token::identifier
+                || tokens.back() == Token::intLiteral
+                || tokens.back() == Token::floatLiteral
+                || tokens.back() == Token::kwTrue
+                || tokens.back() == Token::kwFalse
+                || tokens.back() == Token::doubleQuoteString
+                || tokens.back() == Token::singleQuoteString
+                // @TODO:complete this condition
+                // || tokens.back() == Token::
+            );
+        }
+
     // convert input into a token stream
     std::vector<Token> lex() {
 
@@ -157,6 +174,14 @@ public:
                 }
                 it = wordEnd;
 
+                continue;
+            }
+
+            // special case due to ambiguity between opMinus and a negative number
+            // -
+            else if (*it == '-' && isOpMinus()) {
+                tokens.push_back(Token(Token::opMinus, "-", lineNumber));
+                ++it;
                 continue;
             }
 
@@ -274,13 +299,6 @@ public:
             // +
             else if (*it == '+') {
                 tokens.push_back(Token(Token::opPlus, "+", lineNumber));
-                ++it;
-                continue;
-            }
-
-            // -, -
-            else if (*it == '-') {
-                tokens.push_back(Token(Token::opMinus, "-", lineNumber));
                 ++it;
                 continue;
             }

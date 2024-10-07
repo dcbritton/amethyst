@@ -428,34 +428,80 @@ exit0:
   %45 = load i64, i64* %44
   %46 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
   store i64 %45, i64* %46
+
+  ; Define placeholder:int
+  %47 = alloca i64
   ; Begin add expr
   ; Begin add expr
-  %47 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
-  %48 = load i64, i64* %47
-  %49 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %50 = call i64 @foo$int$Matrix(i64 noundef %48, %struct.Matrix* noundef byval(%struct.Matrix) %49)
-  %51 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 0 ; Getting ptr to member
-  %52 = load i64**, i64*** %51
+  %48 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
+  %49 = load i64, i64* %48
+  %50 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %51 = call i64 @foo$int$Matrix(i64 noundef %49, %struct.Matrix* noundef byval(%struct.Matrix) %50)
+  %52 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 0 ; Getting ptr to member
+  %53 = load i64**, i64*** %52
   ; Begin add expr
-  %53 = load i64, i64* %1
-  %54 = add i64 0, 1
-  %55 = sub i64 %53, %54
+  %54 = load i64, i64* %1
+  %55 = add i64 0, 1
+  %56 = sub i64 %54, %55
   ; End add expr
-  %56 = getelementptr i64*, i64** %52, i64 %55
-  %57 = load i64*, i64** %56
+  %57 = getelementptr i64*, i64** %53, i64 %56
+  %58 = load i64*, i64** %57
   ; Begin add expr
-  %58 = load i64, i64* %1
-  %59 = add i64 0, 1
-  %60 = sub i64 %58, %59
+  %59 = load i64, i64* %1
+  %60 = add i64 0, 1
+  %61 = sub i64 %59, %60
   ; End add expr
-  %61 = getelementptr i64, i64* %57, i64 %60
-  %62 = load i64, i64* %61
-  %63 = add i64 %50, %62
+  %62 = getelementptr i64, i64* %58, i64 %61
+  %63 = load i64, i64* %62
+  %64 = add i64 %51, %63
   ; End add expr
-  %64 = add i64 0, -123
-  %65 = sub i64 %63, %64
+  %65 = add i64 0, -123
+  %66 = sub i64 %64, %65
   ; End add expr
-  ret i64 %65
+  store i64 %66, i64* %47
+  ; End definition of placeholder:int
+
+  ; Define k:int
+  %67 = alloca i64
+  %68 = add i64 0, 0
+  store i64 %68, i64* %67
+  ; End definition of k:int
+
+  ; Define boolTest:bool
+  %69 = alloca i1
+  %70 = add i1 0, 1
+  store i1 %70, i1* %69
+  ; End definition of boolTest:bool
+  br label %cond2
+
+cond2:
+  %71 = load i1, i1* %69
+  br i1 %71, label %body2, label %exit2
+
+body2:
+  ; Begin add expr
+  %72 = load i64, i64* %67
+  %73 = add i64 0, 10
+  %74 = add i64 %72, %73
+  ; End add expr
+  store i64 %74, i64* %67
+  br label %cond3
+
+cond3:
+  %75 = load i1, i1* %69
+  br i1 %75, label %body3, label %exit3
+
+body3:
+  %76 = add i1 0, 0
+  store i1 %76, i1* %69
+  br label %cond3
+
+exit3:
+  br label %cond2
+
+exit2:
+  %77 = load i64, i64* %67
+  ret i64 %77
 }
 
 ; Declarations of llvm intrinstics, may be unused

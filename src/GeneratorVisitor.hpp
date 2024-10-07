@@ -595,7 +595,17 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::StringLiteral> n) override {}
 
-    void visit(std::shared_ptr<Node::BoolLiteral> n) override {}
+    void visit(std::shared_ptr<Node::BoolLiteral> n) override {
+        // @NOTE: all int literals are i64
+        // put value in register by adding to 0
+        out << "  %" << currentRegister
+            << " = add i1 0, "
+            << (n->value == "true" ? "1" : "0")
+            << "\n";
+        // register & type stack
+        exprStack.push_back({currentRegister, "bool"});
+        ++currentRegister;
+    }
     
     void visit(std::shared_ptr<Node::Variable> n) override {
 

@@ -134,9 +134,18 @@ struct GeneratorVisitor : Visitor {
         out << "declare noalias i8* @malloc(i64 noundef)\n";
     }
 
-    void visit(std::shared_ptr<Node::GlobalDefn> n) override {}
+    // global decl
+    void visit(std::shared_ptr<Node::GlobalDecl> n) override {
+        out << "@" << n->name
+            << " = dso_local global " << convertType(n->type)
+            << " zeroinitializer";
+    }
 
-    void visit(std::shared_ptr<Node::Global> n) override {}
+    // global
+    void visit(std::shared_ptr<Node::Global> n) override {
+        // @TODO: figure this out
+        // redo register system?
+    }
 
     void visit(std::shared_ptr<Node::Statement> n) override {}
 

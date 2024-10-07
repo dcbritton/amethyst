@@ -27,7 +27,7 @@ struct Parser {
         std::vector<std::shared_ptr<Node::Node>> definitions;
         while (it != tokens.end()) {
             if (*it == Token::globalSigil) {
-                definitions.push_back(parseGlobalDefn());
+                definitions.push_back(parseGlobalDecl());
             }
             else if (*it == Token::kwDef) {
                 definitions.push_back(parseFunctionDefn());
@@ -36,7 +36,7 @@ struct Parser {
                 definitions.push_back(parseTypeDefn());
             }
             else {
-                std::cout << "Parser error on line " << it->lineNumber << ". Expected a definition in global scope.\n";
+                std::cout << "Parser error on line " << it->lineNumber << ". Expected a declaration in global scope.\n";
                 exit(1);
             }
 
@@ -57,8 +57,8 @@ struct Parser {
         return std::make_shared<Node::Program>(definitions); 
     }
 
-    // global_def - $ identifier : identifier [*]* = logic_expr
-    std::shared_ptr<Node::GlobalDefn> parseGlobalDefn() {
+    // global_def - $ identifier : identifier [*]*
+    std::shared_ptr<Node::GlobalDecl> parseGlobalDecl() {
         currentContext = "global definition";
         
         discard(Token::globalSigil);
@@ -71,10 +71,7 @@ struct Parser {
             type += consume(Token::opMultiply);
         }
 
-        discard(Token::opAssign);
-        auto expression = parseLogicalExpr();
-
-        return std::make_shared<Node::GlobalDefn>(name, type, expression);
+        return std::make_shared<Node::GlobalDecl>(name, type);
     }
 
     // global - $ identifier

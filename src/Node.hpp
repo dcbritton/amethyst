@@ -35,15 +35,14 @@ namespace Node {
         }
     };
 
-    // global definiton
-    struct GlobalDefn : Node, std::enable_shared_from_this<GlobalDefn> {
+    // global declaration
+    struct GlobalDecl : Node, std::enable_shared_from_this<GlobalDecl> {
         std::string name;
         std::string type;
-        std::shared_ptr<Node> expression;
 
         // constructor
-        GlobalDefn(const std::string& name, const std::string& type, std::shared_ptr<Node> expression)
-            : name(name), type(type), expression(expression) {}
+        GlobalDecl(const std::string& name, const std::string& type)
+            : name(name), type(type) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {
@@ -239,6 +238,9 @@ namespace Node {
     // global
     struct Global : Primary, std::enable_shared_from_this<Global> {
         std::string name;
+
+        // @NOTE: assigned during semantic analysis
+        std::string type;
 
         // constructor
         Global(const std::string& name)

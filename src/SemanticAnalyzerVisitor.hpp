@@ -259,7 +259,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     }
 
     // visit global definition
-    void visit(std::shared_ptr<Node::GlobalDefn> n) override {
+    void visit(std::shared_ptr<Node::GlobalDecl> n) override {
         // exists?
         if (globalExists(n->name)) {
             std::cout << "Global $" << n->name << " is defined more than once.\n";
@@ -269,23 +269,11 @@ struct SemanticAnalyzerVisitor : Visitor {
         // does n->type exist?
         if (!typeExists(n->type)) {
             std::cout << "The given type " << n->type
-                      << " of variable " << n->name
+                      << " of global $" << n->name
                       << " has not yet been defined.\n";
             exit(1);
         }
         
-        // match lhs and rhs type
-        n->expression->accept(shared_from_this());
-        if (exprTypes.back() != n->type) {
-            std::cout << "In the definition of global $" << n->name
-                      << ", the given type " << n->type
-                      << " does not match the expression type " << exprTypes.back()
-                      << ".\n";
-            exit(1);
-        }
-        // empty the stack
-        exprTypes.pop_back();
-
         // add
         addToScope(Variable(n->name, n->type));
     }
@@ -294,7 +282,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     void visit(std::shared_ptr<Node::Global> n) override {
         // exists?
         if (!globalExists(n->name)) {
-            std::cout << "Global $" << n->name << " referenced, but it has not yet been defined.\n";
+            std::cout << "Global $" << n->name << " referenced, but it has not yet been declared.\n";
             exit(1);
         }
 
@@ -303,6 +291,9 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // expression stack
         exprTypes.push_back(type);
+
+        // attach info for code gen
+        n->type = type;
     }
 
     // visit function body

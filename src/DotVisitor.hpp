@@ -52,8 +52,8 @@ struct DotVisitor : Visitor {
         dotFile.close();
     }
 
-    // visit global definition
-    void visit(std::shared_ptr<Node::GlobalDefn> n) override {
+    // visit global declaration
+    void visit(std::shared_ptr<Node::GlobalDecl> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -62,13 +62,6 @@ struct DotVisitor : Visitor {
                 << " [label=\""
                 << "global_def\n$" << n->name << " : " << n->type
                 << "\"];\n";
-
-        // process child(ren)
-        int exprId = nodeId;
-        n->expression->accept(shared_from_this());
-
-        // connect child(ren) to this node
-        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
     }
 
     // visit global

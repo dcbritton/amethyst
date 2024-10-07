@@ -9,7 +9,7 @@ namespace Node {
     struct Node;
     struct Statement;
     struct Program;
-    struct GlobalDefn;
+    struct GlobalDecl;
     struct Global;
     struct FunctionBody;
     struct LogicalExpr;
@@ -57,7 +57,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::Program> n) {}
 
-    virtual void visit(std::shared_ptr<Node::GlobalDefn> n) {}
+    virtual void visit(std::shared_ptr<Node::GlobalDecl> n) {}
 
     virtual void visit(std::shared_ptr<Node::Global> n) {}
 

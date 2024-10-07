@@ -1,3 +1,5 @@
+@a = dso_local global i64 zeroinitializer
+@b = dso_local global float zeroinitializer
 %struct.Matrix = type { i64**, i64 }
 define dso_local void @Matrix.new$int(i64 noundef %0, %struct.Matrix* noalias sret(%struct.Matrix) %1) {
   ; Primitive parameter allocations and stores
@@ -309,6 +311,7 @@ exit1:
   ret void
 }
 
+@mat = dso_local global %struct.Matrix zeroinitializer
 define dso_local i64 @getEntry$Matrix$int$int(%struct.Matrix* noundef byval(%struct.Matrix) %0, i64 noundef %1, i64 noundef %2) {
   ; Primitive parameter allocations and stores
   %4 = alloca i64

@@ -1,4 +1,6 @@
 
+$a:int
+$b:float
 
 type Matrix
     @data:int**
@@ -56,6 +58,8 @@ type Matrix
         return
     end
 end
+
+$mat:Matrix
 
 def getEntry(m:Matrix, i:int, j:int):int
     return m.data[i][j]

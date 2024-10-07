@@ -3,11 +3,11 @@
 
 program     -   [TERM] [def TERM]* [def [TERM]]
 
-def         -   global_def
+def         -   global_decl
             |   func_def
             |   type_def
 
-global_def  -   $ identifier : identifier [*]* = logic_expr
+global_decl -   $ identifier : identifier [*]*
 
 global      -   $ identifier
 

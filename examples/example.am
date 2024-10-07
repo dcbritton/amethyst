@@ -1,11 +1,16 @@
 
+# globals
 $a:int
 $b:float
 
+# definition of matrix type
 type Matrix
+
+    # member declarations
     @data:int**
     @size:int
 
+    # constructor, allocates size x size int matrix on heap
     new(size:int)
         @size = size
         @data = heap [size] int*
@@ -14,10 +19,10 @@ type Matrix
             @data[i] = heap [size] int
             i = i + 1
         end
-
         return
     end
 
+    # constructor, copies another matrix, allocates new heap space
     new(other:Matrix)
         @size = other.size
         @data = heap [@size] int*
@@ -38,6 +43,8 @@ type Matrix
         return
     end
 
+    # constructor, copies another matrix from a pointer, allocates new space on heap
+    # assumes copy of zeroth element
     new(other:Matrix*)
         @size = other[0].size
         @data = heap [@size] int*
@@ -59,9 +66,10 @@ type Matrix
     end
 end
 
+# global type test
 $mat:Matrix
 
-
+# testing in main
 def main():int
     
     size:int = 12

@@ -129,6 +129,14 @@ public:
                 continue;
             }
 
+            // comment
+            else if (*it == '#') {
+                // ignore until next newline
+                while (*it != '\r' && *it != '\n') {
+                    ++it;
+                }
+            }
+
             // identifier or keyword
             else if (isalpha(*it) || *it == '_') {
 

@@ -400,7 +400,7 @@ exit1:
 exit0:
   %36 = alloca %struct.Matrix ; Placeholder allocating space for struct return
   call void @Matrix.new$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %3, %struct.Matrix* sret(%struct.Matrix) %36)
-  %37 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix*
+  %37 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
   %38 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
   %39 = ptrtoint %struct.Matrix* %38 to i64
   %40 = bitcast %struct.Matrix* %37 to i8*
@@ -408,13 +408,13 @@ exit0:
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %40, i8* %41, i64 %39, i1 false)
   %42 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 1 ; Getting ptr to member
   %43 = load i64, i64* %42
-  %44 = bitcast i64* @.global.a to i64*
+  %44 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
   store i64 %43, i64* %44
   ; Begin add expr
-  %45 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix*
+  %45 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
   %46 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %45, i32 0, i32 1 ; Getting ptr to member
   %47 = load i64, i64* %46
-  %48 = bitcast i64* @.global.a to i64*
+  %48 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
   %49 = load i64, i64* %48
   %50 = add i64 %47, %49
   ; End add expr

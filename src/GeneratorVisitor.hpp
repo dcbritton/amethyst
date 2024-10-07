@@ -152,7 +152,7 @@ struct GeneratorVisitor : Visitor {
             << " = bitcast " << convertType(n->type + "*")
             << " @.global." << n->name
             << " to " << convertType(n->type + "*")
-            << "\n";
+            << " ; Workaround to use globals in current register management system\n";
 
         // structs always push their allocation pointer and their type
         if (!isPrimitive(n->type)) {

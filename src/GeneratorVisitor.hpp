@@ -136,15 +136,42 @@ struct GeneratorVisitor : Visitor {
 
     // global decl
     void visit(std::shared_ptr<Node::GlobalDecl> n) override {
-        out << "@" << n->name
+        out << "@.global." << n->name
             << " = dso_local global " << convertType(n->type)
             << " zeroinitializer";
     }
 
     // global
     void visit(std::shared_ptr<Node::Global> n) override {
-        // @TODO: figure this out
-        // redo register system?
+        
+        auto globalRegisterCopy = currentRegister;
+        ++currentRegister;
+        
+        // get a copy of the global's regiister by bitcasting to its own type
+        out << "  %" << globalRegisterCopy
+            << " = bitcast " << convertType(n->type + "*")
+            << " @.global." << n->name
+            << " to " << convertType(n->type + "*")
+            << "\n";
+
+        // structs always push their allocation pointer and their type
+        if (!isPrimitive(n->type)) {
+            exprStack.push_back({globalRegisterCopy, n->type});
+            return;
+        }
+
+        // primitives
+        // if the assignment is literally `name = expression`, with no . or [] on lhs
+        if (rootOfLhsOfAssignment) {
+            // give the assignment the register of the variable
+            exprStack.push_back({globalRegisterCopy, n->type});  
+        }
+        else {
+            // register & type stack
+            exprStack.push_back({currentRegister, n->type});
+            // load
+            load(globalRegisterCopy, n->type);
+        }
     }
 
     void visit(std::shared_ptr<Node::Statement> n) override {}

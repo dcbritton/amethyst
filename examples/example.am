@@ -61,22 +61,6 @@ end
 
 $mat:Matrix
 
-def getEntry(m:Matrix, i:int, j:int):int
-    return m.data[i][j]
-end
-
-def doubleStructParamTest(size:int, m:Matrix, n:Matrix):int
-    return m.size + n.size
-end
-
-def add(first:int, second:int):int
-    return first + second
-end
-
-def ptrTest(mat:Matrix*, i:int**):int
-
-    return 0
-end
 
 def main():int
     
@@ -87,18 +71,14 @@ def main():int
     while i != size do
         j:int = 0
         while j != size do
-            mat.data[i][j] = add(i, j)
+            mat.data[i][j] = i + j
             j = j + 1
         end 
         i = i + 1 
     end
 
-    matrices:Matrix* = stack [4] Matrix
-    matrices[0] = new Matrix(mat)
-    ptrTest(matrices, stack[1] int*)
+    $mat = new Matrix(mat)
+    $a = mat.size
 
-    mat2:Matrix = new Matrix(mat)
-    mat2.data[size+(-1)][size+(-2)] = 123
-
-    return getEntry(matrices[0], size+(-1), size+(-2)) + doubleStructParamTest(mat.size, mat, mat2)
+    return $mat.size + $a
 end

@@ -1,5 +1,5 @@
-@a = dso_local global i64 zeroinitializer
-@b = dso_local global float zeroinitializer
+@.global.a = dso_local global i64 zeroinitializer
+@.global.b = dso_local global float zeroinitializer
 %struct.Matrix = type { i64**, i64 }
 define dso_local void @Matrix.new$int(i64 noundef %0, %struct.Matrix* noalias sret(%struct.Matrix) %1) {
   ; Primitive parameter allocations and stores
@@ -311,66 +311,7 @@ exit1:
   ret void
 }
 
-@mat = dso_local global %struct.Matrix zeroinitializer
-define dso_local i64 @getEntry$Matrix$int$int(%struct.Matrix* noundef byval(%struct.Matrix) %0, i64 noundef %1, i64 noundef %2) {
-  ; Primitive parameter allocations and stores
-  %4 = alloca i64
-  store i64 %1, i64* %4
-  %5 = alloca i64
-  store i64 %2, i64* %5
-  ; End parameter handling
-  %6 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %0, i32 0, i32 0 ; Getting ptr to member
-  %7 = load i64**, i64*** %6
-  %8 = load i64, i64* %4
-  %9 = getelementptr i64*, i64** %7, i64 %8
-  %10 = load i64*, i64** %9
-  %11 = load i64, i64* %5
-  %12 = getelementptr i64, i64* %10, i64 %11
-  %13 = load i64, i64* %12
-  ret i64 %13
-}
-
-define dso_local i64 @doubleStructParamTest$int$Matrix$Matrix(i64 noundef %0, %struct.Matrix* noundef byval(%struct.Matrix) %1, %struct.Matrix* noundef byval(%struct.Matrix) %2) {
-  ; Primitive parameter allocations and stores
-  %4 = alloca i64
-  store i64 %0, i64* %4
-  ; End parameter handling
-  ; Begin add expr
-  %5 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %1, i32 0, i32 1 ; Getting ptr to member
-  %6 = load i64, i64* %5
-  %7 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %2, i32 0, i32 1 ; Getting ptr to member
-  %8 = load i64, i64* %7
-  %9 = add i64 %6, %8
-  ; End add expr
-  ret i64 %9
-}
-
-define dso_local i64 @add$int$int(i64 noundef %0, i64 noundef %1) {
-  ; Primitive parameter allocations and stores
-  %3 = alloca i64
-  store i64 %0, i64* %3
-  %4 = alloca i64
-  store i64 %1, i64* %4
-  ; End parameter handling
-  ; Begin add expr
-  %5 = load i64, i64* %3
-  %6 = load i64, i64* %4
-  %7 = add i64 %5, %6
-  ; End add expr
-  ret i64 %7
-}
-
-define dso_local i64 @ptrTest$Matrix.$int..(%struct.Matrix* noundef %0, i64** noundef %1) {
-  ; Primitive parameter allocations and stores
-  %3 = alloca %struct.Matrix*
-  store %struct.Matrix* %0, %struct.Matrix** %3
-  %4 = alloca i64**
-  store i64** %1, i64*** %4
-  ; End parameter handling
-  %5 = add i64 0, 0
-  ret i64 %5
-}
-
+@.global.mat = dso_local global %struct.Matrix zeroinitializer
 define dso_local i64 @main() {
   ; Primitive parameter allocations and stores
   ; End parameter handling
@@ -426,9 +367,11 @@ cond1:
   br i1 %19, label %body1, label %exit1
 
 body1:
+  ; Begin add expr
   %20 = load i64, i64* %10
   %21 = load i64, i64* %15
-  %22 = call i64 @add$int$int(i64 noundef %20, i64 noundef %21)
+  %22 = add i64 %20, %21
+  ; End add expr
   %23 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 0 ; Getting ptr to member
   %24 = load i64**, i64*** %23
   %25 = load i64, i64* %10
@@ -455,76 +398,27 @@ exit1:
   br label %cond0
 
 exit0:
-
-  ; Define matrices:Matrix*
-  %36 = alloca %struct.Matrix*
-  %37 = alloca [4 x %struct.Matrix]
-  %38 = bitcast [4 x %struct.Matrix]* %37 to %struct.Matrix*
-  store %struct.Matrix* %38, %struct.Matrix** %36
-  ; End definition of matrices:Matrix*
-  %39 = alloca %struct.Matrix ; Placeholder allocating space for struct return
-  call void @Matrix.new$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %3, %struct.Matrix* sret(%struct.Matrix) %39)
-  %40 = load %struct.Matrix*, %struct.Matrix** %36
-  %41 = add i64 0, 0
-  %42 = getelementptr %struct.Matrix, %struct.Matrix* %40, i64 %41
-  %43 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
-  %44 = ptrtoint %struct.Matrix* %43 to i64
-  %45 = bitcast %struct.Matrix* %42 to i8*
-  %46 = bitcast %struct.Matrix* %39 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %45, i8* %46, i64 %44, i1 false)
-  %47 = load %struct.Matrix*, %struct.Matrix** %36
-  %48 = alloca [1 x i64*]
-  %49 = bitcast [1 x i64*]* %48 to i64**
-  %50 = call i64 @ptrTest$Matrix.$int..(%struct.Matrix* noundef %47, i64** noundef %49)
-
-  ; Define mat2:Matrix
-  %51 = alloca %struct.Matrix
-  %52 = alloca %struct.Matrix ; Placeholder allocating space for struct return
-  call void @Matrix.new$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %3, %struct.Matrix* sret(%struct.Matrix) %52)
-  %53 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
-  %54 = ptrtoint %struct.Matrix* %53 to i64
-  %55 = bitcast %struct.Matrix* %51 to i8*
-  %56 = bitcast %struct.Matrix* %52 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %55, i8* %56, i64 %54, i1 false)
-  ; End definition of mat2:Matrix
-  %57 = add i64 0, 123
-  %58 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %51, i32 0, i32 0 ; Getting ptr to member
-  %59 = load i64**, i64*** %58
+  %36 = alloca %struct.Matrix ; Placeholder allocating space for struct return
+  call void @Matrix.new$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %3, %struct.Matrix* sret(%struct.Matrix) %36)
+  %37 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix*
+  %38 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %39 = ptrtoint %struct.Matrix* %38 to i64
+  %40 = bitcast %struct.Matrix* %37 to i8*
+  %41 = bitcast %struct.Matrix* %36 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %40, i8* %41, i64 %39, i1 false)
+  %42 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 1 ; Getting ptr to member
+  %43 = load i64, i64* %42
+  %44 = bitcast i64* @.global.a to i64*
+  store i64 %43, i64* %44
   ; Begin add expr
-  %60 = load i64, i64* %1
-  %61 = add i64 0, -1
-  %62 = add i64 %60, %61
+  %45 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix*
+  %46 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %45, i32 0, i32 1 ; Getting ptr to member
+  %47 = load i64, i64* %46
+  %48 = bitcast i64* @.global.a to i64*
+  %49 = load i64, i64* %48
+  %50 = add i64 %47, %49
   ; End add expr
-  %63 = getelementptr i64*, i64** %59, i64 %62
-  %64 = load i64*, i64** %63
-  ; Begin add expr
-  %65 = load i64, i64* %1
-  %66 = add i64 0, -2
-  %67 = add i64 %65, %66
-  ; End add expr
-  %68 = getelementptr i64, i64* %64, i64 %67
-  store i64 %57, i64* %68
-  ; Begin add expr
-  %69 = load %struct.Matrix*, %struct.Matrix** %36
-  %70 = add i64 0, 0
-  %71 = getelementptr %struct.Matrix, %struct.Matrix* %69, i64 %70
-  ; Begin add expr
-  %72 = load i64, i64* %1
-  %73 = add i64 0, -1
-  %74 = add i64 %72, %73
-  ; End add expr
-  ; Begin add expr
-  %75 = load i64, i64* %1
-  %76 = add i64 0, -2
-  %77 = add i64 %75, %76
-  ; End add expr
-  %78 = call i64 @getEntry$Matrix$int$int(%struct.Matrix* noundef byval(%struct.Matrix) %71, i64 noundef %74, i64 noundef %77)
-  %79 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %3, i32 0, i32 1 ; Getting ptr to member
-  %80 = load i64, i64* %79
-  %81 = call i64 @doubleStructParamTest$int$Matrix$Matrix(i64 noundef %80, %struct.Matrix* noundef byval(%struct.Matrix) %3, %struct.Matrix* noundef byval(%struct.Matrix) %51)
-  %82 = add i64 %78, %81
-  ; End add expr
-  ret i64 %82
+  ret i64 %50
 }
 
 ; Declarations of llvm intrinstics, may be unused

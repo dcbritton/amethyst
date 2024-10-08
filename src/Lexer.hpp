@@ -45,7 +45,7 @@ private:
         {"new", Token::kwNew},
         {"stack", Token::kwStack},
         {"heap", Token::kwHeap},
-        {"delete", Token::kwDelete},
+        {"unheap", Token::kwUnheap},
         {"op", Token::kwOp},
         {"BEGIN", Token::kwBEGIN},
         {"END", Token::kwEND},

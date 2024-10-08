@@ -98,9 +98,9 @@ struct Parser {
                 statements.push_back(parseReturn());
             }
 
-            // delete
-            else if (*it == Token::kwDelete) {
-                statements.push_back(parseDelete());
+            // unheap
+            else if (*it == Token::kwUnheap) {
+                statements.push_back(parseUnheap());
             }
 
             // conditional block
@@ -810,19 +810,13 @@ struct Parser {
         return std::make_shared<Node::VariableDefn>(name, type, expression);
     }
 
-    // delete_stmt - delete [[ int_literal ]] identifier
-    std::shared_ptr<Node::Delete> parseDelete() {
+    // unheap_stmt - unheap access_expr
+    std::shared_ptr<Node::Unheap> parseUnheap() {
 
-        discard(Token::kwDelete);
-        std::string number = "0";
-        if (*it == Token::openBracket) {
-            discard(Token::openBracket);
-            number = consume(Token::intLiteral);
-            discard(Token::closeBracket);
-        }
-        std::string name = consume(Token::identifier);
+        discard(Token::kwUnheap);
+        std::shared_ptr<Node::Node> expr = parseAccessExpr();
 
-        return std::make_shared<Node::Delete>(number, name);
+        return std::make_shared<Node::Unheap>(expr);
     }
 
     // if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end

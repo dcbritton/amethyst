@@ -567,14 +567,13 @@ namespace Node {
         }
     };
 
-    // delete
-    struct Delete : Statement, std::enable_shared_from_this<Delete> {
-        std::string number;
-        std::string name;
+    // unheap
+    struct Unheap : Statement, std::enable_shared_from_this<Unheap> {
+        std::shared_ptr<Node> expr;
 
         // constructor
-        Delete(const std::string& number, const std::string& name)
-            : number(number), name(name) {}
+        Unheap(std::shared_ptr<Node> expr)
+            : expr(expr) {}
 
         // accept visitor
         void accept(std::shared_ptr<Visitor> v) override {

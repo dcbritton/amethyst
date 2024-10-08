@@ -94,15 +94,10 @@ def main():int
     $a = mat.size
     placeholder:int = foo($a, $mat) + mat.data[size-1][size-1] - -123
 
-    k:int = 0
-    boolTest:bool = true
-    while boolTest do
-        k = k + 10
+    ptrTest:int* = stack [4] int
+    unheap ptrTest
 
-        while boolTest do
-            boolTest = false
-        end
-    end
+    ptrTest[0] = 123
 
-    return k
+    return ptrTest[0]
 end

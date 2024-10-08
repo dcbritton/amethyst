@@ -132,6 +132,7 @@ struct GeneratorVisitor : Visitor {
         out << "; Declarations of llvm intrinstics, may be unused\n";
         out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
         out << "declare noalias i8* @malloc(i64 noundef)\n";
+        out << "declare void @free(i8* noundef)\n";
     }
 
     // global decl
@@ -925,9 +926,26 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::MethodCall> n) override {}
 
-    void visit(std::shared_ptr<Node::OperatorDefn> n) override {}
+    // visit unheap
+    void visit(std::shared_ptr<Node::Unheap> n) override {
 
-    void visit(std::shared_ptr<Node::Delete> n) override {}
+        // evaluate expr
+        n->expr->accept(shared_from_this());
+        auto exprInfo = exprStack.back();
+
+        // bitcast to i8*
+        out << "  %" << currentRegister
+            << " = bitcast " << convertType(exprInfo.type)
+            << " %" << exprInfo.reg
+            << " to i8*\n";
+        
+        // call free
+        out << "  call void @free(i8* noundef %" << currentRegister << ")\n";
+
+        ++currentRegister;
+    }
+
+    void visit(std::shared_ptr<Node::OperatorDefn> n) override {}
 
     void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
 

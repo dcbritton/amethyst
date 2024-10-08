@@ -714,19 +714,21 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(argsId) << ";\n";
     }
 
-    // visit delete 
-    void visit(std::shared_ptr<Node::Delete> n) override {
+    // visit unheap
+    void visit(std::shared_ptr<Node::Unheap> n) override {
         int thisId = nodeId;
         ++nodeId;
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "delete" 
-                
-                << "[" << n->number
-                << "]" <<"\n" << n->name
-                << "\"];\n";
+                << " [label=\"unheap\"];\n";
+
+        // process child(ren)
+        int exprId = nodeId;
+        n->expr->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(exprId) << ";\n";
     }
 
     // visit conditional block

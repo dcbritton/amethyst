@@ -461,49 +461,32 @@ exit0:
   store i64 %66, i64* %47
   ; End definition of placeholder:int
 
-  ; Define k:int
-  %67 = alloca i64
-  %68 = add i64 0, 0
-  store i64 %68, i64* %67
-  ; End definition of k:int
-
-  ; Define boolTest:bool
-  %69 = alloca i1
-  %70 = add i1 0, 1
-  store i1 %70, i1* %69
-  ; End definition of boolTest:bool
-  br label %cond2
-
-cond2:
-  %71 = load i1, i1* %69
-  br i1 %71, label %body2, label %exit2
-
-body2:
-  ; Begin add expr
-  %72 = load i64, i64* %67
-  %73 = add i64 0, 10
-  %74 = add i64 %72, %73
-  ; End add expr
-  store i64 %74, i64* %67
-  br label %cond3
-
-cond3:
-  %75 = load i1, i1* %69
-  br i1 %75, label %body3, label %exit3
-
-body3:
-  %76 = add i1 0, 0
-  store i1 %76, i1* %69
-  br label %cond3
-
-exit3:
-  br label %cond2
-
-exit2:
-  %77 = load i64, i64* %67
-  ret i64 %77
+  ; Define ptrTest:int*
+  %67 = alloca i64*
+  %68 = getelementptr i64, i64* null, i32 1
+  %69 = ptrtoint i64* %68 to i64
+  %70 = add i64 0, 4
+  %71 = mul i64 %69, %70
+  %72 = call noalias i8* @malloc(i64 noundef %71)
+  %73 = bitcast i8* %72 to i64*
+  store i64* %73, i64** %67
+  ; End definition of ptrTest:int*
+  %74 = load i64*, i64** %67
+  %75 = bitcast i64* %74 to i8*
+  call void @free(i8* noundef %75)
+  %76 = add i64 0, 123
+  %77 = load i64*, i64** %67
+  %78 = add i64 0, 0
+  %79 = getelementptr i64, i64* %77, i64 %78
+  store i64 %76, i64* %79
+  %80 = load i64*, i64** %67
+  %81 = add i64 0, 0
+  %82 = getelementptr i64, i64* %80, i64 %81
+  %83 = load i64, i64* %82
+  ret i64 %83
 }
 
 ; Declarations of llvm intrinstics, may be unused
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)
 declare noalias i8* @malloc(i64 noundef)
+declare void @free(i8* noundef)

@@ -24,11 +24,11 @@ stmt        -   var_def
             |   conditional
             |   while_loop
             |   return_stmt
-            |   delete_stmt
+            |   unheap_stmt
             |   break
             |   continue
 
-delete_stmt -   delete [[ int_literal ]] identifier
+unheap_stmt -   unheap access_expr
 
 while_loop  -   while logic_expr do func_body end
 

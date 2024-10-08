@@ -954,6 +954,21 @@ struct SemanticAnalyzerVisitor : Visitor {
 
     }
 
+    // visit unheap
+    void visit(std::shared_ptr<Node::Unheap> n) override {
+
+        // visit expr, guaranteed accessexpr by parser
+        n->expr->accept(shared_from_this());
+
+        // can't free a non-pointer
+        if (exprTypes.back().back() != '*') {
+            std::cout << "Used unheap on a non-pointer type.\n";
+            exit(1);
+        }
+
+        exprTypes.pop_back();
+    }
+
     // visit constructor definition
     void visit(std::shared_ptr<Node::ConstructorDefn> n) override {
         // set currentProcedure to an empty Procedure

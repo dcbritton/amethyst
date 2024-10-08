@@ -63,7 +63,7 @@ struct Token {
         kwNew,
         kwStack,
         kwHeap,
-        kwDelete,
+        kwUnheap,
         kwOp,
         kwBEGIN,
         kwEND,
@@ -188,7 +188,7 @@ struct Token {
             case kwNew: return "kwNew";
             case kwStack: return "kwStack";
             case kwHeap: return "kwHeap";
-            case kwDelete: return "kwDelete";
+            case kwUnheap: return "kwUnheap";
             case kwOp: return "kwOp";
             case kwBEGIN: return "kwBEGIN";
             case kwEND: return "kwEND";

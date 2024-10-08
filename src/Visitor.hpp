@@ -48,7 +48,7 @@ namespace Node {
     struct ExprList;
     struct Call;
     struct Array;
-    struct Delete;
+    struct Unheap;
     struct Member;
     struct MethodCall;
 }
@@ -133,7 +133,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::OperatorDefn> n) {}
 
-    virtual void visit(std::shared_ptr<Node::Delete> n) {}
+    virtual void visit(std::shared_ptr<Node::Unheap> n) {}
 
     virtual void visit(std::shared_ptr<Node::ConditionalBlock> n) {}
 

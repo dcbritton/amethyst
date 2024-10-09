@@ -799,6 +799,7 @@ struct GeneratorVisitor : Visitor {
         else {
             out << "  ret void\n";
         }
+        ++currentRegister;
     }
 
     void visit(std::shared_ptr<Node::TypeDefn> n) override {

@@ -805,6 +805,15 @@ struct DotVisitor : Visitor {
         // create this node
         dotFile << "node" << std::to_string(thisId) << " [label=\"continue\"];\n";
     }
+
+    // redo
+    void visit(std::shared_ptr<Node::Redo> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId) << " [label=\"redo\"];\n";
+    }
 };
 
 #endif

@@ -124,6 +124,11 @@ struct Parser {
                 statements.push_back(std::make_shared<Node::Continue>());
                 ++it;
             }
+            // redo
+            else if  (*it == Token::kwRedo) {
+                statements.push_back(std::make_shared<Node::Redo>());
+                ++it;
+            }
 
             // end of function body
             else if (*it == Token::kwEnd || *it == Token::kwElsif || *it == Token::kwElse) {

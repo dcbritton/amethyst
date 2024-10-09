@@ -1060,6 +1060,15 @@ struct SemanticAnalyzerVisitor : Visitor {
            exit(1);
         }
     }
+
+    // redo
+    void visit(std::shared_ptr<Node::Redo> n) override {
+        // must be in a loop
+        if (!inLoop()) {
+           std::cout << "Tried to use a redo statement when not in a loop.\n";
+           exit(1);
+        }
+    }
 };
 
 #endif

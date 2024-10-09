@@ -650,6 +650,14 @@ namespace Node {
             v->visit(shared_from_this());
         }
     };
+
+    // redo
+    struct Redo : Statement, std::enable_shared_from_this<Redo> {
+        // accept
+        void accept(std::shared_ptr<Visitor> v) override {
+            v->visit(shared_from_this());
+        }
+    };
 }
 
 #endif

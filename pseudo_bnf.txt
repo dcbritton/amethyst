@@ -27,6 +27,7 @@ stmt        -   var_def
             |   unheap_stmt
             |   break
             |   continue
+            |   redo
 
 unheap_stmt -   unheap access_expr
 

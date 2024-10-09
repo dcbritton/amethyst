@@ -1082,9 +1082,13 @@ struct GeneratorVisitor : Visitor {
         out << exitLabel <<  ":\n";
     }
 
-    void visit(std::shared_ptr<Node::Break> n) override {}
+    void visit(std::shared_ptr<Node::Break> n) override {
+        // break to innermost loop exit
+    }
 
-    void visit(std::shared_ptr<Node::Continue> n) override {}
+    void visit(std::shared_ptr<Node::Continue> n) override {
+        // break to innermost loop condition
+    }
 };
 
 #endif

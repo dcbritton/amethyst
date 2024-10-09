@@ -43,6 +43,7 @@ namespace Node {
     struct WhileLoop;
     struct Break;
     struct Continue;
+    struct Redo;
     struct AccessExpr;
     struct DotRHS;
     struct ExprList;
@@ -142,6 +143,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::Break> n) {}
 
     virtual void visit(std::shared_ptr<Node::Continue> n) {}
+
+    virtual void visit(std::shared_ptr<Node::Redo> n) {}
 };
 
 #endif

@@ -38,7 +38,7 @@ namespace Node {
     struct MemberDecl;
     struct MethodDefn;
     struct OperatorDefn;
-    struct ConditionalBlock;
+    struct Conditional;
     struct ForLoop;
     struct WhileLoop;
     struct Break;
@@ -135,7 +135,7 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::Unheap> n) {}
 
-    virtual void visit(std::shared_ptr<Node::ConditionalBlock> n) {}
+    virtual void visit(std::shared_ptr<Node::Conditional> n) {}
 
     virtual void visit(std::shared_ptr<Node::WhileLoop> n) {}
 

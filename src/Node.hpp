@@ -595,14 +595,14 @@ namespace Node {
         }
     };
 
-    struct ConditionalBlock : Statement, std::enable_shared_from_this<ConditionalBlock> {
+    struct Conditional : Statement, std::enable_shared_from_this<Conditional> {
         std::shared_ptr<Node> ifExpr;
         std::shared_ptr<FunctionBody> ifStmts;
         std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<FunctionBody>>> elsifs;
         std::shared_ptr<FunctionBody> elseStmts;
 
         // constructor
-        ConditionalBlock(
+        Conditional(
             std::shared_ptr<Node> ifExpr,
             std::shared_ptr<FunctionBody> ifStmts,
             std::vector<std::pair<std::shared_ptr<Node>, std::shared_ptr<FunctionBody>>> elsifs,

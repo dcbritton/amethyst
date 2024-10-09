@@ -947,7 +947,108 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::OperatorDefn> n) override {}
 
-    void visit(std::shared_ptr<Node::ConditionalBlock> n) override {}
+    void visit(std::shared_ptr<Node::Conditional> n) override {
+        // DETERMINE LABELS
+        // produce if body label
+        std::string ifBodyLabel = "ifbody" + std::to_string(currentLabelNumber);
+        // produce elsif labels
+        std::vector<std::pair<std::string, std::string>> elsifLabels;
+        uint32_t elsifCount = 0;
+        for (const auto& [condition, body] : n->elsifs) {
+            std::string elsifCondition = "elsifcond" + std::to_string(currentLabelNumber) + "x" + std::to_string(elsifCount);
+            std::string elsifBody = "elsifbody" + std::to_string(currentLabelNumber) + "x" + std::to_string(elsifCount);
+            elsifLabels.push_back(std::make_pair<std::string, std::string>(std::move(elsifCondition), std::move(elsifBody)));
+            ++elsifCount;
+        }
+        // produce else body label
+        std::string elseBodyLabel;
+        if (n->elseStmts) {
+            elseBodyLabel = "elsebody" + std::to_string(currentLabelNumber);
+        }
+        // produce exit label
+        std::string exitLabel = "exit" + std::to_string(currentLabelNumber);
+        ++currentLabelNumber;
+
+
+        // OUTPUT FOR IF
+        // if condition mandatory, no label;
+        n->ifExpr->accept(shared_from_this());
+        exprStack.pop_back();
+        // always breaks to body on true
+        out << "  br i1 %" << currentRegister-1
+            << ", label %" << ifBodyLabel;
+
+        // if there are elsifs, break to first elsif condition on false
+        if (elsifLabels.size()) {
+            out << ", label %" << elsifLabels[0].first
+                << "\n\n";
+        }
+        // no elsifs, but there is an else, break to else body on false
+        else if (elseBodyLabel != "") {
+            out << ", label %" << elseBodyLabel
+                << "\n\n";
+        }
+        // if neither, break to exit
+        else {
+            out << ", label %" << exitLabel
+                << "\n\n";
+        }
+
+        // body of if, all bodies break to exit
+        out << ifBodyLabel << ":\n";
+        n->ifStmts->accept(shared_from_this());
+        out << "  br label %" << exitLabel << "\n\n";
+        
+
+        // OUTPUT FOR ELSIFS (may be none)
+        for (int i = 0; i < elsifLabels.size(); ++i) {
+
+            // condition
+            out << elsifLabels[i].first << ":\n";
+            n->elsifs[i].first->accept(shared_from_this());
+            exprStack.pop_back();
+            // always breaks to body on true
+            out << "  br i1 %" << currentRegister-1
+                << ", label %" << elsifLabels[i].second;
+
+            // last elsif? break to else or exit on false
+            if (i == elsifLabels.size()-1) {
+                // there is an else, break to else
+                if (elseBodyLabel != "") {
+                    out << ", label %" << elseBodyLabel
+                        << "\n\n";
+                }
+                // otherwise, break to exit
+                else {
+                    out << ", label %" << exitLabel
+                        << "\n\n";
+                }
+            }
+            // not last elsif, break to next elsif condition on false
+            else {
+                out << ", label %" << elsifLabels[i+1].first
+                    << "\n\n";
+            }
+
+            // body, all bodies break to exit
+            out << elsifLabels[i].second << ":\n";
+            n->elsifs[i].second->accept(shared_from_this());
+            out << "  br label %" << exitLabel << "\n\n";
+        }
+
+
+        // ELSE
+        // else exits?
+        if (elseBodyLabel != "") {
+            out << elseBodyLabel << ":\n";
+            n->elseStmts->accept(shared_from_this());
+            // all bodies break to exit
+            out << "  br label %" << exitLabel << "\n\n";
+        }
+
+        // EXIT
+        out << exitLabel <<  ":\n";
+    }
 
     // @TODO: reintroduce loop metadata
     void visit(std::shared_ptr<Node::WhileLoop> n) override {
@@ -979,7 +1080,6 @@ struct GeneratorVisitor : Visitor {
 
         // exit
         out << exitLabel <<  ":\n";
-
     }
 
     void visit(std::shared_ptr<Node::Break> n) override {}

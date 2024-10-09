@@ -126,7 +126,7 @@ struct Parser {
             }
 
             // end of function body
-            else if (*it == Token::kwEnd) {
+            else if (*it == Token::kwEnd || *it == Token::kwElsif || *it == Token::kwElse) {
                 break;
             }
 
@@ -819,29 +819,38 @@ struct Parser {
         return std::make_shared<Node::Unheap>(expr);
     }
 
-    // if expr comp_stmt [elsif expr comp_stmt]* [else comp_stmt] end
-    std::shared_ptr<Node::ConditionalBlock> parseConditionalBlock() {
+    // conditional - if logic_expr then TERM func_body [elsif logic_expr then TERM func_body]* [else then TERM func_body] end
+    std::shared_ptr<Node::Conditional> parseConditionalBlock() {
         currentContext = "conditional block";
 
         discard(Token::kwIf);
         auto ifExpr = parseLogicalExpr();
+        discard(Token::kwThen);
+        discard(Token::terminator);
         auto ifStmt = parseFunctionBody();
+
+        // 0 or more elsifs
         std::vector<std::pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::FunctionBody>>> elsifs;
         while(*it == Token::kwElsif) {
             discard(Token::kwElsif);
             auto expr = parseLogicalExpr();
+            discard(Token::kwThen);
+            discard(Token::terminator);
             auto stmts = parseFunctionBody();
-            // @TODO: come back to this and figure out why it wont work without std::move()
             elsifs.push_back(std::make_pair<std::shared_ptr<Node::Node>, std::shared_ptr<Node::FunctionBody>>(std::move(expr), std::move(stmts)));
         }
+
+        // 0 or 1 elses
         std::shared_ptr<Node::FunctionBody> elseStmts; 
         if (*it == Token::kwElse) {
             discard(Token::kwElse);
+            discard(Token::kwThen);
+            discard(Token::terminator);
             elseStmts = parseFunctionBody();
         }
         discard(Token::kwEnd);
 
-        return std::make_shared<Node::ConditionalBlock>(ifExpr, ifStmt, elsifs, elseStmts);
+        return std::make_shared<Node::Conditional>(ifExpr, ifStmt, elsifs, elseStmts);
     }
 
     // while expr do TERM func_body end

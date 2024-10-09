@@ -258,7 +258,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         addToScope(Variable(n->name, n->type));
     }
 
-    // visit global definition
+    // visit global declaration
     void visit(std::shared_ptr<Node::GlobalDecl> n) override {
         // exists?
         if (globalExists(n->name)) {
@@ -1001,8 +1001,32 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->info = std::move(currentProcedure);
     }
 
-    void visit(std::shared_ptr<Node::ConditionalBlock> n) override {
-        
+    void visit(std::shared_ptr<Node::Conditional> n) override {
+        // make sure expressions evaluate to bool
+        n->ifExpr->accept(shared_from_this());
+        if (exprTypes.back() != "bool") {
+            std::cout << "An if condition did not evaluate to bool.\n";
+            exit(1);
+        }
+        exprTypes.pop_back();
+
+        for (const auto& [expr, body]: n->elsifs) {
+            expr->accept(shared_from_this());
+            if (exprTypes.back() != "bool") {
+                std::cout << "An elsif condition did not evaluate to bool.\n";
+                exit(1);
+            }
+            exprTypes.pop_back();
+        }
+
+        // analyze all bodies
+        n->ifStmts->accept(shared_from_this());
+        for (const auto& [expr, body] : n->elsifs) {
+            body->accept(shared_from_this());
+        }
+        if (n->elseStmts) {
+            n->elseStmts->accept(shared_from_this());
+        }
     }
 
     void visit(std::shared_ptr<Node::WhileLoop> n) override {

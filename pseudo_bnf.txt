@@ -32,7 +32,7 @@ unheap_stmt -   unheap access_expr
 
 while_loop  -   while logic_expr do func_body end
 
-conditional -   if logic_expr func_body [elsif logic_expr func_body]* [else func_body] end
+conditional -   if logic_expr then TERM func_body [elsif logic_expr then TERM func_body]* [else then TERM func_body] end
             
 return_stmt -   return logic_expr
 

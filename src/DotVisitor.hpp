@@ -732,18 +732,13 @@ struct DotVisitor : Visitor {
     }
 
     // visit conditional block
-    void visit(std::shared_ptr<Node::ConditionalBlock> n) override {
+    void visit(std::shared_ptr<Node::Conditional> n) override {
         int thisId = nodeId;
         ++nodeId;
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "conditional block\n"
-                << "if, "
-                << std::to_string(n->elsifs.size()) << " elsif(s)"
-                << (n->elseStmts->statements.size() ? ", else" : " ")
-                << "\"];\n";
+                << " [label=\"conditional\"];\n";
             
         // process child(ren)
         std::vector<int> substatementIds = {};
@@ -760,7 +755,7 @@ struct DotVisitor : Visitor {
             stmts->accept(shared_from_this());
         }
 
-        if (n->elseStmts->statements.size()) {
+        if (n->elseStmts) {
             substatementIds.push_back(nodeId);
             n->elseStmts->accept(shared_from_this());
         }

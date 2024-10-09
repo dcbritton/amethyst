@@ -1,103 +1,24 @@
 
-# globals
-$a:int
-$b:float
-
-# definition of matrix type
-type Matrix
-
-    # member declarations
-    @data:int**
-    @size:int
-
-    # constructor, allocates size x size int matrix on heap
-    new(size:int)
-        @size = size
-        @data = heap [size] int*
-        i:int = 0
-        while i != size do
-            @data[i] = heap [size] int
-            i = i + 1
-        end
-        return
-    end
-
-    # constructor, copies another matrix, allocates new heap space
-    new(other:Matrix)
-        @size = other.size
-        @data = heap [@size] int*
-        i:int = 0
-        while i != @size do
-            @data[i] = heap [@size] int
-            i = i + 1
-        end
-        i = 0
-        while i != @size do
-            j:int = 0
-            while j != @size do
-                @data[i][j] = other.data[i][j]
-            j = j + 1
-            end
-            i = i + 1
-        end
-        return
-    end
-
-    # constructor, copies another matrix from a pointer, allocates new space on heap
-    # assumes copy of zeroth element
-    new(other:Matrix*)
-        @size = other[0].size
-        @data = heap [@size] int*
-        i:int = 0
-        while i != @size do
-            @data[i] = heap [@size] int
-            i = i + 1
-        end
-        i = 0
-        while i != @size do
-            j:int = 0
-            while j != @size do
-                @data[i][j] = other[0].data[i][j]
-            j = j + 1
-            end
-            i = i + 1
-        end
-        return
-    end
-end
-
-# global type test
-$mat:Matrix
-
-# function to test global parameters
-def foo(num:int, matrix:Matrix):int
-    return matrix.size + num
-end
 
 # testing in main
 def main():int
     
-    size:int = 12
-    mat:Matrix = new Matrix(size)
+    i:int = 25
+    j:int = 2
 
-    i:int = 0
-    while i != size do
-        j:int = 0
-        while j != size do
-            mat.data[i][j] = i + j + -1
-            j = j + 1
-        end 
-        i = i + 1 
+    if i == 0 then
+        if j == 2 then
+            j = 199
+        else then
+            j = 200
+        end
+    elsif i == 1 then
+        j = 201
+    elsif i == 2 then
+        j = 202
+    else then
+        j = 203
     end
 
-    $mat = new Matrix(mat)
-    $a = mat.size
-    placeholder:int = foo($a, $mat) + mat.data[size-1][size-1] - -123
-
-    ptrTest:int* = stack [4] int
-    unheap ptrTest
-
-    ptrTest[0] = 123
-
-    return ptrTest[0]
+    return j
 end

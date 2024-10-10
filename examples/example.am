@@ -1,4 +1,6 @@
 
+# This example is likely riddled with memory 
+
 # globals
 $a:int
 $b:float
@@ -66,7 +68,7 @@ type Matrix
     end
 
     # method, set each entry to be the product of its indices
-    def @setEntryAsIndexProduct():int
+    def @setEntryAsIndexProduct()
         i:int = 0
         while i != @size do
             j:int = 0
@@ -88,13 +90,9 @@ def foo(num:int, matrix:Matrix):int
     return matrix.size + num
 end
 
-# function to test post-return register gap
-def bar(num:int, matrix:Matrix)
-    if num == matrix.size then
-        j:int = num
-        return
-    end
-    k:int = num
+# function to test void free function calls
+def setGlobal(m:Matrix)
+    $a = m.size
     return
 end
 
@@ -128,10 +126,12 @@ def main():int
             redo
             return 91
         elsif k == 80 then
-            continue
+            # continue
             break
         end
     end
+    # return k
 
-    return k
+    setGlobal(new Matrix($mat))
+    return $a
 end

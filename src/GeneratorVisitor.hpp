@@ -645,10 +645,19 @@ struct GeneratorVisitor : Visitor {
         // top of expr stack now contains types and registers for arg results
 
         // output call
-        out << "  %r" << currentRegister
-            << " = call " << convertType(n->type)
-            << " @" << n->signature
-            << "(";
+        // void (nil) return type
+        if (n->type != "nil") {
+            out << "  %r" << currentRegister
+                << " = call " << convertType(n->type)
+                << " @" << n->signature
+                << "(";
+        }
+        // non-void (non-nil) return type
+        else {
+            out << "  call " << convertType(n->type)
+                << " @" << n->signature
+                << "(";
+        }
 
         // output args
         for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
@@ -674,10 +683,15 @@ struct GeneratorVisitor : Visitor {
             exprStack.pop_back();
         }
 
-        // add this call to the expr stack
-        exprStack.push_back({currentRegister, n->type});
+        // void (nil) return type
+        if (n->type != "nil") {
+            // add this call to the expr stack
+            exprStack.push_back({currentRegister, n->type});
+            ++currentRegister;
+        }
+        // non-void (non-nil) return types
+        // do nothing, as they should never be used in larger expressions
 
-        ++currentRegister;
     }
 
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
@@ -984,7 +998,11 @@ struct GeneratorVisitor : Visitor {
         }
     }
 
-    void visit(std::shared_ptr<Node::MethodCall> n) override {}
+    void visit(std::shared_ptr<Node::MethodCall> n) override {
+
+
+
+    }
 
     // visit unheap
     void visit(std::shared_ptr<Node::Unheap> n) override {

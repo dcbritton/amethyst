@@ -398,36 +398,13 @@ define dso_local i64 @foo$int$Matrix(i64 noundef %r0, %struct.Matrix* noundef by
   ret i64 %r7
 }
 
-define dso_local void @bar$int$Matrix(i64 noundef %r0, %struct.Matrix* noundef byval(%struct.Matrix) %r1) {
+define dso_local void @setGlobal$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %r0) {
   ; Primitive parameter allocations and stores
-  %r3 = alloca i64
-  store i64 %r0, i64* %r3
   ; End parameter handling
-  ; Begin eq expr
-  %r4 = load i64, i64* %r3
-  %r5 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r6 = load i64, i64* %r5
-  %r7 = icmp eq i64 %r4, %r6
-  ; End eq expr
-  br i1 %r7, label %ifbody0, label %exit0
-
-ifbody0:
-
-  ; Define j:int
-  %r8 = alloca i64
-  %r9 = load i64, i64* %r3
-  store i64 %r9, i64* %r8
-  ; End definition of j:int
-  ret void
-  br label %exit0
-
-exit0:
-
-  ; Define k:int
-  %r10 = alloca i64
-  %r11 = load i64, i64* %r3
-  store i64 %r11, i64* %r10
-  ; End definition of k:int
+  %r2 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1 ; Getting ptr to member
+  %r3 = load i64, i64* %r2
+  %r4 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
+  store i64 %r3, i64* %r4
   ret void
 }
 
@@ -623,7 +600,6 @@ elsifcond3x1:
   br i1 %r85, label %elsifbody3x1, label %exit3
 
 elsifbody3x1:
-  br label %cond2 ; Break statement
   br label %exit2 ; Break statement
   br label %exit3
 
@@ -631,8 +607,13 @@ exit3:
   br label %cond2
 
 exit2:
-  %r86 = load i64, i64* %r67
-  ret i64 %r86
+  %r86 = alloca %struct.Matrix ; Placeholder allocating space for struct return
+  %r87 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  call void @Matrix.new$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %r87, %struct.Matrix* sret(%struct.Matrix) %r86)
+  call void @setGlobal$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %r86)
+  %r88 = bitcast i64* @.global.a to i64* ; Workaround to use globals in current register management system
+  %r89 = load i64, i64* %r88
+  ret i64 %r89
 }
 
 ; Declarations of llvm intrinstics, may be unused

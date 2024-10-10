@@ -96,6 +96,28 @@ def setGlobal(m:Matrix)
     return
 end
 
+# function that tests type (struct) return, struct parameter, and new_expr
+# returns copy of param matrix without the last row and column 
+def copyAndTruncate(other:Matrix):Matrix
+    result:Matrix = new Matrix(other.size - 1)
+    i:int = 0
+    while i != result.size do
+        j:int = 0
+        while j != result.size do
+            result.data[i][j] = other.data[i][j]
+            j = j + 1
+        end
+        i = i + 1
+    end
+
+    return result
+end
+
+# function to test struct return type free functions with no other parameters
+def return4x4HeapMatrix():Matrix
+    return new Matrix(4)
+end
+
 # testing in main
 def main():int
     
@@ -118,20 +140,32 @@ def main():int
 
     k:int = 0
     while k != 90 do
+
         k = k + 10
 
         if k  == 100 then
-            return 101
+            k = 101
+            break
+            k = 102
+
         elsif k == 90 then
             redo
             return 91
+
         elsif k == 80 then
-            # continue
-            break
+            continue
+            return 81
         end
     end
+
     # return k
 
     setGlobal(new Matrix($mat))
-    return $a
+    # k = $a
+
+
+    truncated:Matrix = copyAndTruncate($mat)
+    k = truncated.size
+
+    return return4x4HeapMatrix().size
 end

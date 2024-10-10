@@ -182,8 +182,15 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::FunctionDefn> n) override {
         // type and name
-        out << "define dso_local " << convertType(n->returnType)
-            << " @" << n->info->signature << "(";
+        // primitive return
+        if (isPrimitive(n->returnType)) {
+            out << "define dso_local " << convertType(n->returnType)
+                << " @" << n->info->signature << "(";
+        }
+        // struct return (void return with sret parameter)
+        else {
+            out << "define dso_local void @" << n->info->signature << "(";
+        }
 
         // parameters
         for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
@@ -205,6 +212,16 @@ struct GeneratorVisitor : Visitor {
             if (it != n->info->parameters.end() - 1) {
                 out << ", ";
             }
+        }
+        // sret parameter if struct return
+        if (!isPrimitive(n->returnType)) {
+            // need a comma if there are other parameters
+            if (n->info->parameters.size() != 0) {
+                out << ", ";
+            }
+            out << convertType(n->returnType + "*") << " noalias sret(" << convertType(n->returnType) << ") %r" << currentRegister;
+            nameToRegister.emplace("@sret", currentRegister);
+            ++currentRegister;
         }
         out << ") {\n";
 
@@ -484,7 +501,7 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
         out << "  %r" << placeholderRegister
             << " = alloca " << convertType(n->type)
-            << " ; Placeholder allocating space for struct return\n";
+            << " ; Allocation for sret result of new_expr\n";
             
         // visit args
         n->args->accept(shared_from_this());
@@ -640,23 +657,39 @@ struct GeneratorVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::Call> n) override {
+
+        // struct return requires a temporary allocation
+        uint32_t placeholderRegister;
+        if (!isPrimitive(n->type)) {
+            placeholderRegister = currentRegister;
+            ++currentRegister;
+            out << "  %r" << placeholderRegister
+                << " = alloca " << convertType(n->type)
+                << " ; Allocation for sret result of free function call\n";
+        }
+
         // process args
         n->args->accept(shared_from_this());
         // top of expr stack now contains types and registers for arg results
 
         // output call
-        // void (nil) return type
-        if (n->type != "nil") {
-            out << "  %r" << currentRegister
-                << " = call " << convertType(n->type)
-                << " @" << n->signature
-                << "(";
-        }
         // non-void (non-nil) return type
+        if (n->type != "nil") {
+            // primitive return type
+            if (isPrimitive(n->type)) {
+                out << "  %r" << currentRegister
+                    << " = call " << convertType(n->type)
+                    << " @" << n->signature
+                    << "(";
+            }
+            // struct return type
+            else {
+                out << "  call void @" << n->signature << "(";
+            }
+        }
+        // void (nil) return type
         else {
-            out << "  call " << convertType(n->type)
-                << " @" << n->signature
-                << "(";
+            out << "  call void @" << n->signature << "(";
         }
 
         // output args
@@ -676,6 +709,19 @@ struct GeneratorVisitor : Visitor {
                 out << ", ";
             }
         }
+
+        // sret argument for struct returns, using the placeholder register
+        if (!isPrimitive(n->type)) {
+            // extra comma if there are more than 0 args
+            if (n->numArgs != 0) {
+                out << ", ";
+            }
+            
+            out << convertType(n->type + "*") << " sret("
+                << convertType(n->type) << ") %r"
+                << placeholderRegister;
+        }
+
         out << ")\n";
 
         // clear the top of the args from the expr stack
@@ -683,15 +729,21 @@ struct GeneratorVisitor : Visitor {
             exprStack.pop_back();
         }
 
-        // void (nil) return type
-        if (n->type != "nil") {
-            // add this call to the expr stack
-            exprStack.push_back({currentRegister, n->type});
-            ++currentRegister;
-        }
         // non-void (non-nil) return types
-        // do nothing, as they should never be used in larger expressions
-
+        if (n->type != "nil") { 
+            // primitive return
+            if (isPrimitive(n->type)) {
+                // add this call to the expr stack
+                exprStack.push_back({currentRegister, n->type});
+                ++currentRegister;
+            }
+            // struct return
+            else {
+                exprStack.push_back({placeholderRegister, n->type});
+            }
+        }
+        // void (nil) return type
+        // do nothing, as they should never be used in larger expression
     }
 
     void visit(std::shared_ptr<Node::VariableDefn> n) override {
@@ -809,8 +861,51 @@ struct GeneratorVisitor : Visitor {
             n->expr->accept(shared_from_this());
             SubExprInfo expr = exprStack.back();
             exprStack.pop_back();
-            out << "  ret " << convertType(expr.type)
-                << " %r" << expr.reg << "\n";
+            
+            // primitive return
+            if (isPrimitive(expr.type)) {
+                out << "  ret " << convertType(expr.type)
+                    << " %r" << expr.reg << "\n";
+            }
+            // struct return
+            else {
+                // determine size of struct by pretending there is an instance at address 0 (null)
+                out << "  %r" << currentRegister
+                    << " = getelementptr " << convertType(expr.type)
+                    << ", " << convertType(expr.type)
+                    << "* null, i32 1\n";
+                ++currentRegister;
+
+                uint32_t sizeRegister = currentRegister;
+                ++currentRegister;
+                out << "  %r" << sizeRegister
+                    << " = ptrtoint " << convertType(expr.type)
+                    << "* %r" << sizeRegister-1
+                    << " to i64\n";
+
+                // cast sret parameter struct ptr to i8*
+                out << "  %r" << currentRegister
+                    << " = bitcast " << convertType(expr.type)
+                    << "* %r" << nameToRegister["@sret"]
+                    << " to i8*\n";
+                ++currentRegister;
+
+                // cast return allocation to i8*
+                out << "  %r" << currentRegister
+                    << " = bitcast " << convertType(expr.type)
+                    << "* %r" << expr.reg
+                    << " to i8*\n";
+                ++currentRegister;
+
+                // memcpy return to sret parameter
+                out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r" << currentRegister-2
+                    << ", i8* %r" << currentRegister-1
+                    << ", i64 %r" << sizeRegister
+                    << ", i1 false)\n";
+
+                // return void
+                out << "ret void\n";
+            }
         }
         // void
         else {

@@ -824,6 +824,9 @@ struct GeneratorVisitor : Visitor {
         }
 
         // @TODO: method definitions
+        for (const auto& method : n->methods) {
+            method->accept(shared_from_this());
+        }
 
         // @TODO: operator overloads
 
@@ -890,7 +893,61 @@ struct GeneratorVisitor : Visitor {
         out << convertType(n->type);
     }
 
-    void visit(std::shared_ptr<Node::MethodDefn> n) override {}
+    void visit(std::shared_ptr<Node::MethodDefn> n) override {
+
+        std::string thisType = currentType->name +  "*";
+
+        // type and name
+        out << "define dso_local " << convertType(n->info->returnType)
+            << " @" << n->info->signature << "(";
+
+        // parameters
+        for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
+            // primitive parameter
+            if (isPrimitive(it->type)) {
+                out << convertType(it->type) << " noundef %r" << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+            // struct parameter (pass by value)
+            else {
+                out << convertType(it->type + "*") << " noundef byval("
+                    << convertType(it->type) << ") %r"
+                    << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+            
+            out << ", ";
+        }
+        
+        // secret pointer to struct parameter
+        out << convertType(thisType) << " noalias sret(" << convertType(currentType->name) << ") %r" << currentRegister;
+        nameToRegister.emplace("@this", currentRegister);
+        ++currentRegister;
+
+        out << ") {\n";
+
+        // allocations & stores for parameters
+        out << "  ; Primitive parameter allocations and stores\n";
+        ++currentRegister;
+        for (const auto& parameter : n->info->parameters) {
+            if (isPrimitive(parameter.type)) {
+                allocation(parameter.type);
+                store(nameToRegister[parameter.name], currentRegister-1, parameter.type);
+                nameToRegister[parameter.name] = currentRegister-1;
+            }
+        }
+        out << "  ; End parameter handling\n";
+        
+        n->functionBody->accept(shared_from_this());
+        out << "}\n";
+
+        // reset registers and nameToRegister map after each function
+        currentRegister = 0;
+        currentLabelNumber = 0;
+        nameToRegister.clear();
+    }
 
     void visit(std::shared_ptr<Node::Member> n) override {
             

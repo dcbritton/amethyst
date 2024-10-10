@@ -310,6 +310,78 @@ exit2:
 exit1:
   ret void
 }
+define dso_local void @Matrix.setEntryAsIndexProduct(%struct.Matrix* noalias sret(%struct.Matrix) %r0) {
+  ; Primitive parameter allocations and stores
+  ; End parameter handling
+
+  ; Define i:int
+  %r2 = alloca i64
+  %r3 = add i64 0, 0
+  store i64 %r3, i64* %r2
+  ; End definition of i:int
+  br label %cond0
+
+cond0:
+  ; Begin eq expr
+  %r4 = load i64, i64* %r2
+  %r5 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1
+  %r6 = load i64, i64* %r5
+  %r7 = icmp ne i64 %r4, %r6
+  ; End eq expr
+  br i1 %r7, label %body0, label %exit0
+
+body0:
+
+  ; Define j:int
+  %r8 = alloca i64
+  %r9 = add i64 0, 0
+  store i64 %r9, i64* %r8
+  ; End definition of j:int
+  br label %cond1
+
+cond1:
+  ; Begin eq expr
+  %r10 = load i64, i64* %r8
+  %r11 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1
+  %r12 = load i64, i64* %r11
+  %r13 = icmp ne i64 %r10, %r12
+  ; End eq expr
+  br i1 %r13, label %body1, label %exit1
+
+body1:
+  ; Begin mult expr
+  %r14 = load i64, i64* %r2
+  %r15 = load i64, i64* %r8
+  %r16 = mul i64 %r14, %r15
+  ; End mult expr
+  %r17 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 0
+  %r18 = load i64**, i64*** %r17
+  %r19 = load i64, i64* %r2
+  %r20 = getelementptr i64*, i64** %r18, i64 %r19
+  %r21 = load i64*, i64** %r20
+  %r22 = load i64, i64* %r8
+  %r23 = getelementptr i64, i64* %r21, i64 %r22
+  store i64 %r16, i64* %r23
+  ; Begin add expr
+  %r24 = load i64, i64* %r8
+  %r25 = add i64 0, 1
+  %r26 = add i64 %r24, %r25
+  ; End add expr
+  store i64 %r26, i64* %r8
+  br label %cond1
+
+exit1:
+  ; Begin add expr
+  %r27 = load i64, i64* %r2
+  %r28 = add i64 0, 1
+  %r29 = add i64 %r27, %r28
+  ; End add expr
+  store i64 %r29, i64* %r2
+  br label %cond0
+
+exit0:
+  ret void
+}
 
 @.global.mat = dso_local global %struct.Matrix zeroinitializer
 define dso_local i64 @foo$int$Matrix(i64 noundef %r0, %struct.Matrix* noundef byval(%struct.Matrix) %r1) {
@@ -499,65 +571,59 @@ exit0:
   %r68 = add i64 0, 0
   store i64 %r68, i64* %r67
   ; End definition of k:int
-
-  ; Define boolTest:bool
-  %r69 = alloca i1
-  %r70 = add i1 0, 1
-  store i1 %r70, i1* %r69
-  ; End definition of boolTest:bool
   br label %cond2
 
 cond2:
   ; Begin eq expr
-  %r71 = load i64, i64* %r67
-  %r72 = add i64 0, 90
-  %r73 = icmp ne i64 %r71, %r72
+  %r69 = load i64, i64* %r67
+  %r70 = add i64 0, 90
+  %r71 = icmp ne i64 %r69, %r70
   ; End eq expr
-  br i1 %r73, label %body2, label %exit2
+  br i1 %r71, label %body2, label %exit2
 
 body2:
   ; Begin add expr
-  %r74 = load i64, i64* %r67
-  %r75 = add i64 0, 10
-  %r76 = add i64 %r74, %r75
+  %r72 = load i64, i64* %r67
+  %r73 = add i64 0, 10
+  %r74 = add i64 %r72, %r73
   ; End add expr
-  store i64 %r76, i64* %r67
+  store i64 %r74, i64* %r67
   ; Begin eq expr
-  %r77 = load i64, i64* %r67
-  %r78 = add i64 0, 100
-  %r79 = icmp eq i64 %r77, %r78
+  %r75 = load i64, i64* %r67
+  %r76 = add i64 0, 100
+  %r77 = icmp eq i64 %r75, %r76
   ; End eq expr
-  br i1 %r79, label %ifbody3, label %elsifcond3x0
+  br i1 %r77, label %ifbody3, label %elsifcond3x0
 
 ifbody3:
-  %r80 = add i64 0, 101
-  ret i64 %r80
+  %r78 = add i64 0, 101
+  ret i64 %r78
   br label %exit3
 
 elsifcond3x0:
   ; Begin eq expr
-  %r81 = load i64, i64* %r67
-  %r82 = add i64 0, 90
-  %r83 = icmp eq i64 %r81, %r82
+  %r79 = load i64, i64* %r67
+  %r80 = add i64 0, 90
+  %r81 = icmp eq i64 %r79, %r80
   ; End eq expr
-  br i1 %r83, label %elsifbody3x0, label %elsifcond3x1
+  br i1 %r81, label %elsifbody3x0, label %elsifcond3x1
 
 elsifbody3x0:
   br label %body2 ; Break statement
-  %r84 = add i64 0, 91
-  ret i64 %r84
+  %r82 = add i64 0, 91
+  ret i64 %r82
   br label %exit3
 
 elsifcond3x1:
   ; Begin eq expr
-  %r85 = load i64, i64* %r67
-  %r86 = add i64 0, 80
-  %r87 = icmp eq i64 %r85, %r86
+  %r83 = load i64, i64* %r67
+  %r84 = add i64 0, 80
+  %r85 = icmp eq i64 %r83, %r84
   ; End eq expr
-  br i1 %r87, label %elsifbody3x1, label %exit3
+  br i1 %r85, label %elsifbody3x1, label %exit3
 
 elsifbody3x1:
-  br label %body2 ; Break statement
+  br label %cond2 ; Break statement
   br label %exit2 ; Break statement
   br label %exit3
 
@@ -565,8 +631,8 @@ exit3:
   br label %cond2
 
 exit2:
-  %r88 = load i64, i64* %r67
-  ret i64 %r88
+  %r86 = load i64, i64* %r67
+  ret i64 %r86
 }
 
 ; Declarations of llvm intrinstics, may be unused

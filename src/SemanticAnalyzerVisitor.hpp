@@ -889,8 +889,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->functionBody->accept(shared_from_this());
         endScope();
 
-        // clear currentProcedure, leaves nullptr
-        currentProcedure.reset();
+        // move the info the AST, to be used by GeneratorVisitor
+        // leaves nullptr
+        n->info = std::move(currentProcedure);
     }
 
     // visit member

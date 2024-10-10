@@ -510,6 +510,9 @@ namespace Node {
         std::shared_ptr<ParamList> paramList;
         std::shared_ptr<FunctionBody> functionBody;
 
+        // assigned during semantic analysis
+        std::unique_ptr<Procedure> info = nullptr;
+
         // constuctor
         MethodDefn(const std::string& name, const std::string& returnType, std::shared_ptr<ParamList> paramList, std::shared_ptr<FunctionBody> functionBody) 
             : name(name), returnType(returnType), paramList(paramList), functionBody(functionBody) {}

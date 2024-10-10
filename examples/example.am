@@ -64,6 +64,20 @@ type Matrix
         end
         return
     end
+
+    # method, set each entry to be the product of its indices
+    def @setEntryAsIndexProduct():int
+        i:int = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                @data[i][j] = i * j
+                j = j + 1
+            end
+            i = i + 1
+        end
+        return
+    end
 end
 
 # global type test

@@ -105,13 +105,13 @@ def main():int
     placeholder:int = foo($a, $mat) + mat.data[size-1][size-1] - -123
 
     k:int = 0
-    boolTest:bool = true
-    while boolTest do
+    while k != 90 do
         k = k + 10
 
         if k  == 100 then
             return 101
         elsif k == 90 then
+            redo
             return 91
         elsif k == 80 then
             continue

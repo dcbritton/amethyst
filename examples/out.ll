@@ -508,51 +508,56 @@ exit0:
   br label %cond2
 
 cond2:
-  %r71 = load i1, i1* %r69
-  br i1 %r71, label %body2, label %exit2
+  ; Begin eq expr
+  %r71 = load i64, i64* %r67
+  %r72 = add i64 0, 90
+  %r73 = icmp ne i64 %r71, %r72
+  ; End eq expr
+  br i1 %r73, label %body2, label %exit2
 
 body2:
   ; Begin add expr
-  %r72 = load i64, i64* %r67
-  %r73 = add i64 0, 10
-  %r74 = add i64 %r72, %r73
+  %r74 = load i64, i64* %r67
+  %r75 = add i64 0, 10
+  %r76 = add i64 %r74, %r75
   ; End add expr
-  store i64 %r74, i64* %r67
+  store i64 %r76, i64* %r67
   ; Begin eq expr
-  %r75 = load i64, i64* %r67
-  %r76 = add i64 0, 100
-  %r77 = icmp eq i64 %r75, %r76
+  %r77 = load i64, i64* %r67
+  %r78 = add i64 0, 100
+  %r79 = icmp eq i64 %r77, %r78
   ; End eq expr
-  br i1 %r77, label %ifbody3, label %elsifcond3x0
+  br i1 %r79, label %ifbody3, label %elsifcond3x0
 
 ifbody3:
-  %r78 = add i64 0, 101
-  ret i64 %r78
+  %r80 = add i64 0, 101
+  ret i64 %r80
   br label %exit3
 
 elsifcond3x0:
   ; Begin eq expr
-  %r79 = load i64, i64* %r67
-  %r80 = add i64 0, 90
-  %r81 = icmp eq i64 %r79, %r80
+  %r81 = load i64, i64* %r67
+  %r82 = add i64 0, 90
+  %r83 = icmp eq i64 %r81, %r82
   ; End eq expr
-  br i1 %r81, label %elsifbody3x0, label %elsifcond3x1
+  br i1 %r83, label %elsifbody3x0, label %elsifcond3x1
 
 elsifbody3x0:
-  %r82 = add i64 0, 91
-  ret i64 %r82
+  br label %body2 ; Break statement
+  %r84 = add i64 0, 91
+  ret i64 %r84
   br label %exit3
 
 elsifcond3x1:
   ; Begin eq expr
-  %r83 = load i64, i64* %r67
-  %r84 = add i64 0, 80
-  %r85 = icmp eq i64 %r83, %r84
+  %r85 = load i64, i64* %r67
+  %r86 = add i64 0, 80
+  %r87 = icmp eq i64 %r85, %r86
   ; End eq expr
-  br i1 %r85, label %elsifbody3x1, label %exit3
+  br i1 %r87, label %elsifbody3x1, label %exit3
 
 elsifbody3x1:
-  br label %cond2 ; Break statement
+  br label %body2 ; Break statement
   br label %exit2 ; Break statement
   br label %exit3
 
@@ -560,8 +565,8 @@ exit3:
   br label %cond2
 
 exit2:
-  %r86 = load i64, i64* %r67
-  ret i64 %r86
+  %r88 = load i64, i64* %r67
+  ret i64 %r88
 }
 
 ; Declarations of llvm intrinstics, may be unused

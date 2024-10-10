@@ -552,6 +552,7 @@ elsifcond3x1:
   br i1 %r85, label %elsifbody3x1, label %exit3
 
 elsifbody3x1:
+  br label %exit2 ; Break statement
 
   ; Define m:int
   %r86 = alloca i64

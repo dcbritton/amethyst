@@ -48,6 +48,9 @@ struct GeneratorVisitor : Visitor {
     // stores registers and types of subexpressions
     std::vector<SubExprInfo> exprStack;
 
+    // stack of label numbers so that breaks, continues, and redos know which labels to break to in nested loops
+    std::vector<uint32_t> labelStack;
+
     // constructor
     GeneratorVisitor(const std::string& filename) {
         out.open(filename);
@@ -1053,6 +1056,7 @@ struct GeneratorVisitor : Visitor {
     // @TODO: reintroduce loop metadata
     void visit(std::shared_ptr<Node::WhileLoop> n) override {
         std::string suffix = std::to_string(currentLabelNumber);
+        labelStack.push_back(currentLabelNumber);
         ++currentLabelNumber;
         std::string conditionLabel = "cond" + suffix;
         std::string bodyLabel = "body" + suffix;
@@ -1080,10 +1084,14 @@ struct GeneratorVisitor : Visitor {
 
         // exit
         out << exitLabel <<  ":\n";
+
+        // no longer in this loop, breaks, continues, and redos should not break to this loop's labels anymore
+        labelStack.pop_back();
     }
 
     void visit(std::shared_ptr<Node::Break> n) override {
         // break to innermost loop exit
+        out << "  br label %exit" << labelStack.back() << " ; Break statement\n";
     }
 
     void visit(std::shared_ptr<Node::Continue> n) override {

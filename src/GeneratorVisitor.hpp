@@ -1096,6 +1096,7 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::Continue> n) override {
         // break to innermost loop condition
+        out << "  br label %cond" << labelStack.back() << " ; Break statement\n";
     }
 };
 

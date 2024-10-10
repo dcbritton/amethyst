@@ -552,21 +552,16 @@ elsifcond3x1:
   br i1 %r85, label %elsifbody3x1, label %exit3
 
 elsifbody3x1:
+  br label %cond2 ; Break statement
   br label %exit2 ; Break statement
-
-  ; Define m:int
-  %r86 = alloca i64
-  %r87 = add i64 0, 1
-  store i64 %r87, i64* %r86
-  ; End definition of m:int
   br label %exit3
 
 exit3:
   br label %cond2
 
 exit2:
-  %r88 = load i64, i64* %r67
-  ret i64 %r88
+  %r86 = load i64, i64* %r67
+  ret i64 %r86
 }
 
 ; Declarations of llvm intrinstics, may be unused

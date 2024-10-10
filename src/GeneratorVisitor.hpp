@@ -84,7 +84,7 @@ struct GeneratorVisitor : Visitor {
 
     // output an alloca instuction
     void allocation(const std::string& type) {
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = alloca " << convertType(type)
             << "\n";
         ++currentRegister;
@@ -93,18 +93,18 @@ struct GeneratorVisitor : Visitor {
     // output a load instruction
     void store(const int fromReg, const int toReg, const std::string& type) {
         out << "  store " << convertType(type)
-            << " %" << fromReg << ", "
+            << " %r" << fromReg << ", "
             << convertType(type) << "*"
-            << " %" << toReg
+            << " %r" << toReg
             << "\n";
     }
 
     // load
     void load(const int fromReg, const std::string& type) {
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = load "  << convertType(type) << ", "
             << convertType(type) << "*"
-            << " %" << fromReg
+            << " %r" << fromReg
             << "\n";
         ++currentRegister;
     }
@@ -149,7 +149,7 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
         
         // get a copy of the global's regiister by bitcasting to its own type
-        out << "  %" << globalRegisterCopy
+        out << "  %r" << globalRegisterCopy
             << " = bitcast " << convertType(n->type + "*")
             << " @.global." << n->name
             << " to " << convertType(n->type + "*")
@@ -186,14 +186,14 @@ struct GeneratorVisitor : Visitor {
         for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
             // primitive parameter
             if (isPrimitive(it->type)) {
-                out << convertType(it->type) << " noundef %" << currentRegister;
+                out << convertType(it->type) << " noundef %r" << currentRegister;
                 nameToRegister.emplace(it->name, currentRegister);
                 ++currentRegister;
             }
             // struct parameter (pass by value)
             else {
                 out << convertType(it->type + "*") << " noundef byval("
-                    << convertType(it->type) << ") %"
+                    << convertType(it->type) << ") %r"
                     << currentRegister;
                 nameToRegister.emplace(it->name, currentRegister);
                 ++currentRegister;
@@ -265,12 +265,12 @@ struct GeneratorVisitor : Visitor {
         }
 
         // icmp eq/ne
-        out << "  %" << currentRegister 
+        out << "  %r" << currentRegister 
             << " = icmp "
             << (n->op == "==" ? "eq " : "ne ") 
             << convertType(lhs.type)
-            << " %" << lhs.reg
-            << ", %" << rhs.reg
+            << " %r" << lhs.reg
+            << ", %r" << rhs.reg
             << "\n";
 
         exprStack.push_back({currentRegister, type});
@@ -310,12 +310,12 @@ struct GeneratorVisitor : Visitor {
         }
 
         // add / sub
-        out << "  %" << currentRegister 
+        out << "  %r" << currentRegister 
             << " = " 
             << (n->op == "+" ? "add " : "sub ")
             << convertType(type)
-            << " %" << lhs.reg
-            << ", %" << rhs.reg
+            << " %r" << lhs.reg
+            << ", %r" << rhs.reg
             << "\n";
 
         exprStack.push_back({currentRegister, type});
@@ -349,12 +349,12 @@ struct GeneratorVisitor : Visitor {
         }
 
         // mul
-        out << "  %" << currentRegister 
+        out << "  %r" << currentRegister 
             << " = " 
             << (n->op == "*" ? "mul " : "sdiv ")
             << convertType(type)
-            << " %" << lhs.reg
-            << ", %" << rhs.reg
+            << " %r" << lhs.reg
+            << ", %r" << rhs.reg
             << "\n";
 
         exprStack.push_back({currentRegister, type});
@@ -387,11 +387,11 @@ struct GeneratorVisitor : Visitor {
 
                 // get ptr to index
                 std::string dereferencedType = lhs.type.substr(0, lhs.type.length()-1);
-                out << "  %" << currentRegister
+                out << "  %r" << currentRegister
                     << " = getelementptr " << convertType(dereferencedType)
                     << ", " << convertType(lhs.type)
-                    << " %" << lhs.reg
-                    << ", i64 %" << rhs.reg
+                    << " %r" << lhs.reg
+                    << ", i64 %r" << rhs.reg
                     << "\n";
                 ++currentRegister;
 
@@ -459,10 +459,10 @@ struct GeneratorVisitor : Visitor {
         exprStack.pop_back();
         auto offset = (*types)[lhs.type].members.find(n->name)->second.offset;
 
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = getelementptr inbounds " << convertType(lhs.type)
             << ", " << convertType(lhs.type)
-            << "* %" << lhs.reg
+            << "* %r" << lhs.reg
             << ", i32 0, i32 " << offset
             << " ; Getting ptr to member\n";
         ++ currentRegister;
@@ -479,7 +479,7 @@ struct GeneratorVisitor : Visitor {
 
         uint32_t placeholderRegister = currentRegister;
         ++currentRegister;
-        out << "  %" << placeholderRegister
+        out << "  %r" << placeholderRegister
             << " = alloca " << convertType(n->type)
             << " ; Placeholder allocating space for struct return\n";
             
@@ -494,17 +494,17 @@ struct GeneratorVisitor : Visitor {
             << " @" << n->signature << "(";
         for (auto argIt = exprStack.end() - numArgs; argIt != exprStack.end(); ++argIt) {
             if (isPrimitive(argIt->type)) {
-                out << convertType(argIt->type) << " noundef %" << argIt->reg << ", ";
+                out << convertType(argIt->type) << " noundef %r" << argIt->reg << ", ";
             }
             else {
                 out << convertType(argIt->type + "*") << " noundef byval("
-                    << convertType(argIt->type) << ") %"
+                    << convertType(argIt->type) << ") %r"
                     << argIt->reg << ", ";
             }
         }
         // secret sret arg
         out << convertType(n->type + "*") << " sret("
-            << convertType(n->type) << ") %"
+            << convertType(n->type) << ") %r"
             << placeholderRegister << ")\n";
 
         // clear the top of the args from the expr stack
@@ -519,16 +519,16 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::StackExpr> n) override {
         // allocate array
         std::string arrayType = "[" + n->number + " x " + convertType(n->type) + "]";
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = alloca " << arrayType
             << "\n";
         ++currentRegister;
 
         // bitcast array type to ptr type
         std::string ptrType = convertType(n->type) + "*";
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = bitcast " << arrayType 
-            << "* %" << currentRegister-1
+            << "* %r" << currentRegister-1
             << " to " << convertType(n->type + "*")
             << "\n";
 
@@ -540,7 +540,7 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::HeapExpr> n) override {
 
         // determine size of n->type
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = getelementptr " << convertType(n->type)
             << ", " << convertType(n->type)
             << "* null, i32 1\n";
@@ -548,9 +548,9 @@ struct GeneratorVisitor : Visitor {
 
         uint32_t sizeRegister = currentRegister;
         ++currentRegister;
-        out << "  %" << sizeRegister
+        out << "  %r" << sizeRegister
             << " = ptrtoint " << convertType(n->type)
-            << "* %" << sizeRegister-1
+            << "* %r" << sizeRegister-1
             << " to i64\n";
 
         // get the number determined by n->expr
@@ -559,21 +559,21 @@ struct GeneratorVisitor : Visitor {
         exprStack.pop_back();
         
         // multiply to determine how many bytes are needed
-        out << "  %" << currentRegister
-            << " = mul i64 %" << sizeRegister
-            << ", %" << numberToAllocateRegsiter
+        out << "  %r" << currentRegister
+            << " = mul i64 %r" << sizeRegister
+            << ", %r" << numberToAllocateRegsiter
             << "\n";
         ++currentRegister;
 
         // malloc i8*, the correct number of bytes
-        out << "  %" << currentRegister
-            << " = call noalias i8* @malloc(i64 noundef %"
+        out << "  %r" << currentRegister
+            << " = call noalias i8* @malloc(i64 noundef %r"
             << currentRegister-1 << ")\n";
         ++currentRegister;
 
         // cast to correct pointer type
-        out << "  %" << currentRegister
-            << " = bitcast i8* %" << currentRegister-1
+        out << "  %r" << currentRegister
+            << " = bitcast i8* %r" << currentRegister-1
             << " to " << convertType(n->type)
             << "*\n";
         ++currentRegister;
@@ -581,11 +581,11 @@ struct GeneratorVisitor : Visitor {
         // put pointer on expr stack
         exprStack.push_back({currentRegister-1, n->type + "*"});
     }
-
+    
     void visit(std::shared_ptr<Node::IntLiteral> n) override {
         // @NOTE: all int literals are i64
         // put value in register by adding to 0
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = add i64 0, " << n->value << "\n";
         // register & type stack
         exprStack.push_back({currentRegister, "int"});
@@ -599,7 +599,7 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::BoolLiteral> n) override {
         // @NOTE: all int literals are i64
         // put value in register by adding to 0
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = add i1 0, "
             << (n->value == "true" ? "1" : "0")
             << "\n";
@@ -642,7 +642,7 @@ struct GeneratorVisitor : Visitor {
         // top of expr stack now contains types and registers for arg results
 
         // output call
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = call " << convertType(n->type)
             << " @" << n->signature
             << "(";
@@ -651,12 +651,12 @@ struct GeneratorVisitor : Visitor {
         for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
             // for primitive arg
             if (isPrimitive(argIt->type)) {
-                out << convertType(argIt->type) << " noundef %" << argIt->reg;
+                out << convertType(argIt->type) << " noundef %r" << argIt->reg;
             }
             // for struct args
             else {
                 out << convertType(argIt->type + "*") << " noundef byval("
-                    << convertType(argIt->type) << ") %"
+                    << convertType(argIt->type) << ") %r"
                     << argIt->reg;
             }
 
@@ -690,7 +690,7 @@ struct GeneratorVisitor : Visitor {
         // type (llvm struct)
         else {
             // determine size of struct by pretending there is an instance at address 0 (null)
-            out << "  %" << currentRegister
+            out << "  %r" << currentRegister
                 << " = getelementptr " << convertType(n->type)
                 << ", " << convertType(n->type)
                 << "* null, i32 1\n";
@@ -698,29 +698,29 @@ struct GeneratorVisitor : Visitor {
 
             uint32_t sizeRegister = currentRegister;
             ++currentRegister;
-            out << "  %" << sizeRegister
+            out << "  %r" << sizeRegister
                 << " = ptrtoint " << convertType(n->type)
-                << "* %" << sizeRegister-1
+                << "* %r" << sizeRegister-1
                 << " to i64\n";
 
             // cast lhs allocation to i8*
-            out << "  %" << currentRegister
+            out << "  %r" << currentRegister
                 << " = bitcast " << convertType(n->type)
-                << "* %" << nameToRegister[n->name]
+                << "* %r" << nameToRegister[n->name]
                 << " to i8*\n";
             ++currentRegister;
 
             // cast rhs allocation to i8*
-            out << "  %" << currentRegister
+            out << "  %r" << currentRegister
                 << " = bitcast " << convertType(n->type)
-                << "* %" << exprStack.back().reg
+                << "* %r" << exprStack.back().reg
                 << " to i8*\n";
             ++currentRegister;
 
             // memcpy rhs to lhs
-            out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %" << currentRegister-2
-                << ", i8* %" << currentRegister-1
-                << ", i64 %" << sizeRegister
+            out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r" << currentRegister-2
+                << ", i8* %r" << currentRegister-1
+                << ", i64 %r" << sizeRegister
                 << ", i1 false)\n";
         }
 
@@ -750,7 +750,7 @@ struct GeneratorVisitor : Visitor {
         // struct/type memcpy
         else {
             // determine size of struct by pretending there is an instance at address 0 (null)
-            out << "  %" << currentRegister
+            out << "  %r" << currentRegister
                 << " = getelementptr " << convertType(rhs.type)
                 << ", " << convertType(rhs.type)
                 << "* null, i32 1\n";
@@ -758,29 +758,29 @@ struct GeneratorVisitor : Visitor {
 
             uint32_t sizeRegister = currentRegister;
             ++currentRegister;
-            out << "  %" << sizeRegister
+            out << "  %r" << sizeRegister
                 << " = ptrtoint " << convertType(rhs.type)
-                << "* %" << sizeRegister-1
+                << "* %r" << sizeRegister-1
                 << " to i64\n";
 
             // cast lhs allocation to i8*
-            out << "  %" << currentRegister
+            out << "  %r" << currentRegister
                 << " = bitcast " << convertType(rhs.type)
-                << "* %" << lhs.reg
+                << "* %r" << lhs.reg
                 << " to i8*\n";
             ++currentRegister;
 
             // cast rhs allocation to i8*
-            out << "  %" << currentRegister
+            out << "  %r" << currentRegister
                 << " = bitcast " << convertType(rhs.type)
-                << "* %" << rhs.reg
+                << "* %r" << rhs.reg
                 << " to i8*\n";
             ++currentRegister;
 
             // memcpy rhs to lhs
-            out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %" << currentRegister-2
-                << ", i8* %" << currentRegister-1
-                << ", i64 %" << sizeRegister
+            out << "  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r" << currentRegister-2
+                << ", i8* %r" << currentRegister-1
+                << ", i64 %r" << sizeRegister
                 << ", i1 false)\n";
         }
     }
@@ -793,13 +793,12 @@ struct GeneratorVisitor : Visitor {
             SubExprInfo expr = exprStack.back();
             exprStack.pop_back();
             out << "  ret " << convertType(expr.type)
-                << " %" << expr.reg << "\n";
+                << " %r" << expr.reg << "\n";
         }
         // void
         else {
             out << "  ret void\n";
         }
-        ++currentRegister;
     }
 
     void visit(std::shared_ptr<Node::TypeDefn> n) override {
@@ -807,7 +806,7 @@ struct GeneratorVisitor : Visitor {
         
         // declare struct
         // @NOTE: violates visitor pattern
-        out << "%" << "struct." << n->name << " = type { ";
+        out << "%struct." << n->name << " = type { ";
         for (const auto& member : n->members) {
             member->accept(shared_from_this());
             if (member != n->members.back()) {
@@ -840,14 +839,14 @@ struct GeneratorVisitor : Visitor {
         for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
             // primitive parameter
             if (isPrimitive(it->type)) {
-                out << convertType(it->type) << " noundef %" << currentRegister;
+                out << convertType(it->type) << " noundef %r" << currentRegister;
                 nameToRegister.emplace(it->name, currentRegister);
                 ++currentRegister;
             }
             // struct parameter (pass by value)
             else {
                 out << convertType(it->type + "*") << " noundef byval("
-                    << convertType(it->type) << ") %"
+                    << convertType(it->type) << ") %r"
                     << currentRegister;
                 nameToRegister.emplace(it->name, currentRegister);
                 ++currentRegister;
@@ -857,7 +856,7 @@ struct GeneratorVisitor : Visitor {
         }
         
         // secret pointer to struct parameter
-        out << convertType(thisType) << " noalias sret(" << convertType(currentType->name) << ") %" << currentRegister;
+        out << convertType(thisType) << " noalias sret(" << convertType(currentType->name) << ") %r" << currentRegister;
         nameToRegister.emplace("@this", currentRegister);
         ++currentRegister;
 
@@ -898,9 +897,9 @@ struct GeneratorVisitor : Visitor {
         uint32_t memberLocationRegister = currentRegister;
 
         // get element ptr from "this" struct
-        out << "  %" << memberLocationRegister << " = getelementptr inbounds "
+        out << "  %r" << memberLocationRegister << " = getelementptr inbounds "
             << convertType(currentType->name) << ", "
-            << convertType(currentType->name) << "* %"
+            << convertType(currentType->name) << "* %r"
             << nameToRegister["@this"] << ", i32 0, "
             << "i32 " << offset << "\n";
         ++currentRegister;
@@ -935,13 +934,13 @@ struct GeneratorVisitor : Visitor {
         auto exprInfo = exprStack.back();
 
         // bitcast to i8*
-        out << "  %" << currentRegister
+        out << "  %r" << currentRegister
             << " = bitcast " << convertType(exprInfo.type)
-            << " %" << exprInfo.reg
+            << " %r" << exprInfo.reg
             << " to i8*\n";
         
         // call free
-        out << "  call void @free(i8* noundef %" << currentRegister << ")\n";
+        out << "  call void @free(i8* noundef %r" << currentRegister << ")\n";
 
         ++currentRegister;
     }
@@ -976,7 +975,7 @@ struct GeneratorVisitor : Visitor {
         n->ifExpr->accept(shared_from_this());
         exprStack.pop_back();
         // always breaks to body on true
-        out << "  br i1 %" << currentRegister-1
+        out << "  br i1 %r" << currentRegister-1
             << ", label %" << ifBodyLabel;
 
         // if there are elsifs, break to first elsif condition on false
@@ -1009,7 +1008,7 @@ struct GeneratorVisitor : Visitor {
             n->elsifs[i].first->accept(shared_from_this());
             exprStack.pop_back();
             // always breaks to body on true
-            out << "  br i1 %" << currentRegister-1
+            out << "  br i1 %r" << currentRegister-1
                 << ", label %" << elsifLabels[i].second;
 
             // last elsif? break to else or exit on false
@@ -1065,7 +1064,7 @@ struct GeneratorVisitor : Visitor {
         // condition
         out << conditionLabel << ":\n";
         n->expr->accept(shared_from_this());
-        out << "  br i1 %" << currentRegister-1
+        out << "  br i1 %r" << currentRegister-1
             << ", label %" << bodyLabel
             << ", label %" << exitLabel
             << "\n\n";

@@ -114,7 +114,9 @@ def main():int
         elsif k == 90 then
             return 91
         elsif k == 80 then
-            return 81
+            break
+            m:int = 1
+            
         end
     end
 

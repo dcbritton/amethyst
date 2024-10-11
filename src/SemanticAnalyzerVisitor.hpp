@@ -184,7 +184,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
         types.emplace("int", Type("int", {}, {}, {
-            std::make_pair<std::string, Procedure>("int.+$int", Procedure("int")),
+            std::make_pair<std::string, Procedure>("int.op.plus$int", Procedure("int")),
             std::make_pair<std::string, Procedure>(formOpSignature("int", "-", "int"), Procedure("int")),
             std::make_pair<std::string, Procedure>(formOpSignature("int", "!=", "int"), Procedure("bool")),
             // std::make_pair<std::string, Procedure>(formOpSignature("!", "int"), Procedure("!", "int", "int")),
@@ -858,11 +858,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         // get signature by creating a temporary Procedure
         currentProcedure = std::make_unique<Procedure>();
         n->parameter->accept(shared_from_this());
-        std::string signature = currentType->name + "." + n->op;
-        for (const auto& parameter : currentProcedure->parameters) {
-            signature += "$" + parameter.type;
-        }
-        manglePointers(signature);
+        std::string signature = formOpSignature(currentType->name, n->op, n->parameter->type);
 
         currentProcedure.reset();
             
@@ -874,8 +870,9 @@ struct SemanticAnalyzerVisitor : Visitor {
         n->stmts->accept(shared_from_this());
         endScope();
 
-        // clear currentProcedure, leaves nullptr
-        currentProcedure.reset();
+        // move the info the AST, to be used by GeneratorVisitor
+        // leaves nullptr
+        n->info = std::move(currentProcedure);
     }
 
     // visit member declaration

@@ -11,44 +11,9 @@ type Matrix
     # constructor, allocates size x size int matrix on heap
     new(size:int)
         @size = size
-        @data = @allocateNxN(@size)
-        return
-    end
 
-    # constructor, copies another matrix, allocates new heap space
-    new(other:Matrix)
-        @size = other.size
-        @data = @allocateNxN(@size)
-        i:int = 0
-        while i != @size do
-            j:int = 0
-            while j != @size do
-                @data[i][j] = other.data[i][j]
-            j = j + 1
-            end
-            i = i + 1
-        end
-        return
-    end
-
-    # constructor, copies another matrix from a pointer, allocates new space on heap
-    # assumes copy of zeroth element
-    new(other:Matrix*)
-        @size = other[0].size
-        @data = heap [@size] int*
-        i:int = 0
-        while i != @size do
-            @data[i] = heap [@size] int
-            i = i + 1
-        end
-        i = 0
-        while i != @size do
-            j:int = 0
-            while j != @size do
-                @data[i][j] = other[0].data[i][j]
-            j = j + 1
-            end
-            i = i + 1
+        if size != 0 then
+            @data = @allocateNxN(@size)
         end
         return
     end
@@ -97,6 +62,31 @@ type Matrix
 
         return rows
     end
+
+    # operator to add corresponing entries of matrices of the same size
+    # returns a new matrix with heap allocation
+    op+(rhs:Matrix):Matrix
+
+        # if sizes don't match, do no allocation and return a matrix of size zero
+        if @size != rhs.size then
+            return new Matrix(0)
+        end
+
+        # sizes match, add corresponding entries
+        result:Matrix = @deepCopy()
+
+        i:int = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                result.data[i][j] = result.data[i][j] + rhs.data[i][j]
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        return result
+    end
 end
 
 # global type test
@@ -105,18 +95,11 @@ $mat:Matrix
 # testing in main
 def main():int
     
-    mat:Matrix = new Matrix(4)
-    mat.data[3][3] = 142
-    # shallow copy (just invokes memcpy llvm intrinsic), data member of each points to the same memory
-    $mat = mat
-    $mat.data[3][3] = 255
-    # should return 255, even though accessed through $mat 
-    # edit: it does! commenting out for more tests
-    # return $mat.data[3][3]
+    mat:Matrix = new Matrix(8)
+    mat.setEntriesToIndexProduct()
+    # return mat.data[mat.size-1][mat.size-1]
 
-    mat2:Matrix = $mat.deepCopy()
-    mat2.setEntriesToIndexProduct()
-    $mat.data[3][3] = 253
+    $mat = mat.deepCopy()
 
-    return $mat.deepCopy().data[3][3]
+    return $mat.data[mat.size-1][mat.size-1]
 end

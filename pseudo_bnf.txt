@@ -74,6 +74,7 @@ access_expr -   primary
             |   access_expr . dot_rhs
             |   access_expr [ logic_expr ]
 
+@note: the corresponding nodes are DotRhsMember and DotRhsMethodCall
 dot_rhs     -    identifier
             |    call
 

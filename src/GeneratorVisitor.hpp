@@ -134,7 +134,7 @@ struct GeneratorVisitor : Visitor {
             out << "\n";
         }
 
-        // @TODO: declarations for llvm intrinsics
+        // declarations for llvm intrinsics
         out << "; Declarations of llvm intrinsics, may be unused\n";
         out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
         out << "declare noalias i8* @malloc(i64 noundef)\n";
@@ -329,7 +329,7 @@ struct GeneratorVisitor : Visitor {
             type = "int";
         }
         else {
-            
+            // 
         }
 
         // add / sub
@@ -445,12 +445,12 @@ struct GeneratorVisitor : Visitor {
             // dont pop_back() b/c DotRhsMember or DotRhsMethodCall needs the lhs info
             // popped in DotRhsMember or DotRhsMethodCall
 
-            // @TODO: redundant? should be caught in semantic analysis
+            // @NOTE: redundant? should be caught in semantic analysis
             if (lhs.type.back() == '*') {
                 std::cout << "Internal error. Code generator found a dot operator with a pointer LHS.\nThis ought to have been caught in semantic analysis.\n";
                 exit(1);
             }
-            // @TODO: redundant? should be caught in semantic analysis
+            // @NOTE: redundant? should be caught in semantic analysis
             if (isPrimitive(lhs.type)) {
                 std::cout << "Internal error. Code generator found a dot access with a primitive-type LHS.\nThis ought to have been caught in semantic analysis.\n";
                 exit(1);
@@ -1046,12 +1046,15 @@ struct GeneratorVisitor : Visitor {
             constructor->accept(shared_from_this());
         }
 
-        // @TODO: method definitions
+        // method definitions
         for (const auto& method : n->methods) {
             method->accept(shared_from_this());
         }
 
-        // @TODO: operator overloads
+        // operator overloads
+        for (const auto& op : n->operators) {
+            op->accept(shared_from_this());
+        }
 
         currentType.reset();
     }
@@ -1349,7 +1352,86 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
     }
 
-    void visit(std::shared_ptr<Node::OperatorDefn> n) override {}
+    void visit(std::shared_ptr<Node::OperatorDefn> n) override {
+        // type and name
+        // primitive return
+        if (isPrimitive(n->returnType)) {
+            out << "define dso_local " << convertType(n->returnType)
+                << " @" << n->info->signature << "(";
+        }
+        // struct return (void return with sret parameter)
+        else {
+            out << "define dso_local void @" << n->info->signature << "(";
+        }
+
+        // parameters
+        // secret pointer to struct parameter
+        std::string thisType = currentType->name +  "*";
+        out << convertType(thisType) << " %r" << currentRegister;
+        nameToRegister.emplace("@this", currentRegister);
+        ++currentRegister;
+
+        // if there are more parameters - even an sret param - need a comma
+        if (n->info->parameters.size() != 0 || !isPrimitive(n->returnType)) {
+            out << ", ";
+        }
+
+        // regular parameters
+        for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
+            // primitive parameter
+            if (isPrimitive(it->type)) {
+                out << convertType(it->type) << " noundef %r" << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+            // struct parameter (pass by value)
+            else {
+                out << convertType(it->type + "*") << " noundef byval("
+                    << convertType(it->type) << ") %r"
+                    << currentRegister;
+                nameToRegister.emplace(it->name, currentRegister);
+                ++currentRegister;
+            }
+
+            if (it != n->info->parameters.end() - 1) {
+                out << ", ";
+            }
+        }
+        // sret parameter if struct return
+        if (!isPrimitive(n->returnType)) {
+            // need a comma if there are other parameters
+            if (n->info->parameters.size() != 0) {
+                out << ", ";
+            }
+            out << convertType(n->returnType + "*") << " noalias sret(" << convertType(n->returnType) << ") %r" << currentRegister;
+            nameToRegister.emplace("@sret", currentRegister);
+            ++currentRegister;
+        }
+        out << ") {\n";
+
+        // allocations & stores for parameters
+        out << "  ; Primitive parameter allocations and stores\n";
+        ++currentRegister;
+        for (const auto& parameter : n->info->parameters) {
+            if (isPrimitive(parameter.type)) {
+                allocation(parameter.type);
+                store(nameToRegister[parameter.name], currentRegister-1, parameter.type);
+                nameToRegister[parameter.name] = currentRegister-1;
+            }
+        }
+        out << "  ; End parameter handling\n";
+        
+        n->stmts->accept(shared_from_this());
+        out << "}\n";
+
+        // reset current procedure
+        n->info.reset();
+
+        // reset registers and nameToRegister map after each function
+        currentRegister = 0;
+        currentLabelNumber = 0;
+        nameToRegister.clear();
+    }
 
     void visit(std::shared_ptr<Node::Conditional> n) override {
         // DETERMINE LABELS
@@ -1454,7 +1536,6 @@ struct GeneratorVisitor : Visitor {
         out << exitLabel <<  ":\n";
     }
 
-    // @TODO: reintroduce loop metadata
     void visit(std::shared_ptr<Node::WhileLoop> n) override {
         std::string suffix = std::to_string(currentLabelNumber);
         labelStack.push_back(currentLabelNumber);

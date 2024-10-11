@@ -136,13 +136,9 @@ struct TypeDefinitionScanner {
 
         // process parameters, this adds the parameters to currentProcedure
         visit(n->parameter);
-
+        
         // construct signature
-        std::string signature = currentType.name + "." + n->op;
-        for (const auto& parameter : currentProcedure.parameters) {
-            signature += "$" + parameter.type;
-        }
-        manglePointers(signature);
+        std::string signature = formOpSignature(currentType.name, n->op, n->parameter->type);
 
         // signature check
         if (currentType.operators.find(signature) != currentType.operators.end()) {

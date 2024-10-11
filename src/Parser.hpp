@@ -210,13 +210,12 @@ struct Parser {
     } 
 
     // op operator ( parameter ) [: identifier [*]*] TERM func_body end
-    // @TODO: rename to OperatorDefinition
     std::shared_ptr<Node::OperatorDefn> parseOperatorOverload() {
 
         discard(Token::kwOp);
 
         // consume the operator
-        if (*it != Token::kwAnd && *it != Token::kwOr && (*it < Token::opDot || *it > Token::opGreaterThanOrEqual)) {
+        if (*it != Token::kwAnd && *it != Token::kwOr && (*it < Token::opEquality || *it > Token::opGreaterThanOrEqual)) {
              std::cout << "Parser error in " << currentContext << " on line " << it->lineNumber
                        <<  ". Expected an operator. Got " << it->toString() << " " << it->value << " instead.\n";
             exit(1);

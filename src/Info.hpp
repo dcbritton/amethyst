@@ -77,10 +77,6 @@ struct Type {
     }
 };
 
-std::string formOpSignature(const std::string& type, const std::string& op, const std::string& rhsType) {
-    return type + "." + op + "$" + rhsType;
-}
-
 // replace *'s with .'s for name mangling
 void manglePointers(std::string& signature) {
     for (auto& character : signature) {
@@ -88,6 +84,69 @@ void manglePointers(std::string& signature) {
             character = '.';
         }
     }
+}
+
+// 
+std::string formOpSignature(const std::string& type, const std::string& op, const std::string& rhsType) {
+    std::string longformOpName;
+    if (op == "and") {
+        longformOpName = "and";
+    }
+    else if (op == "or") {
+        longformOpName = "or";
+    }
+    else if (op == "==") {
+        longformOpName = "equals";
+    }
+    else if (op == "!=") {
+        longformOpName = "notEquals";
+    }
+    else if (op == "<") {
+        longformOpName = "lessThan";
+    }
+    else if (op == ">") {
+        longformOpName = "greaterThan";
+    }
+    else if (op == "<=") {
+        longformOpName = "lessThanEquals";
+    }
+    else if (op == ">=") {
+        longformOpName = "greaterThanEquals";
+    }
+    else if (op == "<<") {
+        longformOpName = "leftShift";
+    }
+    else if (op == ">>") {
+        longformOpName = "rightShift";
+    }
+    else if (op == "+") {
+        longformOpName = "plus";
+    }
+    else if (op == "-") {
+        longformOpName = "minus";
+    }
+    else if (op == "*") {
+        longformOpName = "multiply";
+    }
+    else if (op == "/") {
+        longformOpName = "divide";
+    }
+    else if (op == "%") {
+        longformOpName = "modulus";
+    }
+    else if (op == "[]") {
+        std::cout << "Tried to use op[] on user-defined type: " << type <<".\nCaught by formOpSignature().\n";
+        exit(1);
+    }
+    else {
+        std::cout << "Internal error. Could not form op signature, because of unrecognized operator: " << op << ".\nThis should have been prevented by the parser.\n";
+        exit(1);
+    }
+    
+    std::string signature = type + ".op." + longformOpName + "$" + rhsType;
+    manglePointers(signature);
+    
+    return signature;
 }
 
 struct Scope {

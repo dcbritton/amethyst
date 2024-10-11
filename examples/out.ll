@@ -7,226 +7,22 @@ define dso_local void @Matrix.new$int(i64 noundef %r0, %struct.Matrix* noalias s
   %r4 = load i64, i64* %r3
   %r5 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
   store i64 %r4, i64* %r5
-  %r6 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r7 = load i64, i64* %r6
-  %r8 = call i64** @Matrix.allocateNxN$int(%struct.Matrix* %r1, i64 noundef %r7)
-  %r9 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
-  store i64** %r8, i64*** %r9
-  ret void
-}
-define dso_local void @Matrix.new$Matrix(%struct.Matrix* noundef byval(%struct.Matrix) %r0, %struct.Matrix* noalias sret(%struct.Matrix) %r1) {
-  ; Primitive parameter allocations and stores
-  ; End parameter handling
-  %r3 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1 ; Getting ptr to member
-  %r4 = load i64, i64* %r3
-  %r5 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  store i64 %r4, i64* %r5
-  %r6 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r7 = load i64, i64* %r6
-  %r8 = call i64** @Matrix.allocateNxN$int(%struct.Matrix* %r1, i64 noundef %r7)
-  %r9 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
-  store i64** %r8, i64*** %r9
-
-  ; Define i:int
-  %r10 = alloca i64
-  %r11 = add i64 0, 0
-  store i64 %r11, i64* %r10
-  ; End definition of i:int
-  br label %cond0
-
-cond0:
   ; Begin eq expr
-  %r12 = load i64, i64* %r10
-  %r13 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r14 = load i64, i64* %r13
-  %r15 = icmp ne i64 %r12, %r14
+  %r6 = load i64, i64* %r3
+  %r7 = add i64 0, 0
+  %r8 = icmp ne i64 %r6, %r7
   ; End eq expr
-  br i1 %r15, label %body0, label %exit0
+  br i1 %r8, label %ifbody0, label %exit0
 
-body0:
-
-  ; Define j:int
-  %r16 = alloca i64
-  %r17 = add i64 0, 0
-  store i64 %r17, i64* %r16
-  ; End definition of j:int
-  br label %cond1
-
-cond1:
-  ; Begin eq expr
-  %r18 = load i64, i64* %r16
-  %r19 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r20 = load i64, i64* %r19
-  %r21 = icmp ne i64 %r18, %r20
-  ; End eq expr
-  br i1 %r21, label %body1, label %exit1
-
-body1:
-  %r22 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 0 ; Getting ptr to member
-  %r23 = load i64**, i64*** %r22
-  %r24 = load i64, i64* %r10
-  %r25 = getelementptr i64*, i64** %r23, i64 %r24
-  %r26 = load i64*, i64** %r25
-  %r27 = load i64, i64* %r16
-  %r28 = getelementptr i64, i64* %r26, i64 %r27
-  %r29 = load i64, i64* %r28
-  %r30 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
-  %r31 = load i64**, i64*** %r30
-  %r32 = load i64, i64* %r10
-  %r33 = getelementptr i64*, i64** %r31, i64 %r32
-  %r34 = load i64*, i64** %r33
-  %r35 = load i64, i64* %r16
-  %r36 = getelementptr i64, i64* %r34, i64 %r35
-  store i64 %r29, i64* %r36
-  ; Begin add expr
-  %r37 = load i64, i64* %r16
-  %r38 = add i64 0, 1
-  %r39 = add i64 %r37, %r38
-  ; End add expr
-  store i64 %r39, i64* %r16
-  br label %cond1
-
-exit1:
-  ; Begin add expr
-  %r40 = load i64, i64* %r10
-  %r41 = add i64 0, 1
-  %r42 = add i64 %r40, %r41
-  ; End add expr
-  store i64 %r42, i64* %r10
-  br label %cond0
-
-exit0:
-  ret void
-}
-define dso_local void @Matrix.new$Matrix.(%struct.Matrix* noundef %r0, %struct.Matrix* noalias sret(%struct.Matrix) %r1) {
-  ; Primitive parameter allocations and stores
-  %r3 = alloca %struct.Matrix*
-  store %struct.Matrix* %r0, %struct.Matrix** %r3
-  ; End parameter handling
-  %r4 = load %struct.Matrix*, %struct.Matrix** %r3
-  %r5 = add i64 0, 0
-  %r6 = getelementptr %struct.Matrix, %struct.Matrix* %r4, i64 %r5
-  %r7 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r6, i32 0, i32 1 ; Getting ptr to member
-  %r8 = load i64, i64* %r7
+ifbody0:
   %r9 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  store i64 %r8, i64* %r9
-  %r10 = getelementptr i64*, i64** null, i32 1
-  %r11 = ptrtoint i64** %r10 to i64
-  %r12 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r13 = load i64, i64* %r12
-  %r14 = mul i64 %r11, %r13
-  %r15 = call noalias i8* @malloc(i64 noundef %r14)
-  %r16 = bitcast i8* %r15 to i64**
-  %r17 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
-  store i64** %r16, i64*** %r17
-
-  ; Define i:int
-  %r18 = alloca i64
-  %r19 = add i64 0, 0
-  store i64 %r19, i64* %r18
-  ; End definition of i:int
-  br label %cond0
-
-cond0:
-  ; Begin eq expr
-  %r20 = load i64, i64* %r18
-  %r21 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r22 = load i64, i64* %r21
-  %r23 = icmp ne i64 %r20, %r22
-  ; End eq expr
-  br i1 %r23, label %body0, label %exit0
-
-body0:
-  %r24 = getelementptr i64, i64* null, i32 1
-  %r25 = ptrtoint i64* %r24 to i64
-  %r26 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r27 = load i64, i64* %r26
-  %r28 = mul i64 %r25, %r27
-  %r29 = call noalias i8* @malloc(i64 noundef %r28)
-  %r30 = bitcast i8* %r29 to i64*
-  %r31 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
-  %r32 = load i64**, i64*** %r31
-  %r33 = load i64, i64* %r18
-  %r34 = getelementptr i64*, i64** %r32, i64 %r33
-  store i64* %r30, i64** %r34
-  ; Begin add expr
-  %r35 = load i64, i64* %r18
-  %r36 = add i64 0, 1
-  %r37 = add i64 %r35, %r36
-  ; End add expr
-  store i64 %r37, i64* %r18
-  br label %cond0
+  %r10 = load i64, i64* %r9
+  %r11 = call i64** @Matrix.allocateNxN$int(%struct.Matrix* %r1, i64 noundef %r10)
+  %r12 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
+  store i64** %r11, i64*** %r12
+  br label %exit0
 
 exit0:
-  %r38 = add i64 0, 0
-  store i64 %r38, i64* %r18
-  br label %cond1
-
-cond1:
-  ; Begin eq expr
-  %r39 = load i64, i64* %r18
-  %r40 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r41 = load i64, i64* %r40
-  %r42 = icmp ne i64 %r39, %r41
-  ; End eq expr
-  br i1 %r42, label %body1, label %exit1
-
-body1:
-
-  ; Define j:int
-  %r43 = alloca i64
-  %r44 = add i64 0, 0
-  store i64 %r44, i64* %r43
-  ; End definition of j:int
-  br label %cond2
-
-cond2:
-  ; Begin eq expr
-  %r45 = load i64, i64* %r43
-  %r46 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1
-  %r47 = load i64, i64* %r46
-  %r48 = icmp ne i64 %r45, %r47
-  ; End eq expr
-  br i1 %r48, label %body2, label %exit2
-
-body2:
-  %r49 = load %struct.Matrix*, %struct.Matrix** %r3
-  %r50 = add i64 0, 0
-  %r51 = getelementptr %struct.Matrix, %struct.Matrix* %r49, i64 %r50
-  %r52 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r51, i32 0, i32 0 ; Getting ptr to member
-  %r53 = load i64**, i64*** %r52
-  %r54 = load i64, i64* %r18
-  %r55 = getelementptr i64*, i64** %r53, i64 %r54
-  %r56 = load i64*, i64** %r55
-  %r57 = load i64, i64* %r43
-  %r58 = getelementptr i64, i64* %r56, i64 %r57
-  %r59 = load i64, i64* %r58
-  %r60 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0
-  %r61 = load i64**, i64*** %r60
-  %r62 = load i64, i64* %r18
-  %r63 = getelementptr i64*, i64** %r61, i64 %r62
-  %r64 = load i64*, i64** %r63
-  %r65 = load i64, i64* %r43
-  %r66 = getelementptr i64, i64* %r64, i64 %r65
-  store i64 %r59, i64* %r66
-  ; Begin add expr
-  %r67 = load i64, i64* %r43
-  %r68 = add i64 0, 1
-  %r69 = add i64 %r67, %r68
-  ; End add expr
-  store i64 %r69, i64* %r43
-  br label %cond2
-
-exit2:
-  ; Begin add expr
-  %r70 = load i64, i64* %r18
-  %r71 = add i64 0, 1
-  %r72 = add i64 %r70, %r71
-  ; End add expr
-  store i64 %r72, i64* %r18
-  br label %cond1
-
-exit1:
   ret void
 }
 define dso_local void @Matrix.setEntriesToIndexProduct(%struct.Matrix* %r0) {
@@ -449,6 +245,130 @@ exit0:
   %r28 = load i64**, i64*** %r4
   ret i64** %r28
 }
+define dso_local void @Matrix.op.plus$Matrix(%struct.Matrix* %r0, %struct.Matrix* noundef byval(%struct.Matrix) %r1, %struct.Matrix* noalias sret(%struct.Matrix) %r2) {
+  ; Primitive parameter allocations and stores
+  ; End parameter handling
+  ; Begin eq expr
+  %r4 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1
+  %r5 = load i64, i64* %r4
+  %r6 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r7 = load i64, i64* %r6
+  %r8 = icmp ne i64 %r5, %r7
+  ; End eq expr
+  br i1 %r8, label %ifbody0, label %exit0
+
+ifbody0:
+  %r9 = alloca %struct.Matrix ; Allocation for sret result of new_expr
+  %r10 = add i64 0, 0
+  call void @Matrix.new$int(i64 noundef %r10, %struct.Matrix* sret(%struct.Matrix) %r9)
+  %r11 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r12 = ptrtoint %struct.Matrix* %r11 to i64
+  %r13 = bitcast %struct.Matrix* %r2 to i8*
+  %r14 = bitcast %struct.Matrix* %r9 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r13, i8* %r14, i64 %r12, i1 false)
+  ret void
+  br label %exit0
+
+exit0:
+
+  ; Define result:Matrix
+  %r15 = alloca %struct.Matrix
+  %r16 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
+  call void @Matrix.deepCopy(%struct.Matrix* %r0, %struct.Matrix* sret(%struct.Matrix) %r16)
+  %r17 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r18 = ptrtoint %struct.Matrix* %r17 to i64
+  %r19 = bitcast %struct.Matrix* %r15 to i8*
+  %r20 = bitcast %struct.Matrix* %r16 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r19, i8* %r20, i64 %r18, i1 false)
+  ; End definition of result:Matrix
+
+  ; Define i:int
+  %r21 = alloca i64
+  %r22 = add i64 0, 0
+  store i64 %r22, i64* %r21
+  ; End definition of i:int
+  br label %cond1
+
+cond1:
+  ; Begin eq expr
+  %r23 = load i64, i64* %r21
+  %r24 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1
+  %r25 = load i64, i64* %r24
+  %r26 = icmp ne i64 %r23, %r25
+  ; End eq expr
+  br i1 %r26, label %body1, label %exit1
+
+body1:
+
+  ; Define j:int
+  %r27 = alloca i64
+  %r28 = add i64 0, 0
+  store i64 %r28, i64* %r27
+  ; End definition of j:int
+  br label %cond2
+
+cond2:
+  ; Begin eq expr
+  %r29 = load i64, i64* %r27
+  %r30 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1
+  %r31 = load i64, i64* %r30
+  %r32 = icmp ne i64 %r29, %r31
+  ; End eq expr
+  br i1 %r32, label %body2, label %exit2
+
+body2:
+  ; Begin add expr
+  %r33 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r15, i32 0, i32 0 ; Getting ptr to member
+  %r34 = load i64**, i64*** %r33
+  %r35 = load i64, i64* %r21
+  %r36 = getelementptr i64*, i64** %r34, i64 %r35
+  %r37 = load i64*, i64** %r36
+  %r38 = load i64, i64* %r27
+  %r39 = getelementptr i64, i64* %r37, i64 %r38
+  %r40 = load i64, i64* %r39
+  %r41 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0 ; Getting ptr to member
+  %r42 = load i64**, i64*** %r41
+  %r43 = load i64, i64* %r21
+  %r44 = getelementptr i64*, i64** %r42, i64 %r43
+  %r45 = load i64*, i64** %r44
+  %r46 = load i64, i64* %r27
+  %r47 = getelementptr i64, i64* %r45, i64 %r46
+  %r48 = load i64, i64* %r47
+  %r49 = add i64 %r40, %r48
+  ; End add expr
+  %r50 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r15, i32 0, i32 0 ; Getting ptr to member
+  %r51 = load i64**, i64*** %r50
+  %r52 = load i64, i64* %r21
+  %r53 = getelementptr i64*, i64** %r51, i64 %r52
+  %r54 = load i64*, i64** %r53
+  %r55 = load i64, i64* %r27
+  %r56 = getelementptr i64, i64* %r54, i64 %r55
+  store i64 %r49, i64* %r56
+  ; Begin add expr
+  %r57 = load i64, i64* %r27
+  %r58 = add i64 0, 1
+  %r59 = add i64 %r57, %r58
+  ; End add expr
+  store i64 %r59, i64* %r27
+  br label %cond2
+
+exit2:
+  ; Begin add expr
+  %r60 = load i64, i64* %r21
+  %r61 = add i64 0, 1
+  %r62 = add i64 %r60, %r61
+  ; End add expr
+  store i64 %r62, i64* %r21
+  br label %cond1
+
+exit1:
+  %r63 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r64 = ptrtoint %struct.Matrix* %r63 to i64
+  %r65 = bitcast %struct.Matrix* %r2 to i8*
+  %r66 = bitcast %struct.Matrix* %r15 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r65, i8* %r66, i64 %r64, i1 false)
+  ret void
+}
 
 @.global.mat = dso_local global %struct.Matrix zeroinitializer
 define dso_local i64 @main() {
@@ -458,7 +378,7 @@ define dso_local i64 @main() {
   ; Define mat:Matrix
   %r1 = alloca %struct.Matrix
   %r2 = alloca %struct.Matrix ; Allocation for sret result of new_expr
-  %r3 = add i64 0, 4
+  %r3 = add i64 0, 8
   call void @Matrix.new$int(i64 noundef %r3, %struct.Matrix* sret(%struct.Matrix) %r2)
   %r4 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
   %r5 = ptrtoint %struct.Matrix* %r4 to i64
@@ -466,77 +386,35 @@ define dso_local i64 @main() {
   %r7 = bitcast %struct.Matrix* %r2 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r6, i8* %r7, i64 %r5, i1 false)
   ; End definition of mat:Matrix
-  %r8 = add i64 0, 142
-  %r9 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0 ; Getting ptr to member
-  %r10 = load i64**, i64*** %r9
-  %r11 = add i64 0, 3
-  %r12 = getelementptr i64*, i64** %r10, i64 %r11
-  %r13 = load i64*, i64** %r12
-  %r14 = add i64 0, 3
-  %r15 = getelementptr i64, i64* %r13, i64 %r14
-  store i64 %r8, i64* %r15
-  %r16 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r17 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
-  %r18 = ptrtoint %struct.Matrix* %r17 to i64
-  %r19 = bitcast %struct.Matrix* %r16 to i8*
-  %r20 = bitcast %struct.Matrix* %r1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r19, i8* %r20, i64 %r18, i1 false)
-  %r21 = add i64 0, 255
-  %r22 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r23 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r22, i32 0, i32 0 ; Getting ptr to member
-  %r24 = load i64**, i64*** %r23
-  %r25 = add i64 0, 3
-  %r26 = getelementptr i64*, i64** %r24, i64 %r25
-  %r27 = load i64*, i64** %r26
-  %r28 = add i64 0, 3
-  %r29 = getelementptr i64, i64* %r27, i64 %r28
-  store i64 %r21, i64* %r29
-
-  ; Define mat2:Matrix
-  %r30 = alloca %struct.Matrix
-  %r31 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r32 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
-  call void @Matrix.deepCopy(%struct.Matrix* %r31, %struct.Matrix* sret(%struct.Matrix) %r32)
-  %r33 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
-  %r34 = ptrtoint %struct.Matrix* %r33 to i64
-  %r35 = bitcast %struct.Matrix* %r30 to i8*
-  %r36 = bitcast %struct.Matrix* %r32 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r35, i8* %r36, i64 %r34, i1 false)
-  ; End definition of mat2:Matrix
-  call void @Matrix.setEntriesToIndexProduct(%struct.Matrix* %r30)
-  %r37 = add i64 0, 253
-  %r38 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r39 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r38, i32 0, i32 0 ; Getting ptr to member
-  %r40 = load i64**, i64*** %r39
-  %r41 = add i64 0, 3
-  %r42 = getelementptr i64*, i64** %r40, i64 %r41
-  %r43 = load i64*, i64** %r42
-  %r44 = add i64 0, 3
-  %r45 = getelementptr i64, i64* %r43, i64 %r44
-  store i64 %r37, i64* %r45
-  %r46 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r47 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
-  call void @Matrix.deepCopy(%struct.Matrix* %r46, %struct.Matrix* sret(%struct.Matrix) %r47)
-  %r48 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r47, i32 0, i32 0 ; Getting ptr to member
-  %r49 = load i64**, i64*** %r48
-  %r50 = add i64 0, 3
-  %r51 = getelementptr i64*, i64** %r49, i64 %r50
-  %r52 = load i64*, i64** %r51
-  %r53 = add i64 0, 3
-  %r54 = getelementptr i64, i64* %r52, i64 %r53
-  %r55 = load i64, i64* %r54
-  %r56 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r57 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
-  call void @Matrix.deepCopy(%struct.Matrix* %r56, %struct.Matrix* sret(%struct.Matrix) %r57)
-  %r58 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r57, i32 0, i32 0 ; Getting ptr to member
-  %r59 = load i64**, i64*** %r58
-  %r60 = add i64 0, 3
-  %r61 = getelementptr i64*, i64** %r59, i64 %r60
-  %r62 = load i64*, i64** %r61
-  %r63 = add i64 0, 3
-  %r64 = getelementptr i64, i64* %r62, i64 %r63
-  %r65 = load i64, i64* %r64
-  ret i64 %r65
+  call void @Matrix.setEntriesToIndexProduct(%struct.Matrix* %r1)
+  %r8 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
+  call void @Matrix.deepCopy(%struct.Matrix* %r1, %struct.Matrix* sret(%struct.Matrix) %r8)
+  %r9 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r10 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r11 = ptrtoint %struct.Matrix* %r10 to i64
+  %r12 = bitcast %struct.Matrix* %r9 to i8*
+  %r13 = bitcast %struct.Matrix* %r8 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r12, i8* %r13, i64 %r11, i1 false)
+  %r14 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r15 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
+  %r16 = load i64**, i64*** %r15
+  ; Begin add expr
+  %r17 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r18 = load i64, i64* %r17
+  %r19 = add i64 0, 1
+  %r20 = sub i64 %r18, %r19
+  ; End add expr
+  %r21 = getelementptr i64*, i64** %r16, i64 %r20
+  %r22 = load i64*, i64** %r21
+  ; Begin add expr
+  %r23 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r24 = load i64, i64* %r23
+  %r25 = add i64 0, 1
+  %r26 = sub i64 %r24, %r25
+  ; End add expr
+  %r27 = getelementptr i64, i64* %r22, i64 %r26
+  %r28 = load i64, i64* %r27
+  ret i64 %r28
 }
 
 ; Declarations of llvm intrinsics, may be unused

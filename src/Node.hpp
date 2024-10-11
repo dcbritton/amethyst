@@ -482,6 +482,9 @@ namespace Node {
         std::string returnType;
         std::shared_ptr<FunctionBody> stmts;
 
+        // assigned during semantic analysis
+        std::unique_ptr<Procedure> info = nullptr;
+
         OperatorDefn(const std::string& op, std::shared_ptr<Parameter> parameter, const std::string& returnType, std::shared_ptr<FunctionBody> stmts)
             : op(op), parameter(parameter), returnType(returnType), stmts(stmts) {}
 

@@ -497,5 +497,4 @@ void print(const std::vector<Token>& tokens) {
     std::cout << "\n\n";
 }
 
-
 #endif

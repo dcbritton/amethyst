@@ -439,8 +439,8 @@ struct GeneratorVisitor : Visitor {
             // process lhs & get type
             n->LHS->accept(shared_from_this());
             auto lhs = exprStack.back();
-            // dont pop_back() b/c DotRHS needs the lhs' info
-            // popped in DotRHS
+            // dont pop_back() b/c DotRhsMember needs the lhs' info
+            // popped in DotRhsMember
 
             // @TODO: redundant? should be caught in semantic analysis
             if (lhs.type.back() == '*') {
@@ -453,7 +453,7 @@ struct GeneratorVisitor : Visitor {
                 exit(1);
             }
 
-            // process DotRHS
+            // process DotRhsMember
             n->RHS->accept(shared_from_this());
             auto rhs = exprStack.back();
 
@@ -473,7 +473,7 @@ struct GeneratorVisitor : Visitor {
         }
     }
 
-    void visit(std::shared_ptr<Node::DotRHS> n) override {
+    void visit(std::shared_ptr<Node::DotRhsMember> n) override {
         // get lhs info
         auto lhs = exprStack.back();
         exprStack.pop_back();

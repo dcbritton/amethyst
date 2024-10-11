@@ -169,15 +169,15 @@ namespace Node {
 
     };
 
-    // variable
-    struct DotRHS : Primary, std::enable_shared_from_this<DotRHS> {
+    // DotRhsMember
+    struct DotRhsMember : Primary, std::enable_shared_from_this<DotRhsMember> {
         std::string name;
 
         // @NOTE: assigned during semantic analysis
         std::string type;
 
         // constructor
-        DotRHS(const std::string& name)
+        DotRhsMember(const std::string& name)
             : name(name) {}
 
         // accept

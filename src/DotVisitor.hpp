@@ -274,7 +274,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit dot rhs
-    void visit(std::shared_ptr<Node::DotRHS> n) override {
+    void visit(std::shared_ptr<Node::DotRhsMember> n) override {
         int thisId = nodeId;
         ++nodeId;
 

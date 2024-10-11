@@ -601,12 +601,12 @@ struct Parser {
     }
 
     // parseDotRHS
-    std::shared_ptr<Node::DotRHS> parseDotRHS() {
+    std::shared_ptr<Node::DotRhsMember> parseDotRHS() {
 
         // @TODO: method call RHS
         std::string name = consume(Token::identifier);
 
-        return std::make_shared<Node::DotRHS>(name);
+        return std::make_shared<Node::DotRhsMember>(name);
     }
 
     // parsePrimary

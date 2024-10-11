@@ -536,7 +536,7 @@ struct SemanticAnalyzerVisitor : Visitor {
                 exit(1);
             }
 
-            // existence verified during this call in visit(Node::DotRHS
+            // existence verified during this call in visit(Node::DotRhsMember
             currentDotLhsType = &types[lhsType];
             n->RHS->accept(shared_from_this());
             currentDotLhsType = nullptr;
@@ -550,13 +550,13 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
     }
 
-    void visit(std::shared_ptr<Node::DotRHS> n) override {
+    void visit(std::shared_ptr<Node::DotRhsMember> n) override {
 
         std::string type;
         
-        // in a DotRHS, there definitionally must be an LHS
+        // in a DotRhsMember, there definitionally must be an LHS
         if (currentDotLhsType == nullptr) {
-            std::cout << "Internal error during semantic analysis. Visiting DotRHS, but found no LHS type.\nThis should not be syntactically possible.\n";
+            std::cout << "Internal error during semantic analysis. Visiting DotRhsMember, but found no LHS type.\nThis should not be syntactically possible.\n";
             exit(1);
         }
 

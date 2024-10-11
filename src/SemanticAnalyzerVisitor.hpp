@@ -112,7 +112,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     // when evaluating a dot operation, points to the type in the types map of the LHS
     // @NOTE: set only in visit(Node::AccessExpr) and must be returned to nullptr immediately after RHS is visited
     // @NOTE: points to memory in a std::unordered map. do not interact with types map when currentDotLhsType is not nullptr
-    Type* currentDotLhsType = nullptr;
+    Type currentDotLhsType;
 
     
     // LOOPS
@@ -536,10 +536,9 @@ struct SemanticAnalyzerVisitor : Visitor {
                 exit(1);
             }
 
-            // existence verified during this call in visit(Node::DotRhsMember
-            currentDotLhsType = &types[lhsType];
+            // existence of rhs verified during this call in visit(Node::DotRhsMember/DotRhsMethodCall)
+            currentDotLhsType = types[lhsType];
             n->RHS->accept(shared_from_this());
-            currentDotLhsType = nullptr;
 
             // get the rhs' type
             std::string rhsType = exprTypes.back();
@@ -550,30 +549,59 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
     }
 
+    // visit dot rhs member
     void visit(std::shared_ptr<Node::DotRhsMember> n) override {
 
         std::string type;
-        
-        // in a DotRhsMember, there definitionally must be an LHS
-        if (currentDotLhsType == nullptr) {
-            std::cout << "Internal error during semantic analysis. Visiting DotRhsMember, but found no LHS type.\nThis should not be syntactically possible.\n";
-            exit(1);
-        }
 
         // if so, check the LHS type for the member
-        if (currentDotLhsType->members.find(n->name) == currentDotLhsType->members.end()) {
-            std::cout << "Error in dot operation. Type " << currentDotLhsType->name << " has no member " << n->name << ".\n";
+        if (currentDotLhsType.members.find(n->name) == currentDotLhsType.members.end()) {
+            std::cout << "Error in dot operation. Type " << currentDotLhsType.name << " has no member " << n->name << ".\n";
             exit(1);
         }
 
-        // return type of method
-        type = currentDotLhsType->members.find(n->name)->second.type;
+        // get type of member
+        type = currentDotLhsType.members.find(n->name)->second.type;
 
         // expression stack
         exprTypes.push_back(type);
 
         // set node's type to confirmed type, to be used in code gen
         n->type = type;
+    }
+
+    // visit dot rhs method call
+    void visit(std::shared_ptr<Node::DotRhsMethodCall> n) override {
+
+        // determine argument expression types & deal with expr stack
+        std::vector<std::string> types = {};
+        for (auto& expr : n->args->exprs) {
+            expr->accept(shared_from_this());
+            types.push_back(exprTypes.back());
+            exprTypes.pop_back();
+        }
+
+        // create signature
+        std::string signature = currentDotLhsType.name + "." + n->name;
+        for (const std::string& type : types) {
+            signature += "$" + type;
+        }
+        manglePointers(signature);
+
+        // method exists? check lhs type methods
+        if (currentDotLhsType.methods.find(signature) == currentDotLhsType.methods.end()) {
+            std::cout << "In a DotRhsMethodCall, could not find a matching definition for method with signature " << signature << ".\n";
+            exit(1);
+        }
+
+        // push type to expression stack
+        std::string type = currentDotLhsType.methods.find(signature)->second.returnType;
+        exprTypes.push_back(type);
+
+        // attach info for code generator
+        n->type = type;
+        n->numArgs = types.size();
+        n->signature = signature;
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}

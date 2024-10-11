@@ -229,7 +229,7 @@ exit2:
 exit1:
   ret void
 }
-define dso_local void @Matrix.setEntryAsIndexProduct(%struct.Matrix* %r0) {
+define dso_local void @Matrix.setEntriesToIndexProduct(%struct.Matrix* %r0) {
   ; Primitive parameter allocations and stores
   ; End parameter handling
 
@@ -491,15 +491,52 @@ define dso_local i64 @main() {
   %r28 = add i64 0, 3
   %r29 = getelementptr i64, i64* %r27, i64 %r28
   store i64 %r21, i64* %r29
-  %r30 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 0 ; Getting ptr to member
-  %r31 = load i64**, i64*** %r30
-  %r32 = add i64 0, 3
-  %r33 = getelementptr i64*, i64** %r31, i64 %r32
-  %r34 = load i64*, i64** %r33
-  %r35 = add i64 0, 3
-  %r36 = getelementptr i64, i64* %r34, i64 %r35
-  %r37 = load i64, i64* %r36
-  ret i64 %r37
+
+  ; Define mat2:Matrix
+  %r30 = alloca %struct.Matrix
+  %r31 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r32 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
+  call void @Matrix.deepCopy(%struct.Matrix* %r31, %struct.Matrix* sret(%struct.Matrix) %r32)
+  %r33 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r34 = ptrtoint %struct.Matrix* %r33 to i64
+  %r35 = bitcast %struct.Matrix* %r30 to i8*
+  %r36 = bitcast %struct.Matrix* %r32 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r35, i8* %r36, i64 %r34, i1 false)
+  ; End definition of mat2:Matrix
+  call void @Matrix.setEntriesToIndexProduct(%struct.Matrix* %r30)
+  %r37 = add i64 0, 253
+  %r38 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r39 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r38, i32 0, i32 0 ; Getting ptr to member
+  %r40 = load i64**, i64*** %r39
+  %r41 = add i64 0, 3
+  %r42 = getelementptr i64*, i64** %r40, i64 %r41
+  %r43 = load i64*, i64** %r42
+  %r44 = add i64 0, 3
+  %r45 = getelementptr i64, i64* %r43, i64 %r44
+  store i64 %r37, i64* %r45
+  %r46 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r47 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
+  call void @Matrix.deepCopy(%struct.Matrix* %r46, %struct.Matrix* sret(%struct.Matrix) %r47)
+  %r48 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r47, i32 0, i32 0 ; Getting ptr to member
+  %r49 = load i64**, i64*** %r48
+  %r50 = add i64 0, 3
+  %r51 = getelementptr i64*, i64** %r49, i64 %r50
+  %r52 = load i64*, i64** %r51
+  %r53 = add i64 0, 3
+  %r54 = getelementptr i64, i64* %r52, i64 %r53
+  %r55 = load i64, i64* %r54
+  %r56 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r57 = alloca %struct.Matrix ; Allocation for sret result of internal '@' method call
+  call void @Matrix.deepCopy(%struct.Matrix* %r56, %struct.Matrix* sret(%struct.Matrix) %r57)
+  %r58 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r57, i32 0, i32 0 ; Getting ptr to member
+  %r59 = load i64**, i64*** %r58
+  %r60 = add i64 0, 3
+  %r61 = getelementptr i64*, i64** %r59, i64 %r60
+  %r62 = load i64*, i64** %r61
+  %r63 = add i64 0, 3
+  %r64 = getelementptr i64, i64* %r62, i64 %r63
+  %r65 = load i64, i64* %r64
+  ret i64 %r65
 }
 
 ; Declarations of llvm intrinsics, may be unused

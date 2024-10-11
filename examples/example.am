@@ -54,7 +54,7 @@ type Matrix
     end
 
     # method, set each entry to be the product of its indices
-    def @setEntryAsIndexProduct()
+    def @setEntriesToIndexProduct()
         i:int = 0
         while i != @size do
             j:int = 0
@@ -106,14 +106,17 @@ $mat:Matrix
 def main():int
     
     mat:Matrix = new Matrix(4)
-
     mat.data[3][3] = 142
-
     # shallow copy (just invokes memcpy llvm intrinsic), data member of each points to the same memory
     $mat = mat
-
     $mat.data[3][3] = 255
+    # should return 255, even though accessed through $mat 
+    # edit: it does! commenting out for more tests
+    # return $mat.data[3][3]
 
-    # should return 255, even though accessed through $mat
-    return mat.data[3][3]
+    mat2:Matrix = $mat.deepCopy()
+    mat2.setEntriesToIndexProduct()
+    $mat.data[3][3] = 253
+
+    return $mat.deepCopy().data[3][3]
 end

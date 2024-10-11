@@ -46,6 +46,7 @@ namespace Node {
     struct Redo;
     struct AccessExpr;
     struct DotRhsMember;
+    struct DotRhsMethodCall;
     struct ExprList;
     struct Call;
     struct Array;
@@ -83,6 +84,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::AccessExpr> n) {}
 
     virtual void visit(std::shared_ptr<Node::DotRhsMember> n) {}
+
+    virtual void visit(std::shared_ptr<Node::DotRhsMethodCall> n) {}
 
     virtual void visit(std::shared_ptr<Node::Primary> n) {}
 

@@ -40,6 +40,9 @@ struct GeneratorVisitor : Visitor {
     // or, are we in something that needs to return an for storing in assignment
     bool rootOfLhsOfAssignment = false;
 
+    // used by AccessExpr (specifically dot) to know whether the rhs was a method or a member
+    bool rhsMethod = false;
+
     struct SubExprInfo {
         const uint32_t reg;
         std::string type;
@@ -439,8 +442,8 @@ struct GeneratorVisitor : Visitor {
             // process lhs & get type
             n->LHS->accept(shared_from_this());
             auto lhs = exprStack.back();
-            // dont pop_back() b/c DotRhsMember needs the lhs' info
-            // popped in DotRhsMember
+            // dont pop_back() b/c DotRhsMember or DotRhsMethodCall needs the lhs info
+            // popped in DotRhsMember or DotRhsMethodCall
 
             // @TODO: redundant? should be caught in semantic analysis
             if (lhs.type.back() == '*') {
@@ -453,11 +456,19 @@ struct GeneratorVisitor : Visitor {
                 exit(1);
             }
 
-            // process DotRhsMember
+            // process DotRhsMember or DotRhsMethodCall
             n->RHS->accept(shared_from_this());
+
+            // if the rhs was a method, use whatever the method pushed onto the expr stack
+            if (rhsMethod) {
+                // just reset the flag
+                rhsMethod = false;
+                return;
+            }
+            // otherwise, rhs was a member, so get the rhs
             auto rhs = exprStack.back();
 
-            // if a dot expr results in a primitive, it should always load
+            // if a dot rhs member results in a primitive, it should always load
             // UNLESS it is the dot root of the lhs of an assignment
             if (!dotRootOfLhsOfAssignment && isPrimitive(rhs.type)) {
                 // load value at that index into new register
@@ -489,6 +500,109 @@ struct GeneratorVisitor : Visitor {
 
         // push a register to allocation to expr stack
         exprStack.push_back({currentRegister-1, n->type});
+    }
+
+    void visit(std::shared_ptr<Node::DotRhsMethodCall> n) override {
+        rhsMethod = true;
+
+        // get lhs info
+        auto lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // struct return requires a temporary allocation
+        uint32_t placeholderRegister;
+        if (!isPrimitive(n->type)) {
+            placeholderRegister = currentRegister;
+            ++currentRegister;
+            out << "  %r" << placeholderRegister
+                << " = alloca " << convertType(n->type)
+                << " ; Allocation for sret result of internal '@' method call\n";
+        }
+
+        // process args
+        n->args->accept(shared_from_this());
+        // top of expr stack now contains types and registers for arg results
+
+        // output call
+        // non-void (non-nil) return type
+        if (n->type != "nil") {
+            // primitive return type
+            if (isPrimitive(n->type)) {
+                out << "  %r" << currentRegister
+                    << " = call " << convertType(n->type)
+                    << " @" << n->signature
+                    << "(";
+            }
+            // struct return type
+            else {
+                out << "  call void @" << n->signature << "(";
+            }
+        }
+        // void (nil) return type
+        else {
+            out << "  call void @" << n->signature << "(";
+        }
+
+        // first arg is secret ptr to this "this", which in this case is the dot LHS struct evalaute at the top of this visit method
+        std::string thisType = lhs.type+  "*";
+        out << convertType(thisType) << " %r" << lhs.reg;
+        // if there are more parameters - even an sret param - need a comma
+        if (n->numArgs != 0 || !isPrimitive(n->type)) {
+            out << ", ";
+        }
+
+        // output args
+        for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
+            // for primitive arg
+            if (isPrimitive(argIt->type)) {
+                out << convertType(argIt->type) << " noundef %r" << argIt->reg;
+            }
+            // for struct args
+            else {
+                out << convertType(argIt->type + "*") << " noundef byval("
+                    << convertType(argIt->type) << ") %r"
+                    << argIt->reg;
+            }
+
+            if (argIt != exprStack.end()-1) {
+                out << ", ";
+            }
+        }
+
+        // sret argument for struct returns, using the placeholder register
+        if (!isPrimitive(n->type)) {
+            // extra comma if there are more than 0 args
+            if (n->numArgs != 0) {
+                out << ", ";
+            }
+            
+            out << convertType(n->type + "*") << " sret("
+                << convertType(n->type) << ") %r"
+                << placeholderRegister;
+        }
+
+        out << ")\n";
+
+        // clear the top of the args from the expr stack
+        for (int i = 0; i < n->numArgs; ++i) {
+            exprStack.pop_back();
+        }
+
+        // non-void (non-nil) return types
+        if (n->type != "nil") { 
+            // primitive return
+            if (isPrimitive(n->type)) {
+                // add this call to the expr stack
+                exprStack.push_back({currentRegister, n->type});
+                ++currentRegister;
+            }
+            // struct return
+            else {
+                exprStack.push_back({placeholderRegister, n->type});
+            }
+        }
+        // void (nil) return type
+        // do nothing, as they should never be used in larger expression
     }
 
     void visit(std::shared_ptr<Node::Primary> n) override {}

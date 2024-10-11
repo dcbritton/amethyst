@@ -273,7 +273,7 @@ struct DotVisitor : Visitor {
         dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(rhsId) << ";\n";
     }
 
-    // visit dot rhs
+    // visit dot rhs member
     void visit(std::shared_ptr<Node::DotRhsMember> n) override {
         int thisId = nodeId;
         ++nodeId;
@@ -284,6 +284,26 @@ struct DotVisitor : Visitor {
                 << n->name
                 << "\"];\n";
     }
+
+    // visit dot rhs method call
+    void visit(std::shared_ptr<Node::DotRhsMethodCall> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "method call\n" << n->name
+                << "\"];\n";
+
+        // process child(ren)
+        int argsId = nodeId;
+        n->args->accept(shared_from_this());
+
+        // connect child(ren) to this node
+        dotFile << "node" << std::to_string(thisId) << " -- node" << std::to_string(argsId) << ";\n";
+    }
+
 
     void visit(std::shared_ptr<Node::Primary> n) override {}
 

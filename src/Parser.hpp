@@ -600,12 +600,21 @@ struct Parser {
         return LHS;
     }
 
-    // parseDotRHS
-    std::shared_ptr<Node::DotRhsMember> parseDotRHS() {
+    // parseDotRHS - either a member or a method call
+    std::shared_ptr<Node::Node> parseDotRHS() {
 
-        // @TODO: method call RHS
         std::string name = consume(Token::identifier);
 
+        // open parenthesis? it's a dot rhs method call
+        if (*it == Token::openParen) {
+            discard(Token::openParen);
+            auto args = parseExprList();
+            discard(Token::closeParen);
+
+            return std::make_shared<Node::DotRhsMethodCall>(name, args);
+        }
+
+        // otherwise its just member access
         return std::make_shared<Node::DotRhsMember>(name);
     }
 

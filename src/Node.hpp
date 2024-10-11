@@ -545,6 +545,11 @@ namespace Node {
         std::string name;
         std::shared_ptr<ExprList> args;
 
+        // assigned in semantic analysis
+        std::string type;
+        uint32_t numArgs;
+        std::string signature;
+
         // constructor
         MethodCall(const std::string& name, std::shared_ptr<ExprList> args)
             : name(name), args(args) {}

@@ -1,9 +1,5 @@
 
-# This example is likely riddled with memory 
-
-# globals
-$a:int
-$b:float
+# This example is likely riddled with memory leaks
 
 # definition of matrix type
 type Matrix
@@ -15,25 +11,15 @@ type Matrix
     # constructor, allocates size x size int matrix on heap
     new(size:int)
         @size = size
-        @data = heap [size] int*
-        i:int = 0
-        while i != size do
-            @data[i] = heap [size] int
-            i = i + 1
-        end
+        @data = @allocateNxN(@size)
         return
     end
 
     # constructor, copies another matrix, allocates new heap space
     new(other:Matrix)
         @size = other.size
-        @data = heap [@size] int*
+        @data = @allocateNxN(@size)
         i:int = 0
-        while i != @size do
-            @data[i] = heap [@size] int
-            i = i + 1
-        end
-        i = 0
         while i != @size do
             j:int = 0
             while j != @size do
@@ -80,92 +66,54 @@ type Matrix
         end
         return
     end
+
+    # method, get a deep copy of this matrix
+    def @deepCopy():Matrix
+
+        result:Matrix = new Matrix(@size)
+
+        i:int = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                result.data[i][j] = @data[i][j]
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        return result
+    end
+
+    # method to allocate an nxn on heap
+    # returns a ptr to the matrix int**
+    def @allocateNxN(n:int):int**
+        rows:int** = heap [n] int*
+        i:int = 0
+        while i != n do
+            rows[i] = heap [n] int
+            i = i + 1
+        end
+
+        return rows
+    end
 end
 
 # global type test
 $mat:Matrix
 
-# function to test global parameters
-def foo(num:int, matrix:Matrix):int
-    return matrix.size + num
-end
-
-# function to test void free function calls
-def setGlobal(m:Matrix)
-    $a = m.size
-    return
-end
-
-# function that tests type (struct) return, struct parameter, and new_expr
-# returns copy of param matrix without the last row and column 
-def copyAndTruncate(other:Matrix):Matrix
-    result:Matrix = new Matrix(other.size - 1)
-    i:int = 0
-    while i != result.size do
-        j:int = 0
-        while j != result.size do
-            result.data[i][j] = other.data[i][j]
-            j = j + 1
-        end
-        i = i + 1
-    end
-
-    return result
-end
-
-# function to test struct return type free functions with no other parameters
-def return4x4HeapMatrix():Matrix
-    return new Matrix(4)
-end
-
 # testing in main
 def main():int
     
-    size:int = 12
-    mat:Matrix = new Matrix(size)
+    mat:Matrix = new Matrix(4)
 
-    i:int = 0
-    while i != size do
-        j:int = 0
-        while j != size do
-            mat.data[i][j] = i + j + -1
-            j = j + 1
-        end 
-        i = i + 1 
-    end
+    mat.data[3][3] = 142
 
-    $mat = new Matrix(mat)
-    $a = mat.size
-    placeholder:int = foo($a, $mat) + mat.data[size-1][size-1] - -123
+    # shallow copy (just invokes memcpy llvm intrinsic), data member of each points to the same memory
+    $mat = mat
 
-    k:int = 0
-    while k != 90 do
+    $mat.data[3][3] = 255
 
-        k = k + 10
-
-        if k  == 100 then
-            k = 101
-            break
-            k = 102
-
-        elsif k == 90 then
-            redo
-            return 91
-
-        elsif k == 80 then
-            continue
-            return 81
-        end
-    end
-
-    # return k
-
-    setGlobal(new Matrix($mat))
-    # k = $a
-
-
-    truncated:Matrix = copyAndTruncate($mat)
-    k = truncated.size
-
-    return return4x4HeapMatrix().size
+    # should return 255, even though accessed through $mat
+    return mat.data[3][3]
 end

@@ -953,6 +953,10 @@ struct SemanticAnalyzerVisitor : Visitor {
         std::string type = currentType->methods.find(signature)->second.returnType;
         exprTypes.push_back(type);
 
+        // attach info for code generator
+        n->type = type;
+        n->numArgs = types.size();
+        n->signature = signature;
     }
 
     // visit unheap

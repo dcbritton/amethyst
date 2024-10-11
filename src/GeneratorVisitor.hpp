@@ -132,7 +132,7 @@ struct GeneratorVisitor : Visitor {
         }
 
         // @TODO: declarations for llvm intrinsics
-        out << "; Declarations of llvm intrinstics, may be unused\n";
+        out << "; Declarations of llvm intrinsics, may be unused\n";
         out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
         out << "declare noalias i8* @malloc(i64 noundef)\n";
         out << "declare void @free(i8* noundef)\n";
@@ -904,7 +904,7 @@ struct GeneratorVisitor : Visitor {
                     << ", i1 false)\n";
 
                 // return void
-                out << "ret void\n";
+                out << "  ret void\n";
             }
         }
         // void
@@ -1003,14 +1003,30 @@ struct GeneratorVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::MethodDefn> n) override {
-
-        std::string thisType = currentType->name +  "*";
-
         // type and name
-        out << "define dso_local " << convertType(n->info->returnType)
-            << " @" << n->info->signature << "(";
+        // primitive return
+        if (isPrimitive(n->returnType)) {
+            out << "define dso_local " << convertType(n->returnType)
+                << " @" << n->info->signature << "(";
+        }
+        // struct return (void return with sret parameter)
+        else {
+            out << "define dso_local void @" << n->info->signature << "(";
+        }
 
         // parameters
+        // secret pointer to struct parameter
+        std::string thisType = currentType->name +  "*";
+        out << convertType(thisType) << " %r" << currentRegister;
+        nameToRegister.emplace("@this", currentRegister);
+        ++currentRegister;
+
+        // if there are more parameters - even an sret param - need a comma
+        if (n->info->parameters.size() != 0 || !isPrimitive(n->returnType)) {
+            out << ", ";
+        }
+
+        // regular parameters
         for (auto it = n->info->parameters.begin(); it != n->info->parameters.end(); ++it) {
             // primitive parameter
             if (isPrimitive(it->type)) {
@@ -1026,15 +1042,21 @@ struct GeneratorVisitor : Visitor {
                 nameToRegister.emplace(it->name, currentRegister);
                 ++currentRegister;
             }
-            
-            out << ", ";
-        }
-        
-        // secret pointer to struct parameter
-        out << convertType(thisType) << " noalias sret(" << convertType(currentType->name) << ") %r" << currentRegister;
-        nameToRegister.emplace("@this", currentRegister);
-        ++currentRegister;
 
+            if (it != n->info->parameters.end() - 1) {
+                out << ", ";
+            }
+        }
+        // sret parameter if struct return
+        if (!isPrimitive(n->returnType)) {
+            // need a comma if there are other parameters
+            if (n->info->parameters.size() != 0) {
+                out << ", ";
+            }
+            out << convertType(n->returnType + "*") << " noalias sret(" << convertType(n->returnType) << ") %r" << currentRegister;
+            nameToRegister.emplace("@sret", currentRegister);
+            ++currentRegister;
+        }
         out << ") {\n";
 
         // allocations & stores for parameters
@@ -1051,6 +1073,9 @@ struct GeneratorVisitor : Visitor {
         
         n->functionBody->accept(shared_from_this());
         out << "}\n";
+
+        // reset current procedure
+        n->info.reset();
 
         // reset registers and nameToRegister map after each function
         currentRegister = 0;
@@ -1095,8 +1120,100 @@ struct GeneratorVisitor : Visitor {
 
     void visit(std::shared_ptr<Node::MethodCall> n) override {
 
+        // struct return requires a temporary allocation
+        uint32_t placeholderRegister;
+        if (!isPrimitive(n->type)) {
+            placeholderRegister = currentRegister;
+            ++currentRegister;
+            out << "  %r" << placeholderRegister
+                << " = alloca " << convertType(n->type)
+                << " ; Allocation for sret result of internal '@' method call\n";
+        }
 
+        // process args
+        n->args->accept(shared_from_this());
+        // top of expr stack now contains types and registers for arg results
 
+        // output call
+        // non-void (non-nil) return type
+        if (n->type != "nil") {
+            // primitive return type
+            if (isPrimitive(n->type)) {
+                out << "  %r" << currentRegister
+                    << " = call " << convertType(n->type)
+                    << " @" << n->signature
+                    << "(";
+            }
+            // struct return type
+            else {
+                out << "  call void @" << n->signature << "(";
+            }
+        }
+        // void (nil) return type
+        else {
+            out << "  call void @" << n->signature << "(";
+        }
+
+        // first arg is secret ptr to this "this"
+        std::string thisType = currentType->name +  "*";
+        out << convertType(thisType) << " %r" << nameToRegister["@this"];
+        // if there are more parameters - even an sret param - need a comma
+        if (n->numArgs != 0 || !isPrimitive(n->type)) {
+            out << ", ";
+        }
+
+        // output args
+        for (auto argIt = exprStack.end() - n->numArgs; argIt != exprStack.end(); ++argIt) {
+            // for primitive arg
+            if (isPrimitive(argIt->type)) {
+                out << convertType(argIt->type) << " noundef %r" << argIt->reg;
+            }
+            // for struct args
+            else {
+                out << convertType(argIt->type + "*") << " noundef byval("
+                    << convertType(argIt->type) << ") %r"
+                    << argIt->reg;
+            }
+
+            if (argIt != exprStack.end()-1) {
+                out << ", ";
+            }
+        }
+
+        // sret argument for struct returns, using the placeholder register
+        if (!isPrimitive(n->type)) {
+            // extra comma if there are more than 0 args
+            if (n->numArgs != 0) {
+                out << ", ";
+            }
+            
+            out << convertType(n->type + "*") << " sret("
+                << convertType(n->type) << ") %r"
+                << placeholderRegister;
+        }
+
+        out << ")\n";
+
+        // clear the top of the args from the expr stack
+        for (int i = 0; i < n->numArgs; ++i) {
+            exprStack.pop_back();
+        }
+
+        // non-void (non-nil) return types
+        if (n->type != "nil") { 
+            // primitive return
+            if (isPrimitive(n->type)) {
+                // add this call to the expr stack
+                exprStack.push_back({currentRegister, n->type});
+                ++currentRegister;
+            }
+            // struct return
+            else {
+                exprStack.push_back({placeholderRegister, n->type});
+            }
+        }
+        // void (nil) return type
+        // do nothing, as they should never be used in larger expression
     }
 
     // visit unheap

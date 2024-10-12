@@ -245,6 +245,49 @@ exit0:
   %r28 = load i64**, i64*** %r4
   ret i64** %r28
 }
+define dso_local void @Matrix.destroy(%struct.Matrix* %r0) {
+  ; Primitive parameter allocations and stores
+  ; End parameter handling
+
+  ; Define i:int
+  %r2 = alloca i64
+  %r3 = add i64 0, 0
+  store i64 %r3, i64* %r2
+  ; End definition of i:int
+  br label %cond0
+
+cond0:
+  ; Begin eq expr
+  %r4 = load i64, i64* %r2
+  %r5 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 1
+  %r6 = load i64, i64* %r5
+  %r7 = icmp ne i64 %r4, %r6
+  ; End eq expr
+  br i1 %r7, label %body0, label %exit0
+
+body0:
+  %r8 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 0
+  %r9 = load i64**, i64*** %r8
+  %r10 = load i64, i64* %r2
+  %r11 = getelementptr i64*, i64** %r9, i64 %r10
+  %r12 = load i64*, i64** %r11
+  %r13 = bitcast i64* %r12 to i8*
+  call void @free(i8* noundef %r13)
+  ; Begin add expr
+  %r14 = load i64, i64* %r2
+  %r15 = add i64 0, 1
+  %r16 = add i64 %r14, %r15
+  ; End add expr
+  store i64 %r16, i64* %r2
+  br label %cond0
+
+exit0:
+  %r17 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r0, i32 0, i32 0
+  %r18 = load i64**, i64*** %r17
+  %r19 = bitcast i64** %r18 to i8*
+  call void @free(i8* noundef %r19)
+  ret void
+}
 define dso_local void @Matrix.op.plus$Matrix(%struct.Matrix* %r0, %struct.Matrix* noundef byval(%struct.Matrix) %r1, %struct.Matrix* noalias sret(%struct.Matrix) %r2) {
   ; Primitive parameter allocations and stores
   ; End parameter handling
@@ -395,26 +438,48 @@ define dso_local i64 @main() {
   %r12 = bitcast %struct.Matrix* %r9 to i8*
   %r13 = bitcast %struct.Matrix* %r8 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r12, i8* %r13, i64 %r11, i1 false)
-  %r14 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  %r15 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
-  %r16 = load i64**, i64*** %r15
+
+  ; Define matSum:Matrix
+  %r14 = alloca %struct.Matrix
   ; Begin add expr
-  %r17 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r18 = load i64, i64* %r17
-  %r19 = add i64 0, 1
-  %r20 = sub i64 %r18, %r19
-  ; End add expr
-  %r21 = getelementptr i64*, i64** %r16, i64 %r20
-  %r22 = load i64*, i64** %r21
+  %r15 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  %r16 = alloca %struct.Matrix ; Allocation for sret result of user-defined operator
+  call void @Matrix.op.plus$Matrix(%struct.Matrix* %r1, %struct.Matrix* noundef byval(%struct.Matrix) %r15, %struct.Matrix* sret(%struct.Matrix) %r16)
+  %r17 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r18 = ptrtoint %struct.Matrix* %r17 to i64
+  %r19 = bitcast %struct.Matrix* %r14 to i8*
+  %r20 = bitcast %struct.Matrix* %r16 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r19, i8* %r20, i64 %r18, i1 false)
+  ; End definition of matSum:Matrix
+
+  ; Define k:int
+  %r21 = alloca i64
+  %r22 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
+  %r23 = load i64**, i64*** %r22
   ; Begin add expr
-  %r23 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r24 = load i64, i64* %r23
-  %r25 = add i64 0, 1
-  %r26 = sub i64 %r24, %r25
+  %r24 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r25 = load i64, i64* %r24
+  %r26 = add i64 0, 1
+  %r27 = sub i64 %r25, %r26
   ; End add expr
-  %r27 = getelementptr i64, i64* %r22, i64 %r26
-  %r28 = load i64, i64* %r27
-  ret i64 %r28
+  %r28 = getelementptr i64*, i64** %r23, i64 %r27
+  %r29 = load i64*, i64** %r28
+  ; Begin add expr
+  %r30 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r31 = load i64, i64* %r30
+  %r32 = add i64 0, 1
+  %r33 = sub i64 %r31, %r32
+  ; End add expr
+  %r34 = getelementptr i64, i64* %r29, i64 %r33
+  %r35 = load i64, i64* %r34
+  store i64 %r35, i64* %r21
+  ; End definition of k:int
+  call void @Matrix.destroy(%struct.Matrix* %r1)
+  %r36 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  call void @Matrix.destroy(%struct.Matrix* %r36)
+  call void @Matrix.destroy(%struct.Matrix* %r14)
+  %r37 = load i64, i64* %r21
+  ret i64 %r37
 }
 
 ; Declarations of llvm intrinsics, may be unused

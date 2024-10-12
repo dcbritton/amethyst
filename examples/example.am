@@ -87,6 +87,18 @@ type Matrix
 
         return result
     end
+
+    # simple destructor to free a matrix's memory
+    def @destroy()
+        i:int = 0
+        while i != @size do
+            unheap @data[i]
+            i = i + 1
+        end
+        unheap @data
+
+        return
+    end
 end
 
 # global type test
@@ -101,5 +113,12 @@ def main():int
 
     $mat = mat.deepCopy()
 
-    return $mat.data[mat.size-1][mat.size-1]
+    matSum:Matrix = mat + $mat
+    k:int = matSum.data[mat.size-1][mat.size-1]
+
+    mat.destroy()
+    $mat.destroy()
+    matSum.destroy()
+
+    return k
 end

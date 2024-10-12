@@ -523,7 +523,11 @@ struct SemanticAnalyzerVisitor : Visitor {
             }
             // otherwise, process as normal operator
             else {
-                process(n);
+                // process(n);
+
+                // @TODO: usage of op[] currently disabled
+                std::cout << "Usage of op[] on non-pointer types is currently prohibited.\n";
+                exit(1);
             }
         }
 

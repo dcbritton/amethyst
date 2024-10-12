@@ -115,6 +115,90 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
     }
 
+    // a generate code for an operator overload
+    void operatorCall(const SubExprInfo& lhs, const SubExprInfo& rhs, const std::string& op) {
+        std::string signature = formOpSignature(lhs.type, op, rhs.type);
+        auto operation = types->find(lhs.type)->second.operators.find(signature)->second;
+
+        // the following is incredibly similar to dot rhs method call
+        // but with the guarantee of only 1 argument
+
+        // struct return requires a temporary allocation
+        uint32_t placeholderRegister;
+        if (!isPrimitive(operation.returnType)) {
+            placeholderRegister = currentRegister;
+            ++currentRegister;
+            out << "  %r" << placeholderRegister
+                << " = alloca " << convertType(operation.returnType)
+                << " ; Allocation for sret result of user-defined operator\n";
+        }
+
+        // output call
+        // non-void (non-nil) return type
+        if (operation.returnType != "nil") {
+            // primitive return type
+            if (isPrimitive(operation.returnType)) {
+                out << "  %r" << currentRegister
+                    << " = call " << convertType(operation.returnType)
+                    << " @" << signature
+                    << "(";
+            }
+            // struct return type
+            else {
+                out << "  call void @" << signature << "(";
+            }
+        }
+        // void (nil) return type
+        else {
+            out << "  call void @" << signature << "(";
+        }
+
+        // first arg is secret ptr to this "this"
+        std::string thisType = lhs.type +  "*";
+        out << convertType(thisType) << " %r" << lhs.reg;
+        // need a comma b/c guarantee of at least one other operator
+        out << ", ";
+
+        // output arg
+        // for primitive arg
+        if (isPrimitive(rhs.type)) {
+            out << convertType(rhs.type) << " noundef %r" << rhs.reg;
+        }
+        // for struct args
+        else {
+            out << convertType(rhs.type + "*") << " noundef byval("
+                << convertType(rhs.type) << ") %r"
+                << rhs.reg;
+        }
+
+        // sret argument for struct returns, using the placeholder register
+        if (!isPrimitive(operation.returnType)) {
+            out << ", ";
+            out << convertType(operation.returnType + "*") << " sret("
+                << convertType(operation.returnType) << ") %r"
+                << placeholderRegister;
+        }
+        out << ")\n";
+
+        // non-void (non-nil) return types
+        if (operation.returnType != "nil") { 
+            // primitive return
+            if (isPrimitive(operation.returnType)) {
+                // add this call to the expr stack
+                exprStack.push_back({currentRegister, operation.returnType});
+                ++currentRegister;
+            }
+            // struct return
+            else {
+                exprStack.push_back({placeholderRegister, operation.returnType});
+            }
+        }
+        // void (nil) return type
+        // do nothing, as they should never be used in larger expression
+    }
+
+    
+    // VISIT METHODS
     void visit(std::shared_ptr<Node::Node> n) override {}
 
     void visit(std::shared_ptr<Node::Program> n) override {
@@ -333,88 +417,9 @@ struct GeneratorVisitor : Visitor {
         // else if other lhs and rhs combinations primitives
         // ...
 
-        // OVERLOADS
-        // not any primitive operations, must be an overload from a user-defined type
+        // if not any primitive operations, must be an overload from a user-defined type
         else {
-            std::string signature = formOpSignature(lhs.type, n->op, rhs.type);
-            auto operation = types->find(lhs.type)->second.operators.find(signature)->second;
-
-            // the following is incredibly similar to dot rhs method call
-            // but with the guarantee of only 1 argument
-
-            // struct return requires a temporary allocation
-            uint32_t placeholderRegister;
-            if (!isPrimitive(operation.returnType)) {
-                placeholderRegister = currentRegister;
-                ++currentRegister;
-                out << "  %r" << placeholderRegister
-                    << " = alloca " << convertType(operation.returnType)
-                    << " ; Allocation for sret result of user-defined operator\n";
-            }
-
-            // output call
-            // non-void (non-nil) return type
-            if (operation.returnType != "nil") {
-                // primitive return type
-                if (isPrimitive(operation.returnType)) {
-                    out << "  %r" << currentRegister
-                        << " = call " << convertType(operation.returnType)
-                        << " @" << signature
-                        << "(";
-                }
-                // struct return type
-                else {
-                    out << "  call void @" << signature << "(";
-                }
-            }
-            // void (nil) return type
-            else {
-                out << "  call void @" << signature << "(";
-            }
-
-            // first arg is secret ptr to this "this"
-            std::string thisType = lhs.type +  "*";
-            out << convertType(thisType) << " %r" << lhs.reg;
-            // need a comma b/c guarantee of at least one other operator
-            out << ", ";
-
-            // output arg
-            // for primitive arg
-            if (isPrimitive(rhs.type)) {
-                out << convertType(rhs.type) << " noundef %r" << rhs.reg;
-            }
-            // for struct args
-            else {
-                out << convertType(rhs.type + "*") << " noundef byval("
-                    << convertType(rhs.type) << ") %r"
-                    << rhs.reg;
-            }
-
-            // sret argument for struct returns, using the placeholder register
-            if (!isPrimitive(operation.returnType)) {
-                out << ", ";
-                out << convertType(operation.returnType + "*") << " sret("
-                    << convertType(operation.returnType) << ") %r"
-                    << placeholderRegister;
-            }
-            out << ")\n";
-
-            // non-void (non-nil) return types
-            if (operation.returnType != "nil") { 
-                // primitive return
-                if (isPrimitive(operation.returnType)) {
-                    // add this call to the expr stack
-                    exprStack.push_back({currentRegister, operation.returnType});
-                    ++currentRegister;
-                }
-                // struct return
-                else {
-                    exprStack.push_back({placeholderRegister, operation.returnType});
-                }
-            }
-            // void (nil) return type
-            // do nothing, as they should never be used in larger expression
-
+            operatorCall(lhs, rhs, n->op);
             // don't perform following operations
             return;
         }
@@ -449,13 +454,19 @@ struct GeneratorVisitor : Visitor {
         exprStack.pop_back();
 
         // get type
-        // @TODO: check overloads for structs
         std::string type;
         if (lhs.type == "int" && rhs.type == "int") {
             type = "int";
         }
+
+        // else if other lhs and rhs combinations primitives
+        // ...
+
+        // if not any primitive operations, must be an overload from a user-defined type
         else {
-            
+            operatorCall(lhs, rhs, n->op);
+            // don't perform following operations
+            return;
         }
 
         // mul

@@ -230,6 +230,7 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::make_pair<std::string, Procedure>(formOpSignature("float", "-", "float"), Procedure("float")),
             std::make_pair<std::string, Procedure>(formOpSignature("float", "*", "float"), Procedure("float")),
             std::make_pair<std::string, Procedure>(formOpSignature("float", "/", "float"), Procedure("float")),
+            std::make_pair<std::string, Procedure>(formOpSignature("float", "%", "float"), Procedure("float")),
         }, {}));
         types.emplace("char", Type("char", {}, {}, {
             std::make_pair<std::string, Procedure>(formOpSignature("char", "==", "char"), Procedure("bool")),

@@ -536,7 +536,54 @@ struct GeneratorVisitor : Visitor {
         out << "  ; End relational expr\n"; 
     }
 
-    void visit(std::shared_ptr<Node::ShiftExpr> n) override {}
+    void visit(std::shared_ptr<Node::ShiftExpr> n) override {
+        out << "  ; Begin shift expr\n";
+
+        // process children
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+
+        // get child registers and type
+        SubExprInfo rhs = exprStack.back();
+        exprStack.pop_back();
+        SubExprInfo lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // holds the resultant type of the operation
+        std::string resultType;
+
+        // output the operation
+        // int, int
+        if (lhs.type == "int" && rhs.type == "int") {
+            resultType = "int";
+            out << "  %r" << currentRegister 
+                << " = ";
+            // shift left
+            if (n->op == "<<") {
+                out << "shl ";
+            }
+            // shift right
+            else {
+                out << "lshr ";
+            }
+            out << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
+        }
+
+        // if not any primitive operations, must be an overload from a user-defined type
+        else {
+            operatorCall(lhs, rhs, n->op);
+            // don't perform following operations
+            return;
+        }
+
+        exprStack.push_back({currentRegister, resultType});
+        ++currentRegister;
+
+        out << "  ; End shift expr\n"; 
+    }
 
     void visit(std::shared_ptr<Node::AdditiveExpr> n) override {
         out << "  ; Begin add expr\n";

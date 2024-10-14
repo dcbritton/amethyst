@@ -156,8 +156,8 @@ def main():int
     c:bool = true
     d:bool = false
 
-    if 1.23 <= 2112.4 and false then
-        return 10 % 4 
+    if false or 1.23 <= 2112.4 then
+        return (10 % 4) << 2
     else then
         return 10/3
     end

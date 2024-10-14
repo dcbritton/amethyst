@@ -679,37 +679,41 @@ define dso_local i64 @main() {
   store i1 %r45, i1* %r44
   ; End definition of d:bool
   ; Begin logical expr
+  %r46 = add i1 0, 0
   ; Begin relational expr
-  %r46 = fadd double 0.0, 1.23
-  %r47 = fadd double 0.0, 2112.4
-  %r48 = fcmp ole double %r46, %r47
+  %r47 = fadd double 0.0, 1.23
+  %r48 = fadd double 0.0, 2112.4
+  %r49 = fcmp ole double %r47, %r48
   ; End relational expr
-  %r49 = add i1 0, 0
-  %r50 = and i1 %r48, %r49
+  %r50 = or i1 %r46, %r49
   ; End eq expr
   br i1 %r50, label %ifbody0, label %elsebody0
 
 ifbody0:
+  ; Begin shift expr
   ; Begin mult expr
   %r51 = add i64 0, 10
   %r52 = add i64 0, 4
   %r53 = srem i64 %r51, %r52
   ; End mult expr
-  ret i64 %r53
+  %r54 = add i64 0, 2
+  %r55 = shl i64 %r53, %r54
+  ; End shift expr
+  ret i64 %r55
   br label %exit0
 
 elsebody0:
   ; Begin mult expr
-  %r54 = add i64 0, 10
-  %r55 = add i64 0, 3
-  %r56 = sdiv i64 %r54, %r55
+  %r56 = add i64 0, 10
+  %r57 = add i64 0, 3
+  %r58 = sdiv i64 %r56, %r57
   ; End mult expr
-  ret i64 %r56
+  ret i64 %r58
   br label %exit0
 
 exit0:
-  %r57 = load i64, i64* %r22
-  ret i64 %r57
+  %r59 = load i64, i64* %r22
+  ret i64 %r59
 }
 
 ; Declarations of llvm intrinsics, may be unused

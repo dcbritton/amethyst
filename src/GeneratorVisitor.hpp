@@ -361,7 +361,6 @@ struct GeneratorVisitor : Visitor {
         SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
-
         // holds the resultant type of the operation
         std::string resultType;
 
@@ -474,10 +473,30 @@ struct GeneratorVisitor : Visitor {
         SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
-        // get type
-        std::string type;
+        // holds the resultant type of the operation
+        std::string resultType;
+
+        // int, int
         if (lhs.type == "int" && rhs.type == "int") {
-            type = "int";
+            resultType = "int";
+            out << "  %r" << currentRegister 
+                << " = ";
+            // multiplication
+            if (n->op == "*") {
+                out << "mul ";
+            }
+            // division
+            else if (n->op == "/") {
+                out << "sdiv ";
+            }
+            // modulus (n->op == "%")
+            else {
+                out << "srem ";
+            }
+            out << convertType(resultType)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
         }
 
         // else if other lhs and rhs combinations primitives
@@ -490,16 +509,7 @@ struct GeneratorVisitor : Visitor {
             return;
         }
 
-        // mul
-        out << "  %r" << currentRegister 
-            << " = " 
-            << (n->op == "*" ? "mul " : "sdiv ")
-            << convertType(type)
-            << " %r" << lhs.reg
-            << ", %r" << rhs.reg
-            << "\n";
-
-        exprStack.push_back({currentRegister, type});
+        exprStack.push_back({currentRegister, resultType});
         ++currentRegister;
 
         out << "  ; End mult expr\n";

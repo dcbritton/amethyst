@@ -669,23 +669,31 @@ define dso_local i64 @main() {
   ; Begin eq expr
   %r42 = load double, double* %r38
   %r43 = load double, double* %r40
-  %r44 = fcmp one double %r42, %r43
+  %r44 = fcmp oeq double %r42, %r43
   ; End eq expr
   br i1 %r44, label %ifbody0, label %elsebody0
 
 ifbody0:
-  %r45 = add i64 0, 123
-  ret i64 %r45
+  ; Begin mult expr
+  %r45 = add i64 0, 10
+  %r46 = add i64 0, 4
+  %r47 = srem i64 %r45, %r46
+  ; End mult expr
+  ret i64 %r47
   br label %exit0
 
 elsebody0:
-  %r46 = add i64 0, 124
-  ret i64 %r46
+  ; Begin mult expr
+  %r48 = add i64 0, 10
+  %r49 = add i64 0, 3
+  %r50 = sdiv i64 %r48, %r49
+  ; End mult expr
+  ret i64 %r50
   br label %exit0
 
 exit0:
-  %r47 = load i64, i64* %r22
-  ret i64 %r47
+  %r51 = load i64, i64* %r22
+  ret i64 %r51
 }
 
 ; Declarations of llvm intrinsics, may be unused

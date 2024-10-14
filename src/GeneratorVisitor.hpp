@@ -346,7 +346,46 @@ struct GeneratorVisitor : Visitor {
         }
     }
 
-    void visit(std::shared_ptr<Node::LogicalExpr> n) override {}
+    void visit(std::shared_ptr<Node::LogicalExpr> n) override {
+        out << "  ; Begin logical expr\n";
+
+        // process children
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+
+        // get child registers and type
+        SubExprInfo rhs = exprStack.back();
+        exprStack.pop_back();
+        SubExprInfo lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // holds the resultant type of the operation
+        std::string resultType;
+
+        // bool, bool
+        if (lhs.type == "bool" && rhs.type == "bool") {
+            resultType = "bool";
+            out << "  %r" << currentRegister
+                << " = "
+                << (n->op == "and" ? "and " : "or ")
+                << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";  
+        }
+
+        // if not any primitive operations, must be an overload from a user-defined type
+        else {
+            operatorCall(lhs, rhs, n->op);
+            // don't perform following operations
+            return;
+        }
+
+        exprStack.push_back({currentRegister, resultType});
+        ++currentRegister;
+
+        out << "  ; End eq expr\n";
+    }
 
     void visit(std::shared_ptr<Node::EqualityExpr> n) override {
         out << "  ; Begin eq expr\n";

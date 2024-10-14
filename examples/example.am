@@ -156,7 +156,7 @@ def main():int
     c:bool = true
     d:bool = false
 
-    if c == false then
+    if c == true or d == true then
         return 10 % 4 
     else then
         return 10/3

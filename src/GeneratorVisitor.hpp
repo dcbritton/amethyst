@@ -499,8 +499,28 @@ struct GeneratorVisitor : Visitor {
                 << "\n";
         }
 
-        // else if other lhs and rhs combinations primitives
-        // ...
+        // float, float
+        else if (lhs.type == "float" && rhs.type == "float") {
+            resultType = "float";
+            out << "  %r" << currentRegister 
+                << " = ";
+            // multiplication
+            if (n->op == "*") {
+                out << "fmul ";
+            }
+            // division
+            else if (n->op == "/") {
+                out << "fdiv ";
+            }
+            // modulus (n->op == "%")
+            else {
+                out << "frem ";
+            }
+            out << convertType(resultType)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
+        }
 
         // if not any primitive operations, must be an overload from a user-defined type
         else {

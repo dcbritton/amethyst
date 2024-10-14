@@ -679,41 +679,37 @@ define dso_local i64 @main() {
   store i1 %r45, i1* %r44
   ; End definition of d:bool
   ; Begin logical expr
-  ; Begin eq expr
-  %r46 = load i1, i1* %r42
-  %r47 = add i1 0, 1
-  %r48 = icmp eq i1 %r46, %r47
+  ; Begin relational expr
+  %r46 = fadd double 0.0, 1.23
+  %r47 = fadd double 0.0, 2112.4
+  %r48 = fcmp ole double %r46, %r47
+  ; End relational expr
+  %r49 = add i1 0, 0
+  %r50 = and i1 %r48, %r49
   ; End eq expr
-  ; Begin eq expr
-  %r49 = load i1, i1* %r44
-  %r50 = add i1 0, 1
-  %r51 = icmp eq i1 %r49, %r50
-  ; End eq expr
-  %r52 = or i1 %r48, %r51
-  ; End eq expr
-  br i1 %r52, label %ifbody0, label %elsebody0
+  br i1 %r50, label %ifbody0, label %elsebody0
 
 ifbody0:
   ; Begin mult expr
-  %r53 = add i64 0, 10
-  %r54 = add i64 0, 4
-  %r55 = srem i64 %r53, %r54
+  %r51 = add i64 0, 10
+  %r52 = add i64 0, 4
+  %r53 = srem i64 %r51, %r52
   ; End mult expr
-  ret i64 %r55
+  ret i64 %r53
   br label %exit0
 
 elsebody0:
   ; Begin mult expr
-  %r56 = add i64 0, 10
-  %r57 = add i64 0, 3
-  %r58 = sdiv i64 %r56, %r57
+  %r54 = add i64 0, 10
+  %r55 = add i64 0, 3
+  %r56 = sdiv i64 %r54, %r55
   ; End mult expr
-  ret i64 %r58
+  ret i64 %r56
   br label %exit0
 
 exit0:
-  %r59 = load i64, i64* %r22
-  ret i64 %r59
+  %r57 = load i64, i64* %r22
+  ret i64 %r57
 }
 
 ; Declarations of llvm intrinsics, may be unused

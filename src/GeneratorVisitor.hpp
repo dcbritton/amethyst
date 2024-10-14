@@ -453,7 +453,87 @@ struct GeneratorVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::RelationalExpr> n) override {
-        // @TODO: icmp <arg> ... - check reference search sgtx  
+        out << "  ; Begin relational expr\n";
+
+        // process children
+        n->LHS->accept(shared_from_this());
+        n->RHS->accept(shared_from_this());
+
+        // get child registers and type
+        SubExprInfo rhs = exprStack.back();
+        exprStack.pop_back();
+        SubExprInfo lhs = exprStack.back();
+        exprStack.pop_back();
+
+        // holds the resultant type of the operation
+        std::string resultType;
+
+        // output the operation
+        // int, int
+        if (lhs.type == "int" && rhs.type == "int") {
+            resultType = "bool";
+            out << "  %r" << currentRegister 
+                << " = icmp ";
+            // less than
+            if (n->op == "<") {
+                out << "slt ";
+            }
+            // less than or equal to
+            else if (n->op == "<=") {
+                out << "sle ";
+            }
+            // greater than
+            else if (n->op == ">") {
+                out << "sgt ";
+            }
+            // greater than or equal to
+            else {
+                out << "sge ";
+            }
+            out << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
+        }
+
+        // float, float
+        else if (lhs.type == "float" && rhs.type == "float") {
+            resultType = "bool";
+            out << "  %r" << currentRegister 
+                << " = fcmp ";
+            // less than
+            if (n->op == "<") {
+                out << "olt ";
+            }
+            // less than or equal to
+            else if (n->op == "<=") {
+                out << "ole ";
+            }
+            // greater than
+            else if (n->op == ">") {
+                out << "ogt ";
+            }
+            // greater than or equal to
+            else {
+                out << "oge ";
+            }
+            out << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
+        }
+
+        // if not any primitive operations, must be an overload from a user-defined type
+        else {
+            operatorCall(lhs, rhs, n->op);
+            // don't perform following operations
+            return;
+        }
+
+        exprStack.push_back({currentRegister, resultType});
+        ++currentRegister;
+
+        out << "  ; End relational expr\n"; 
     }
 
     void visit(std::shared_ptr<Node::ShiftExpr> n) override {}

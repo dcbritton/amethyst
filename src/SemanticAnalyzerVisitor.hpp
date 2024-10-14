@@ -502,7 +502,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         process(n);
     }
 
-    void visit(std::shared_ptr<Node::RelationExpr> n) override {
+    void visit(std::shared_ptr<Node::RelationalExpr> n) override {
         process(n);
     }
 
@@ -510,11 +510,11 @@ struct SemanticAnalyzerVisitor : Visitor {
         process(n);
     }
 
-    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
+    void visit(std::shared_ptr<Node::AdditiveExpr> n) override {
         process(n);
     }
 
-    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+    void visit(std::shared_ptr<Node::MultiplicativeExpr> n) override {
         process(n);
     }
 

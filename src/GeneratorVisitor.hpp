@@ -401,13 +401,13 @@ struct GeneratorVisitor : Visitor {
         out << "  ; End eq expr\n";
     }
 
-    void visit(std::shared_ptr<Node::RelationExpr> n) override {
+    void visit(std::shared_ptr<Node::RelationalExpr> n) override {
         // @TODO: icmp <arg> ... - check reference search sgtx  
     }
 
     void visit(std::shared_ptr<Node::ShiftExpr> n) override {}
 
-    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
+    void visit(std::shared_ptr<Node::AdditiveExpr> n) override {
         out << "  ; Begin add expr\n";
 
         // process children
@@ -460,7 +460,7 @@ struct GeneratorVisitor : Visitor {
         out << "  ; End add expr\n";  
     }
 
-    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+    void visit(std::shared_ptr<Node::MultiplicativeExpr> n) override {
         out << "  ; Begin mult expr\n";
 
         // process children

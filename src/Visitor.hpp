@@ -14,10 +14,10 @@ namespace Node {
     struct FunctionBody;
     struct LogicalExpr;
     struct EqualityExpr;
-    struct RelationExpr;
+    struct RelationalExpr;
     struct ShiftExpr;
-    struct AdditionExpr;
-    struct MultiplicationExpr;
+    struct AdditiveExpr;
+    struct MultiplicativeExpr;
     struct Primary;
     struct NewExpr;
     struct StackExpr;
@@ -73,13 +73,13 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
 
     virtual void visit(std::shared_ptr<Node::EqualityExpr> n) {}
 
-    virtual void visit(std::shared_ptr<Node::RelationExpr> n) {}
+    virtual void visit(std::shared_ptr<Node::RelationalExpr> n) {}
 
     virtual void visit(std::shared_ptr<Node::ShiftExpr> n) {}
 
-    virtual void visit(std::shared_ptr<Node::AdditionExpr> n) {}
+    virtual void visit(std::shared_ptr<Node::AdditiveExpr> n) {}
 
-    virtual void visit(std::shared_ptr<Node::MultiplicationExpr> n) {}
+    virtual void visit(std::shared_ptr<Node::MultiplicativeExpr> n) {}
 
     virtual void visit(std::shared_ptr<Node::AccessExpr> n) {}
 

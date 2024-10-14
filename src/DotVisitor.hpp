@@ -164,7 +164,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit relation expression
-    void visit(std::shared_ptr<Node::RelationExpr> n) override {
+    void visit(std::shared_ptr<Node::RelationalExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -208,7 +208,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit addition expression
-    void visit(std::shared_ptr<Node::AdditionExpr> n) override {
+    void visit(std::shared_ptr<Node::AdditiveExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 
@@ -230,7 +230,7 @@ struct DotVisitor : Visitor {
     }
 
     // visit multiplication expression
-    void visit(std::shared_ptr<Node::MultiplicationExpr> n) override {
+    void visit(std::shared_ptr<Node::MultiplicativeExpr> n) override {
         int thisId = nodeId;
         ++nodeId;
 

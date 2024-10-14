@@ -103,10 +103,10 @@ namespace Node {
         }
     };
 
-    struct RelationExpr : Expr, std::enable_shared_from_this<RelationExpr> {
+    struct RelationalExpr : Expr, std::enable_shared_from_this<RelationalExpr> {
 
         // constructor
-        RelationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        RelationalExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
             : Expr(LHS, op, RHS) {}
 
         // accept
@@ -127,10 +127,10 @@ namespace Node {
         }
     };
 
-    struct AdditionExpr : Expr, std::enable_shared_from_this<AdditionExpr> {
+    struct AdditiveExpr : Expr, std::enable_shared_from_this<AdditiveExpr> {
 
         // constructor
-        AdditionExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        AdditiveExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
             : Expr(LHS, op, RHS) {}
 
         // accept
@@ -139,10 +139,10 @@ namespace Node {
         }
     };
 
-    struct MultiplicationExpr : Expr, std::enable_shared_from_this<MultiplicationExpr> {
+    struct MultiplicativeExpr : Expr, std::enable_shared_from_this<MultiplicativeExpr> {
 
         // constructor
-        MultiplicationExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
+        MultiplicativeExpr(std::shared_ptr<Node> LHS, const std::string& op, std::shared_ptr<Node> RHS)
             : Expr(LHS, op, RHS) {}
 
         // accept

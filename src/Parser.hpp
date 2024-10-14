@@ -502,7 +502,7 @@ struct Parser {
                 break;
             }
             auto RHS = parseShiftExpr();
-            LHS = std::make_shared<Node::RelationExpr>(LHS, op, RHS);
+            LHS = std::make_shared<Node::RelationalExpr>(LHS, op, RHS);
         }
 
         return LHS;
@@ -510,7 +510,7 @@ struct Parser {
 
     // parseShiftExpr
     std::shared_ptr<Node::Node> parseShiftExpr() {
-        std::shared_ptr<Node::Node> LHS = parseAdditionExpr();
+        std::shared_ptr<Node::Node> LHS = parseAdditiveExpr();
         while (true) {
             std::string op; 
             if (*it == Token::opLeftShift) {
@@ -522,16 +522,16 @@ struct Parser {
             else {
                 break;
             }
-            auto RHS = parseAdditionExpr();
+            auto RHS = parseAdditiveExpr();
             LHS = std::make_shared<Node::ShiftExpr>(LHS, op, RHS);
         }
 
         return LHS;
     }
 
-    // parseAdditionExpr
-    std::shared_ptr<Node::Node> parseAdditionExpr() {
-        std::shared_ptr<Node::Node> LHS = parseMultiplicationExpr();
+    // parseAdditiveExpr
+    std::shared_ptr<Node::Node> parseAdditiveExpr() {
+        std::shared_ptr<Node::Node> LHS = parseMultiplicativeExpr();
         while (true) {
             std::string op;
             if (*it == Token::opPlus) {
@@ -543,15 +543,15 @@ struct Parser {
             else {
                 break;
             }
-            auto RHS = parseMultiplicationExpr();
-            LHS = std::make_shared<Node::AdditionExpr>(LHS, op, RHS);
+            auto RHS = parseMultiplicativeExpr();
+            LHS = std::make_shared<Node::AdditiveExpr>(LHS, op, RHS);
         }
 
         return LHS;
     }
 
-    // parseMultiplicationExpr
-    std::shared_ptr<Node::Node> parseMultiplicationExpr() {
+    // parseMultiplicativeExpr
+    std::shared_ptr<Node::Node> parseMultiplicativeExpr() {
         std::shared_ptr<Node::Node> LHS = parseAccessExpr();
         while (true) {
             std::string op;
@@ -568,7 +568,7 @@ struct Parser {
                 break;
             }
             auto RHS = parseAccessExpr();
-            LHS = std::make_shared<Node::MultiplicationExpr>(LHS, op, RHS);
+            LHS = std::make_shared<Node::MultiplicativeExpr>(LHS, op, RHS);
         }
         
         return LHS;

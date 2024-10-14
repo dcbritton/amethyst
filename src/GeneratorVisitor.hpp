@@ -23,7 +23,7 @@ struct GeneratorVisitor : Visitor {
     // maps amethyst non-pointer type name to an llvm type name
     std::unordered_map<std::string, std::string> typeMap {
         {"int", "i64"},
-        {"float", "float"},
+        {"float", "double"},
         {"bool", "i1"},
         {"nil", "void"}
 
@@ -361,27 +361,42 @@ struct GeneratorVisitor : Visitor {
         SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
-        // get type
-        // @TODO: check overloads for structs
-        std::string type;
+
+        // holds the resultant type of the operation
+        std::string resultType;
+
+        // int, int
         if (lhs.type == "int" && rhs.type == "int") {
-            type = "bool";
+            resultType = "bool";
+            out << "  %r" << currentRegister 
+                << " = icmp "
+                << (n->op == "==" ? "eq " : "ne ") 
+                << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
         }
+
+        // float, float
+        else if (lhs.type == "float" && rhs.type == "float") {
+            resultType = "bool";
+            out << "  %r" << currentRegister
+                << " = fcmp "
+                << (n->op == "==" ? "oeq " : "one ")
+                << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";  
+        }
+
+        // if not any primitive operations, must be an overload from a user-defined type
         else {
-            
+            operatorCall(lhs, rhs, n->op);
+            // don't perform following operations
+            return;
         }
 
-        // icmp eq/ne
-        out << "  %r" << currentRegister 
-            << " = icmp "
-            << (n->op == "==" ? "eq " : "ne ") 
-            << convertType(lhs.type)
-            << " %r" << lhs.reg
-            << ", %r" << rhs.reg
-            << "\n";
-
-        exprStack.push_back({currentRegister, type});
-
+        exprStack.push_back({currentRegister, resultType});
         ++currentRegister;
 
         out << "  ; End eq expr\n";
@@ -406,16 +421,33 @@ struct GeneratorVisitor : Visitor {
         SubExprInfo lhs = exprStack.back();
         exprStack.pop_back();
 
-        // get type
-        // @TODO: check overloads for structs
-        std::string type;
-        // int + int
+        // holds the resultant type of the operation
+        std::string resultType;
+
+        // output the operation
+        // int, int
         if (lhs.type == "int" && rhs.type == "int") {
-            type = "int";
+            resultType = "int";
+            out << "  %r" << currentRegister 
+                << " = " 
+                << (n->op == "+" ? "add " : "sub ")
+                << convertType(resultType)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
         }
 
-        // else if other lhs and rhs combinations primitives
-        // ...
+        // float, float
+        else if (lhs.type == "float" && rhs.type == "float") {
+            resultType = "float";
+            out << "  %r" << currentRegister 
+                << " = " 
+                << (n->op == "+" ? "fadd " : "fsub ")
+                << convertType(resultType)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";
+        }
 
         // if not any primitive operations, must be an overload from a user-defined type
         else {
@@ -424,19 +456,8 @@ struct GeneratorVisitor : Visitor {
             return;
         }
 
-        // add / sub
-        out << "  %r" << currentRegister 
-            << " = " 
-            << (n->op == "+" ? "add " : "sub ")
-            << convertType(type)
-            << " %r" << lhs.reg
-            << ", %r" << rhs.reg
-            << "\n";
-
-        exprStack.push_back({currentRegister, type});
-
+        exprStack.push_back({currentRegister, resultType});
         ++currentRegister;
-
         out << "  ; End add expr\n";  
     }
 
@@ -479,7 +500,6 @@ struct GeneratorVisitor : Visitor {
             << "\n";
 
         exprStack.push_back({currentRegister, type});
-
         ++currentRegister;
 
         out << "  ; End mult expr\n";
@@ -824,7 +844,15 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
     }
 
-    void visit(std::shared_ptr<Node::FloatLiteral> n) override {}
+    void visit(std::shared_ptr<Node::FloatLiteral> n) override {
+        // @NOTE: all float literals are double
+        // put value in register by adding to 0
+        out << "  %r" << currentRegister
+            << " = fadd double 0.0, " << n->value << "\n";
+        // register & type stack
+        exprStack.push_back({currentRegister, "float"});
+        ++currentRegister;
+    }
 
     void visit(std::shared_ptr<Node::StringLiteral> n) override {}
 

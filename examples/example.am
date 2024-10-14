@@ -143,12 +143,21 @@ def main():int
 
     $mat = mat.deepCopy()
 
-    matSum:Matrix = mat * $mat
+    matSum:Matrix = mat * $mat + mat
     k:int = matSum.data[mat.size-1][mat.size-1]
 
     mat.destroy()
     $mat.destroy()
     matSum.destroy()
+
+    a:float = 1.234
+    b:float = 1.234
+
+    if a != b then
+        return 123
+    else then
+        return 124
+    end
 
     return k
 end

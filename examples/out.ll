@@ -614,45 +614,78 @@ define dso_local i64 @main() {
 
   ; Define matSum:Matrix
   %r14 = alloca %struct.Matrix
+  ; Begin add expr
   ; Begin mult expr
   %r15 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
   %r16 = alloca %struct.Matrix ; Allocation for sret result of user-defined operator
   call void @Matrix.op.multiply$Matrix(%struct.Matrix* %r1, %struct.Matrix* noundef byval(%struct.Matrix) %r15, %struct.Matrix* sret(%struct.Matrix) %r16)
-  %r17 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
-  %r18 = ptrtoint %struct.Matrix* %r17 to i64
-  %r19 = bitcast %struct.Matrix* %r14 to i8*
-  %r20 = bitcast %struct.Matrix* %r16 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r19, i8* %r20, i64 %r18, i1 false)
+  %r17 = alloca %struct.Matrix ; Allocation for sret result of user-defined operator
+  call void @Matrix.op.plus$Matrix(%struct.Matrix* %r16, %struct.Matrix* noundef byval(%struct.Matrix) %r1, %struct.Matrix* sret(%struct.Matrix) %r17)
+  %r18 = getelementptr %struct.Matrix, %struct.Matrix* null, i32 1
+  %r19 = ptrtoint %struct.Matrix* %r18 to i64
+  %r20 = bitcast %struct.Matrix* %r14 to i8*
+  %r21 = bitcast %struct.Matrix* %r17 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* %r20, i8* %r21, i64 %r19, i1 false)
   ; End definition of matSum:Matrix
 
   ; Define k:int
-  %r21 = alloca i64
-  %r22 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
-  %r23 = load i64**, i64*** %r22
+  %r22 = alloca i64
+  %r23 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
+  %r24 = load i64**, i64*** %r23
   ; Begin add expr
-  %r24 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r25 = load i64, i64* %r24
-  %r26 = add i64 0, 1
-  %r27 = sub i64 %r25, %r26
+  %r25 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r26 = load i64, i64* %r25
+  %r27 = add i64 0, 1
+  %r28 = sub i64 %r26, %r27
   ; End add expr
-  %r28 = getelementptr i64*, i64** %r23, i64 %r27
-  %r29 = load i64*, i64** %r28
+  %r29 = getelementptr i64*, i64** %r24, i64 %r28
+  %r30 = load i64*, i64** %r29
   ; Begin add expr
-  %r30 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r31 = load i64, i64* %r30
-  %r32 = add i64 0, 1
-  %r33 = sub i64 %r31, %r32
+  %r31 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r32 = load i64, i64* %r31
+  %r33 = add i64 0, 1
+  %r34 = sub i64 %r32, %r33
   ; End add expr
-  %r34 = getelementptr i64, i64* %r29, i64 %r33
-  %r35 = load i64, i64* %r34
-  store i64 %r35, i64* %r21
+  %r35 = getelementptr i64, i64* %r30, i64 %r34
+  %r36 = load i64, i64* %r35
+  store i64 %r36, i64* %r22
   ; End definition of k:int
   call void @Matrix.destroy(%struct.Matrix* %r1)
-  %r36 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
-  call void @Matrix.destroy(%struct.Matrix* %r36)
+  %r37 = bitcast %struct.Matrix* @.global.mat to %struct.Matrix* ; Workaround to use globals in current register management system
+  call void @Matrix.destroy(%struct.Matrix* %r37)
   call void @Matrix.destroy(%struct.Matrix* %r14)
-  %r37 = load i64, i64* %r21
-  ret i64 %r37
+
+  ; Define a:float
+  %r38 = alloca double
+  %r39 = fadd double 0.0, 1.234
+  store double %r39, double* %r38
+  ; End definition of a:float
+
+  ; Define b:float
+  %r40 = alloca double
+  %r41 = fadd double 0.0, 1.234
+  store double %r41, double* %r40
+  ; End definition of b:float
+  ; Begin eq expr
+  %r42 = load double, double* %r38
+  %r43 = load double, double* %r40
+  %r44 = fcmp one double %r42, %r43
+  ; End eq expr
+  br i1 %r44, label %ifbody0, label %elsebody0
+
+ifbody0:
+  %r45 = add i64 0, 123
+  ret i64 %r45
+  br label %exit0
+
+elsebody0:
+  %r46 = add i64 0, 124
+  ret i64 %r46
+  br label %exit0
+
+exit0:
+  %r47 = load i64, i64* %r22
+  ret i64 %r47
 }
 
 ; Declarations of llvm intrinsics, may be unused

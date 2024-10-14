@@ -153,7 +153,10 @@ def main():int
     a:float = 1.234
     b:float = 1.234
 
-    if a == b then
+    c:bool = true
+    d:bool = false
+
+    if c == false then
         return 10 % 4 
     else then
         return 10/3

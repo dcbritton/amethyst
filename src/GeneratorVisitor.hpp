@@ -388,6 +388,18 @@ struct GeneratorVisitor : Visitor {
                 << "\n";  
         }
 
+        // bool, bool
+        else if (lhs.type == "bool" && rhs.type == "bool") {
+            resultType = "bool";
+            out << "  %r" << currentRegister
+                << " = icmp "
+                << (n->op == "==" ? "eq " : "ne ")
+                << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";  
+        }
+
         // if not any primitive operations, must be an overload from a user-defined type
         else {
             operatorCall(lhs, rhs, n->op);

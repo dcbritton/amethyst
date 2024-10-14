@@ -666,34 +666,46 @@ define dso_local i64 @main() {
   %r41 = fadd double 0.0, 1.234
   store double %r41, double* %r40
   ; End definition of b:float
+
+  ; Define c:bool
+  %r42 = alloca i1
+  %r43 = add i1 0, 1
+  store i1 %r43, i1* %r42
+  ; End definition of c:bool
+
+  ; Define d:bool
+  %r44 = alloca i1
+  %r45 = add i1 0, 0
+  store i1 %r45, i1* %r44
+  ; End definition of d:bool
   ; Begin eq expr
-  %r42 = load double, double* %r38
-  %r43 = load double, double* %r40
-  %r44 = fcmp oeq double %r42, %r43
+  %r46 = load i1, i1* %r42
+  %r47 = add i1 0, 0
+  %r48 = icmp eq i1 %r46, %r47
   ; End eq expr
-  br i1 %r44, label %ifbody0, label %elsebody0
+  br i1 %r48, label %ifbody0, label %elsebody0
 
 ifbody0:
   ; Begin mult expr
-  %r45 = add i64 0, 10
-  %r46 = add i64 0, 4
-  %r47 = srem i64 %r45, %r46
+  %r49 = add i64 0, 10
+  %r50 = add i64 0, 4
+  %r51 = srem i64 %r49, %r50
   ; End mult expr
-  ret i64 %r47
+  ret i64 %r51
   br label %exit0
 
 elsebody0:
   ; Begin mult expr
-  %r48 = add i64 0, 10
-  %r49 = add i64 0, 3
-  %r50 = sdiv i64 %r48, %r49
+  %r52 = add i64 0, 10
+  %r53 = add i64 0, 3
+  %r54 = sdiv i64 %r52, %r53
   ; End mult expr
-  ret i64 %r50
+  ret i64 %r54
   br label %exit0
 
 exit0:
-  %r51 = load i64, i64* %r22
-  ret i64 %r51
+  %r55 = load i64, i64* %r22
+  ret i64 %r55
 }
 
 ; Declarations of llvm intrinsics, may be unused

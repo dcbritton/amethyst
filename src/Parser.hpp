@@ -635,6 +635,11 @@ struct Parser {
             return std::make_shared<Node::StringLiteral>(consume(Token::doubleQuoteString));
         }
 
+        // char literal
+        else if (*it == Token::charLiteral) {
+            return std::make_shared<Node::CharLiteral>(consume(Token::charLiteral));
+        }
+
         // identifier, call
         else if (*it == Token::identifier) {
 

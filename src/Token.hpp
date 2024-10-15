@@ -12,7 +12,7 @@ struct Token {
         global,
         intLiteral,
         floatLiteral,
-        singleQuoteString,
+        charLiteral,
         doubleQuoteString,
         backtickString,
 
@@ -140,7 +140,7 @@ struct Token {
             case global: return "global";
             case intLiteral: return "intLiteral";
             case floatLiteral: return "floatLiteral";
-            case singleQuoteString: return "singleQuoteString";
+            case charLiteral: return "charLiteral";
             case doubleQuoteString: return "doubleQuoteString";
             case backtickString: return "backtickString";
 

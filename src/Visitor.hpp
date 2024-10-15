@@ -26,6 +26,7 @@ namespace Node {
     struct FloatLiteral;
     struct StringLiteral;
     struct BoolLiteral;
+    struct CharLiteral;
     struct Variable;
     struct VariableDefn;
     struct FunctionDefn;
@@ -104,6 +105,8 @@ struct Visitor : std::enable_shared_from_this<Visitor> {
     virtual void visit(std::shared_ptr<Node::StringLiteral> n) {}
 
     virtual void visit(std::shared_ptr<Node::BoolLiteral> n) {}
+
+    virtual void visit(std::shared_ptr<Node::CharLiteral> n) {}
     
     virtual void visit(std::shared_ptr<Node::Variable> n) {}
 

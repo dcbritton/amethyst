@@ -232,10 +232,12 @@ struct SemanticAnalyzerVisitor : Visitor {
             std::make_pair<std::string, Procedure>(formOpSignature("float", "/", "float"), Procedure("float")),
             std::make_pair<std::string, Procedure>(formOpSignature("float", "%", "float"), Procedure("float")),
         }, {}));
+
         types.emplace("char", Type("char", {}, {}, {
             std::make_pair<std::string, Procedure>(formOpSignature("char", "==", "char"), Procedure("bool")),
             std::make_pair<std::string, Procedure>(formOpSignature("char", "!=", "char"), Procedure("bool")),
         }, {}));
+
         types.emplace("nil", Type("nil", {}, {}, {}, {}));
 
         // visit statement
@@ -765,6 +767,12 @@ struct SemanticAnalyzerVisitor : Visitor {
         exprTypes.push_back("bool");
     }
     
+    // visit char literal
+    void visit(std::shared_ptr<Node::CharLiteral> n) override {
+        // expression stack
+        exprTypes.push_back("char");
+    }
+
     // visit variable
     void visit(std::shared_ptr<Node::Variable> n) override {
         std::string type;

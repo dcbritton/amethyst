@@ -127,8 +127,11 @@ public:
                     while (isspace(*it)) {
                         if (*it == '\r' && *(it+1) == '\n') {
                             ++lineNumber;
+                            it += 2;
                         }
-                        ++it;
+                        else {
+                            ++it;
+                        }
                     }
                     tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
                     continue;
@@ -136,9 +139,11 @@ public:
                 // *nix 
                 else if (*it == '\n') {
                     while (isspace(*it)) {
-                        ++lineNumber;
+                        if (*it == '\n') { 
+                            ++lineNumber;
+                        }
+                        ++it;
                     }
-                    ++it;
                     tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
                     continue;
                 }
@@ -158,7 +163,9 @@ public:
                 // if the most recent token was a terminator, prevent another from being made after the comment by ignoring all whitespace
                 if (tokens.back() == Token::terminator) {
                     while (isspace(*it)) {
-                        ++lineNumber;
+                        if (*it == '\n') {
+                            ++lineNumber;
+                        }
                         ++it;
                     }
                 }
@@ -264,6 +271,65 @@ public:
                 std::string string(it+1, string_end-1);
                 tokens.push_back(Token(Token::doubleQuoteString, string, lineNumber));
                 it = string_end;
+            }
+
+            // char literal
+            else if (*it == '\'') {
+                std::string value = "";
+
+                // consume the '
+                ++it;
+
+                // escape backslash
+                if (*it == '\\') {
+                    value += '\\';
+                    ++it;
+
+                    // \\ backlash
+                    if (*it == '\\') {
+                        value += "5C";
+                    }
+                    // \n newline
+                    else if (*it == 'n') {
+                        value += "0A";
+                    }
+                    // \t tab
+                    else if (*it == 't') {
+                        value += "09";
+                    }
+                    // \0 null
+                    else if (*it == '0') {
+                        value += "00";
+                        ++it;
+                    }
+                    // invalid escape
+                    else {
+                        std::cout << "Lexer error on line " << lineNumber << ". Invalid escape sequence.\n";
+                        exit(1);
+                    }
+
+                    // unpaired single quote
+                    if (*it != '\'') {
+                        std::cout << "Lexer error on line " << lineNumber << ". Unpaired single quote.\n";
+                        exit(1);
+                    }
+
+                    tokens.push_back(Token(Token::charLiteral, value, lineNumber));
+                    
+                    // consume second '
+                    ++it;
+                    continue;
+                }
+
+                // no escape, consume the value
+                value = *it;
+                ++it;
+
+                tokens.push_back(Token(Token::charLiteral, value, lineNumber));
+
+                // consume second '
+                ++it;
+                continue;
             }
 
             // dot operator AND ranges

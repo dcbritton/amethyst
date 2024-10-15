@@ -464,6 +464,18 @@ struct DotVisitor : Visitor {
                 << "\"];\n";
     }
 
+    // visit char literal
+    void visit(std::shared_ptr<Node::CharLiteral> n) override {
+        int thisId = nodeId;
+        ++nodeId;
+
+        // create this node
+        dotFile << "node" << std::to_string(thisId)
+                << " [label=\""
+                << "\' " << n->value << " \'"
+                << "\"];\n";  
+    }
+
     // visit variable
     void visit(std::shared_ptr<Node::Variable> n) override {
         int thisId = nodeId;

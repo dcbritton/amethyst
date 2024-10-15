@@ -105,7 +105,7 @@ public:
                 || tokens.back() == Token::kwTrue
                 || tokens.back() == Token::kwFalse
                 || tokens.back() == Token::doubleQuoteString
-                || tokens.back() == Token::singleQuoteString
+                || tokens.back() == Token::charLiteral
                 // @TODO:complete this condition
                 // || tokens.back() == Token::
             );
@@ -124,19 +124,21 @@ public:
 
                 // windows newline crlf
                 if (*it == '\r' && *(it+1) == '\n') {
-                    while (*it == '\r' && *(it+1) == '\n') {
-                        ++lineNumber;
-                        it += 2;
+                    while (isspace(*it)) {
+                        if (*it == '\r' && *(it+1) == '\n') {
+                            ++lineNumber;
+                        }
+                        ++it;
                     }
                     tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
                     continue;
                 }
                 // *nix 
                 else if (*it == '\n') {
-                    while (*it == '\n') {
+                    while (isspace(*it)) {
                         ++lineNumber;
-                        ++it;
                     }
+                    ++it;
                     tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
                     continue;
                 }
@@ -151,6 +153,14 @@ public:
                 // ignore until next newline
                 while (*it != '\r' && *it != '\n') {
                     ++it;
+                }
+
+                // if the most recent token was a terminator, prevent another from being made after the comment by ignoring all whitespace
+                if (tokens.back() == Token::terminator) {
+                    while (isspace(*it)) {
+                        ++lineNumber;
+                        ++it;
+                    }
                 }
             }
 
@@ -185,7 +195,6 @@ public:
                 continue;
             }
 
-            // @TODO fix bug here regarding - sign 
             // numeric
             else if (isdigit(*it) || *it == '-') {
                 if (*it == '-' && !isdigit(*(it+1))) {

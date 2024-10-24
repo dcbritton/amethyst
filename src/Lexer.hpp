@@ -160,6 +160,17 @@ public:
                     ++it;
                 }
 
+                // text begins with a comment
+                if (tokens.empty()) {
+                    while (isspace(*it)) {
+                        if (*it == '\n') {
+                            ++lineNumber;
+                        }
+                        ++it;
+                    }
+                    tokens.push_back(Token(Token::terminator, "\\n", lineNumber));
+                }
+
                 // if the most recent token was a terminator, prevent another from being made after the comment by ignoring all whitespace
                 if (tokens.back() == Token::terminator) {
                     while (isspace(*it)) {

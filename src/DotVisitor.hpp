@@ -471,8 +471,7 @@ struct DotVisitor : Visitor {
 
         // create this node
         dotFile << "node" << std::to_string(thisId)
-                << " [label=\""
-                << "\' " << n->value << " \'"
+                << " [label=\"char value: " << n->value
                 << "\"];\n";  
     }
 

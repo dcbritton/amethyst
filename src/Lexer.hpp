@@ -293,24 +293,23 @@ public:
 
                 // escape backslash
                 if (*it == '\\') {
-                    value += '\\';
                     ++it;
 
                     // \\ backlash
                     if (*it == '\\') {
-                        value += "5C";
+                        value = "92";
                     }
                     // \n newline
                     else if (*it == 'n') {
-                        value += "0A";
+                        value = "10";
                     }
                     // \t tab
                     else if (*it == 't') {
-                        value += "09";
+                        value = "9";
                     }
                     // \0 null
                     else if (*it == '0') {
-                        value += "00";
+                        value = "0";
                         ++it;
                     }
                     // invalid escape
@@ -333,10 +332,8 @@ public:
                 }
 
                 // no escape, consume the value
-                value = *it;
+                tokens.push_back(Token(Token::charLiteral, std::to_string(uint8_t(*it)), lineNumber));
                 ++it;
-
-                tokens.push_back(Token(Token::charLiteral, value, lineNumber));
 
                 // consume second '
                 ++it;

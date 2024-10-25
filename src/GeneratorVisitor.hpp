@@ -25,9 +25,8 @@ struct GeneratorVisitor : Visitor {
         {"int", "i64"},
         {"float", "double"},
         {"bool", "i1"},
+        {"char", "i8"},
         {"nil", "void"}
-
-        // @TODO: add char
     };
 
     // types map
@@ -65,7 +64,7 @@ struct GeneratorVisitor : Visitor {
     }
 
     bool isPrimitive(const std::string& typeName) {
-        return typeName == "int" || typeName == "float" || typeName == "bool" || typeName == "nil" || typeName.back() == '*';
+        return typeName == "int" || typeName == "float" || typeName == "bool" || typeName == "char" || typeName == "nil" || typeName.back() == '*';
     }
 
     // convert an amethyst type (including pointer types)
@@ -115,7 +114,7 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
     }
 
-    // a generate code for an operator overload
+    // a generate code for an operator overload 
     void operatorCall(const SubExprInfo& lhs, const SubExprInfo& rhs, const std::string& op) {
         std::string signature = formOpSignature(lhs.type, op, rhs.type);
         auto operation = types->find(lhs.type)->second.operators.find(signature)->second;
@@ -429,6 +428,18 @@ struct GeneratorVisitor : Visitor {
 
         // bool, bool
         else if (lhs.type == "bool" && rhs.type == "bool") {
+            resultType = "bool";
+            out << "  %r" << currentRegister
+                << " = icmp "
+                << (n->op == "==" ? "eq " : "ne ")
+                << convertType(lhs.type)
+                << " %r" << lhs.reg
+                << ", %r" << rhs.reg
+                << "\n";  
+        }
+
+        // char, char
+        else if (lhs.type == "char" && rhs.type == "char") {
             resultType = "bool";
             out << "  %r" << currentRegister
                 << " = icmp "
@@ -1065,7 +1076,7 @@ struct GeneratorVisitor : Visitor {
     void visit(std::shared_ptr<Node::StringLiteral> n) override {}
 
     void visit(std::shared_ptr<Node::BoolLiteral> n) override {
-        // @NOTE: all int literals are i64
+        // @NOTE: all bool literals are i1
         // put value in register by adding to 0
         out << "  %r" << currentRegister
             << " = add i1 0, "
@@ -1076,6 +1087,18 @@ struct GeneratorVisitor : Visitor {
         ++currentRegister;
     }
     
+    void visit(std::shared_ptr<Node::CharLiteral> n) override {
+        // @NOTE: all char literals are i8
+        // put value in register by adding to 0
+        out << "  %r" << currentRegister
+            << " = add i8 0, "
+            << n->value
+            << " ; Char literal\n";
+        // register & type stack
+        exprStack.push_back({currentRegister, "char"});
+        ++currentRegister;
+    }
+
     void visit(std::shared_ptr<Node::Variable> n) override {
 
         // structs always push their allocation pointer and their type

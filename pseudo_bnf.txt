@@ -31,7 +31,7 @@ stmt        -   var_def
 
 unheap_stmt -   unheap access_expr
 
-while_loop  -   while logic_expr do func_body end
+while_loop  -   while logic_expr do TERM func_body end
 
 conditional -   if logic_expr then TERM func_body [elsif logic_expr then TERM func_body]* [else then TERM func_body] end
             

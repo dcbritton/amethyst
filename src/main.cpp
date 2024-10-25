@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
         ast->accept(sa);
 
         // // code generation
-        // auto cg = std::make_shared<GeneratorVisitor>("../examples/out.ll");
-        // ast->accept(cg);
+        auto cg = std::make_shared<GeneratorVisitor>("../examples/out.ll");
+        ast->accept(cg);
     }
     catch (InvalidSymbolException& e) {
         std::cerr << "Lexer error: " << e.what() << '\n';

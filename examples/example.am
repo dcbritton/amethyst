@@ -1,5 +1,4 @@
 
-$flag:int
 
 type DynamicIntArray
     @data:int*
@@ -16,7 +15,7 @@ type DynamicIntArray
 
     def @append(value:int)
 
-        # need to allocate new space
+        # allocate new space when reaching end of capacity
         if @length + 1 == @capacity then
             
             # allocate new capacity
@@ -40,6 +39,7 @@ type DynamicIntArray
 
         return
     end
+    
     def @destroy()
         unheap @data
         return
@@ -47,7 +47,7 @@ type DynamicIntArray
 end 
 
 # testing in main
-def main():int
+def main():int # testing a comment edge case
 
     arr:DynamicIntArray = new DynamicIntArray()
     i:int = 0
@@ -60,7 +60,11 @@ def main():int
         i = i + 1
     end
 
-    str:char* = "WOW"
+    str:char* = stack [4] char
+    str[0] = 'W'
+    str[1] = 'O'
+    str[2] = 'W'
+    str[3] = '\0'
     if ('W' == str[0]) then
         return 125
     end

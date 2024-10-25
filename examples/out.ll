@@ -1,4 +1,3 @@
-@.global.flag = dso_local global i64 zeroinitializer
 %struct.DynamicIntArray = type { i64*, i64, i64 }
 define dso_local void @DynamicIntArray.new(%struct.DynamicIntArray* noalias sret(%struct.DynamicIntArray) %r0) {
   ; Primitive parameter allocations and stores
@@ -198,9 +197,52 @@ exit1:
   br label %cond0
 
 exit0:
-  %r24 = getelementptr inbounds %struct.DynamicIntArray, %struct.DynamicIntArray* %r1, i32 0, i32 2 ; Getting ptr to member
-  %r25 = load i64, i64* %r24
-  ret i64 %r25
+
+  ; Define str:char*
+  %r24 = alloca i8*
+  %r25 = alloca [4 x i8]
+  %r26 = bitcast [4 x i8]* %r25 to i8*
+  store i8* %r26, i8** %r24
+  ; End definition of str:char*
+  %r27 = add i8 0, 87 ; Char literal
+  %r28 = load i8*, i8** %r24
+  %r29 = add i64 0, 0
+  %r30 = getelementptr i8, i8* %r28, i64 %r29
+  store i8 %r27, i8* %r30
+  %r31 = add i8 0, 79 ; Char literal
+  %r32 = load i8*, i8** %r24
+  %r33 = add i64 0, 1
+  %r34 = getelementptr i8, i8* %r32, i64 %r33
+  store i8 %r31, i8* %r34
+  %r35 = add i8 0, 87 ; Char literal
+  %r36 = load i8*, i8** %r24
+  %r37 = add i64 0, 2
+  %r38 = getelementptr i8, i8* %r36, i64 %r37
+  store i8 %r35, i8* %r38
+  %r39 = add i8 0, 0 ; Char literal
+  %r40 = load i8*, i8** %r24
+  %r41 = add i64 0, 3
+  %r42 = getelementptr i8, i8* %r40, i64 %r41
+  store i8 %r39, i8* %r42
+  ; Begin eq expr
+  %r43 = add i8 0, 87 ; Char literal
+  %r44 = load i8*, i8** %r24
+  %r45 = add i64 0, 0
+  %r46 = getelementptr i8, i8* %r44, i64 %r45
+  %r47 = load i8, i8* %r46
+  %r48 = icmp eq i8 %r43, %r47
+  ; End eq expr
+  br i1 %r48, label %ifbody2, label %exit2
+
+ifbody2:
+  %r49 = add i64 0, 125
+  ret i64 %r49
+  br label %exit2
+
+exit2:
+  %r50 = getelementptr inbounds %struct.DynamicIntArray, %struct.DynamicIntArray* %r1, i32 0, i32 2 ; Getting ptr to member
+  %r51 = load i64, i64* %r50
+  ret i64 %r51
 }
 
 ; Declarations of llvm intrinsics, may be unused

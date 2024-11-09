@@ -149,14 +149,4 @@ std::string formOpSignature(const std::string& type, const std::string& op, cons
     return signature;
 }
 
-struct Scope {
-    ScopeType type = undefined;
-    std::unordered_map<std::string, Variable> variables;
-    std::string name; // name of function/type/method/operator for definition
-
-    // constructor
-    Scope(ScopeType type, const std::string& name)
-        : type(type), name(name) {}
-};
-
 #endif

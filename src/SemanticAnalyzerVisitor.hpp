@@ -14,11 +14,22 @@ struct SemanticAnalyzerVisitor : Visitor {
 
 
     // SCOPE
+    struct Scope {
+        ScopeType type = undefined;
+        std::unordered_map<std::string, Variable> variables;
+        std::string name; // name of function/type/method/operator for definition
+
+        // constructor
+        Scope(ScopeType type)
+            : type(type) {}
+    };
+
+
     // stack containing variables at all scopes
     std::vector<Scope> scopeTable;
 
-    void enterScope(ScopeType type, const std::string& name) {
-        scopeTable.push_back(Scope(type, name));
+    void enterScope(ScopeType type) {
+        scopeTable.push_back(Scope(type));
     }
     
     void addToScope(Variable variable) {
@@ -180,7 +191,7 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit program
     void visit(std::shared_ptr<Node::Program> n) override {
 
-        enterScope(global, "global");
+        enterScope(global);
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
         types.emplace("int", Type("int", {}, {}, {
@@ -362,7 +373,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentProcedure->returnType = n->returnType;
 
         // make new scope
-        enterScope(functionDefn, signature);
+        enterScope(functionDefn);
 
         // add the function (usable in own scope) - parameters are in the function map, not in scopeTable as variables
         functions.emplace(signature, *currentProcedure);
@@ -847,7 +858,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentType = std::make_unique<Type>(n->name);
 
         // enter scope
-        enterScope(typeDefn, n->name);
+        enterScope(typeDefn);
 
         // build full type
         TypeDefinitionScanner tds;
@@ -898,7 +909,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentProcedure = std::make_unique<Procedure>(currentType->operators[signature]);
 
         // process body
-        enterScope(operatorDefn, signature);
+        enterScope(operatorDefn);
         n->stmts->accept(shared_from_this());
         endScope();
 
@@ -942,7 +953,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentProcedure = std::make_unique<Procedure>(currentType->methods[signature]);
 
         // process body
-        enterScope(methodDefn, signature);
+        enterScope(methodDefn);
         n->functionBody->accept(shared_from_this());
         endScope();
 
@@ -1054,7 +1065,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         currentProcedure = std::make_unique<Procedure>(currentType->constructors[signature]);
 
         // process body
-        enterScope(constructorDefn, signature);
+        enterScope(constructorDefn);
         n->body->accept(shared_from_this());
         endScope();
 
@@ -1100,7 +1111,7 @@ struct SemanticAnalyzerVisitor : Visitor {
         }
 
         // process body
-        enterScope(whileLoop, "while");
+        enterScope(whileLoop);
         n->stmts->accept(shared_from_this());
         endScope();
     }

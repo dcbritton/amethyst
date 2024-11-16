@@ -1,74 +1,11 @@
-
-
-type DynamicIntArray
-    @data:int*
-    @length:int
-    @capacity:int
-
-    new()
-        @capacity = 8
-        @data = heap [@capacity] int
-        @length = 0
-
-        return
-    end
-
-    def @append(value:int)
-
-        # allocate new space when reaching end of capacity
-        if @length + 1 == @capacity then
-            
-            # allocate new capacity
-            @capacity = @capacity * 2
-            tempData:int* = @data
-            @data = heap [@capacity] int
-
-            # copy old into new
-            i:int = 0
-            while i < @length do
-                @data[i] = tempData[i]
-                i = i + 1
-            end
-            
-            unheap tempData
-        end
-
-        @data[@length] = value
-        @length = @length + 1
-
-
-        return
-    end
-    
-    def @destroy()
-        unheap @data
-        return
-    end
-end 
-
-# testing in main
-def main():int # testing a comment edge case
-
-    arr:DynamicIntArray = new DynamicIntArray()
-    i:int = 0
-    while i < 127 do
-        if i % 2 == 0 then
-            arr.append(-1 * i)
-        else then
-            arr.append(i)
-        end
-        i = i + 1
-    end
-
+def main():int 
     str:char* = stack [4] char
     str[0] = 'W'
     str[1] = 'O'
     str[2] = 'W'
     str[3] = '\0'
-    if ('W' == str[0]) then
-        return 125
-    end
+    puts(str)
   
-    return arr.capacity
+    return 123
 end
 

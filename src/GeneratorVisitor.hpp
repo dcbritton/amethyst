@@ -222,6 +222,7 @@ struct GeneratorVisitor : Visitor {
         out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
         out << "declare noalias i8* @malloc(i64 noundef)\n";
         out << "declare void @free(i8* noundef)\n";
+        out << "declare i32 @puts(...)\n";
     }
 
     // global decl
@@ -1128,6 +1129,22 @@ struct GeneratorVisitor : Visitor {
     }
 
     void visit(std::shared_ptr<Node::Call> n) override {
+
+        // check for pre-defined functions
+
+        // puts
+        if (n->signature == "puts$char.") {
+            
+            // process args
+            n->args->accept(shared_from_this());
+
+            out << "  %r" << currentRegister
+                << " = call i32 (i8*, ...) bitcast (i32 (...)* @puts to i32 (i8*, ...)*)(i8* noundef %r"
+                << exprStack.back().reg << ")\n";
+
+            ++currentRegister;
+            return;
+        }
 
         // struct return requires a temporary allocation
         uint32_t placeholderRegister;

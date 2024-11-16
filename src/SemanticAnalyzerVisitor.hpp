@@ -251,6 +251,10 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         types.emplace("nil", Type("nil", {}, {}, {}, {}));
 
+        std::string putsSignature = "puts$char*";
+        manglePointers(putsSignature);
+        functions.emplace(putsSignature, Procedure("puts", putsSignature, "nil", {Variable("", "char*")}));
+
         // visit statement
         for (auto definition : n->definitions) {
             definition->accept(shared_from_this());

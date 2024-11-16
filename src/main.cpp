@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
         // lex
         Lexer l(script);
         auto tokens = l.lex();
-        print(tokens);
+        // print(tokens);
 
         // parse 
         Parser p(tokens);

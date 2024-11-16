@@ -327,7 +327,12 @@ public:
                     tokens.push_back(Token(Token::charLiteral, value, lineNumber));
                     
                     // consume second '
+                    if (*it != '\'') {
+                        std::cout << "Lexer error on line " << lineNumber << ". Unpaired single quote.\n";
+                        exit(1);
+                    }
                     ++it;
+
                     continue;
                 }
 
@@ -335,8 +340,13 @@ public:
                 tokens.push_back(Token(Token::charLiteral, std::to_string(uint8_t(*it)), lineNumber));
                 ++it;
 
-                // consume second '
-                ++it;
+                    // consume second '
+                    if (*it != '\'') {
+                        std::cout << "Lexer error on line " << lineNumber << ". Unpaired single quote.\n";
+                        exit(1);
+                    }
+                    ++it;
+                    
                 continue;
             }
 

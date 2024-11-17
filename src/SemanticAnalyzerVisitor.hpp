@@ -184,76 +184,75 @@ struct SemanticAnalyzerVisitor : Visitor {
         exit(1);
     }
 
+    // add primitive types & their operators to the types map
+    void definePrimitiveTypes() { 
+        types.emplace("int", Type("int", {}, {}, {
+                    // example signature: int.op.plus$int,
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "==", "int"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "!=", "int"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "<", "int"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "<=", "int"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", ">", "int"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", ">=", "int"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "*", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "/", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "%", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "<<", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", ">>", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "+", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "-", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "*", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "/", "int"), Procedure("int")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("int", "%", "int"), Procedure("int")),
+
+                    // std::make_pair<std::string, Procedure>(formOpSignature("int", "and", "int"), Procedure("bool")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature("int", "or", "int"), Procedure("bool")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature("&", "int"), Procedure("&", "int", "int")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature("|", "int"), Procedure("|", "int", "int")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature("^", "int"), Procedure("^", "int", "int")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature("!", "int"), Procedure("!", "int", "int")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature(".", "int"), Procedure(".", "int", "int")),
+                    // std::make_pair<std::string, Procedure>(formOpSignature("[]", "int"), Procedure("[]", "int", "int")),
+                }, {}));
+
+                types.emplace("bool", Type("bool", {}, {}, {
+                    std::make_pair<std::string, Procedure>(formOpSignature("bool", "and", "bool"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("bool", "or", "bool"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("bool", "==", "bool"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("bool", "!=", "bool"), Procedure("bool")),
+                }, {}));
+
+                types.emplace("float", Type("float", {}, {}, {
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "==", "float"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "!=", "float"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "<", "float"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", ">", "float"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "<=", "float"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", ">=", "float"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "+", "float"), Procedure("float")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "-", "float"), Procedure("float")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "*", "float"), Procedure("float")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "/", "float"), Procedure("float")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("float", "%", "float"), Procedure("float")),
+                }, {}));
+
+                types.emplace("char", Type("char", {}, {}, {
+                    std::make_pair<std::string, Procedure>(formOpSignature("char", "==", "char"), Procedure("bool")),
+                    std::make_pair<std::string, Procedure>(formOpSignature("char", "!=", "char"), Procedure("bool")),
+                }, {}));
+
+                types.emplace("nil", Type("nil", {}, {}, {}, {}));
+    }
+
 
     // VISIT METHODS
     void visit(std::shared_ptr<Node::Node> n) override {}
 
     // visit program
     void visit(std::shared_ptr<Node::Program> n) override {
-
         enterScope(global);
-
-        // @TODO: predefined variables, functions, types may go here with addToScope()
-
-        // TYPES
-        types.emplace("int", Type("int", {}, {}, {
-            // example signature: int.op.plus$int,
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "==", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "!=", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "<", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "<=", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", ">", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", ">=", "int"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "*", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "/", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "%", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "<<", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", ">>", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "+", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "-", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "*", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "/", "int"), Procedure("int")),
-            std::make_pair<std::string, Procedure>(formOpSignature("int", "%", "int"), Procedure("int")),
-
-            // std::make_pair<std::string, Procedure>(formOpSignature("int", "and", "int"), Procedure("bool")),
-            // std::make_pair<std::string, Procedure>(formOpSignature("int", "or", "int"), Procedure("bool")),
-            // std::make_pair<std::string, Procedure>(formOpSignature("&", "int"), Procedure("&", "int", "int")),
-            // std::make_pair<std::string, Procedure>(formOpSignature("|", "int"), Procedure("|", "int", "int")),
-            // std::make_pair<std::string, Procedure>(formOpSignature("^", "int"), Procedure("^", "int", "int")),
-            // std::make_pair<std::string, Procedure>(formOpSignature("!", "int"), Procedure("!", "int", "int")),
-            // std::make_pair<std::string, Procedure>(formOpSignature(".", "int"), Procedure(".", "int", "int")),
-            // std::make_pair<std::string, Procedure>(formOpSignature("[]", "int"), Procedure("[]", "int", "int")),
-        }, {}));
-
-        types.emplace("bool", Type("bool", {}, {}, {
-            std::make_pair<std::string, Procedure>(formOpSignature("bool", "and", "bool"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("bool", "or", "bool"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("bool", "==", "bool"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("bool", "!=", "bool"), Procedure("bool")),
-        }, {}));
-
-        types.emplace("float", Type("float", {}, {}, {
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "==", "float"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "!=", "float"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "<", "float"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", ">", "float"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "<=", "float"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", ">=", "float"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "+", "float"), Procedure("float")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "-", "float"), Procedure("float")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "*", "float"), Procedure("float")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "/", "float"), Procedure("float")),
-            std::make_pair<std::string, Procedure>(formOpSignature("float", "%", "float"), Procedure("float")),
-        }, {}));
-
-        types.emplace("char", Type("char", {}, {}, {
-            std::make_pair<std::string, Procedure>(formOpSignature("char", "==", "char"), Procedure("bool")),
-            std::make_pair<std::string, Procedure>(formOpSignature("char", "!=", "char"), Procedure("bool")),
-        }, {}));
-
-        types.emplace("nil", Type("nil", {}, {}, {}, {}));
-
-
+        definePrimitiveTypes();
+    
         // FUNCTIONS
         functions.emplace("print$char.", Procedure("print", "print$char.", "nil", {Variable("", "char*")}));
         functions.emplace("toString$int", Procedure("toString", "toString$int", "char*", {Variable("", "int")}));

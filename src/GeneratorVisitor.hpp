@@ -223,6 +223,9 @@ struct GeneratorVisitor : Visitor {
         out << "declare noalias i8* @malloc(i64 noundef)\n";
         out << "declare void @free(i8* noundef)\n";
         out << "declare i32 @puts(...)\n";
+
+        out << "@.internal.sprintf.ld = private unnamed_addr constant [4 x i8] c\"%ld\\00\"\n";
+        out << "declare i32 @sprintf(i8* noundef, i8* noundef, ...)\n";
     }
 
     // global decl
@@ -1143,6 +1146,39 @@ struct GeneratorVisitor : Visitor {
                 << exprStack.back().reg << ")\n";
 
             ++currentRegister;
+            exprStack.pop_back();
+
+            return;
+        }
+
+        else if (n->signature == "toString$int") {
+
+            // process args
+            n->args->accept(shared_from_this());
+
+            // make buffer
+            uint32_t bufferRegister = currentRegister;
+            ++currentRegister;
+            out << "  %r" << bufferRegister
+                << " = alloca [12 x i8] ; Buffer for the string\n";
+
+            // cast to i8* to work with 
+            uint32_t castedBufferRegister = currentRegister;
+            ++currentRegister;
+            out << "  %r" << castedBufferRegister
+                << " = bitcast [12 x i8]* %r"
+                << bufferRegister << " to i8*\n";
+
+            out << "  %r" << currentRegister
+                << " = call i32 (i8*, i8*, ...) @sprintf(i8* noundef %r" << castedBufferRegister
+                << ", i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.internal.sprintf.ld, i64 0, i64 0), i64 noundef %r"
+                << exprStack.back().reg << ")\n";
+
+            ++currentRegister;
+
+            exprStack.pop_back();
+            exprStack.push_back({castedBufferRegister, "char*"});
+
             return;
         }
 

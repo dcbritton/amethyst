@@ -1,11 +1,113 @@
-def main():int 
-    str:char* = stack [4] char
-    str[0] = 'W'
-    str[1] = 'O'
-    str[2] = 'W'
-    str[3] = '\0'
-    puts(str)
-  
-    return 123
+# definition of matrix type
+type Matrix
+
+    # member declarations
+    @data:int**
+    @size:int
+
+    # constructor, allocates size x size int matrix on heap
+    new(size:int)
+        @size = size
+        @data = @allocateNxN(@size)
+        return
+    end
+
+    # set elements to product of indices
+    def @setElements()
+        i:int = 0
+        while i < @size do
+            j:int = 0
+            while j < @size do
+                @data[i][j] = i * j
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        return
+    end
+
+    # method, get a deep copy of this matrix
+    def @deepCopy():Matrix
+
+        result:Matrix = new Matrix(@size)
+
+        i:int = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                result.data[i][j] = @data[i][j]
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        return result
+    end
+
+    # method to allocate an nxn on heap, returns a ptr to the matrix int**
+    def @allocateNxN(n:int):int**
+        rows:int** = heap [n] int*
+        i:int = 0
+        while i != n do
+            rows[i] = heap [n] int
+            i = i + 1
+        end
+
+        return rows
+    end
+
+    # operator to multiply matrices (standard matrix multiplication)
+    # returns a new heap allocated matrix
+    op*(rhs:Matrix):Matrix
+
+        # if sizes don't match, do no allocation & return a matrix of size 0
+        if @size != rhs.size then
+            return new Matrix(0)
+        end
+
+        # sizes match, perform matrix multiplication
+        result:Matrix = new Matrix(@size)
+
+        i:int = 0
+        while i != @size do
+            j:int = 0
+            while j != @size do
+                k:int = 0
+                while k != @size do
+                    result.data[i][j] = result.data[i][j] + @data[i][k] * rhs.data[k][j]
+                    k = k + 1
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+
+        return result
+    end
+end
+
+def main():int
+    m:Matrix = new Matrix(4)
+    m.setElements()
+    n:Matrix = m.deepCopy()
+    p:Matrix = m * n
+
+    space:char* = stack [2] char
+    space[0] = ' '
+    space[1] = '\0'
+
+    i:int = 0
+    while i < m.size do
+        j:int = 0
+        while j < m.size do
+            puts(toString(p.data[i][j]))
+            # puts(space)
+            j = j + 1
+        end
+        i = i + 1
+    end
+
+    return 0
 end
 

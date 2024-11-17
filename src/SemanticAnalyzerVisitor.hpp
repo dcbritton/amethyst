@@ -194,6 +194,8 @@ struct SemanticAnalyzerVisitor : Visitor {
         enterScope(global);
 
         // @TODO: predefined variables, functions, types may go here with addToScope()
+
+        // TYPES
         types.emplace("int", Type("int", {}, {}, {
             // example signature: int.op.plus$int,
             std::make_pair<std::string, Procedure>(formOpSignature("int", "==", "int"), Procedure("bool")),
@@ -251,9 +253,10 @@ struct SemanticAnalyzerVisitor : Visitor {
 
         types.emplace("nil", Type("nil", {}, {}, {}, {}));
 
-        std::string putsSignature = "puts$char*";
-        manglePointers(putsSignature);
-        functions.emplace(putsSignature, Procedure("puts", putsSignature, "nil", {Variable("", "char*")}));
+
+        // FUNCTIONS
+        functions.emplace("puts$char.", Procedure("puts", "puts$char.", "nil", {Variable("", "char*")}));
+        functions.emplace("toString$int", Procedure("toString", "toString$int", "char*", {Variable("", "int")}));
 
         // visit statement
         for (auto definition : n->definitions) {

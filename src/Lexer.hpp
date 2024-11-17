@@ -298,14 +298,17 @@ public:
                     // \\ backlash
                     if (*it == '\\') {
                         value = "92";
+                        ++it;
                     }
                     // \n newline
                     else if (*it == 'n') {
                         value = "10";
+                        ++it;
                     }
                     // \t tab
                     else if (*it == 't') {
                         value = "9";
+                        ++it;
                     }
                     // \0 null
                     else if (*it == '0') {

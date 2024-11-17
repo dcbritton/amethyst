@@ -456,79 +456,101 @@ define dso_local i64 @main() {
   %r30 = getelementptr i8, i8* %r28, i64 %r29
   store i8 %r27, i8* %r30
 
+  ; Define newline:char*
+  %r31 = alloca i8*
+  %r32 = alloca [2 x i8]
+  %r33 = bitcast [2 x i8]* %r32 to i8*
+  store i8* %r33, i8** %r31
+  ; End definition of newline:char*
+  %r34 = add i8 0, 10 ; Char literal
+  %r35 = load i8*, i8** %r31
+  %r36 = add i64 0, 0
+  %r37 = getelementptr i8, i8* %r35, i64 %r36
+  store i8 %r34, i8* %r37
+  %r38 = add i8 0, 0 ; Char literal
+  %r39 = load i8*, i8** %r31
+  %r40 = add i64 0, 1
+  %r41 = getelementptr i8, i8* %r39, i64 %r40
+  store i8 %r38, i8* %r41
+
   ; Define i:int
-  %r31 = alloca i64
-  %r32 = add i64 0, 0
-  store i64 %r32, i64* %r31
+  %r42 = alloca i64
+  %r43 = add i64 0, 0
+  store i64 %r43, i64* %r42
   ; End definition of i:int
   br label %cond0
 
 cond0:
   ; Begin relational expr
-  %r33 = load i64, i64* %r31
-  %r34 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r35 = load i64, i64* %r34
-  %r36 = icmp slt i64 %r33, %r35
+  %r44 = load i64, i64* %r42
+  %r45 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r46 = load i64, i64* %r45
+  %r47 = icmp slt i64 %r44, %r46
   ; End relational expr
-  br i1 %r36, label %body0, label %exit0
+  br i1 %r47, label %body0, label %exit0
 
 body0:
 
   ; Define j:int
-  %r37 = alloca i64
-  %r38 = add i64 0, 0
-  store i64 %r38, i64* %r37
+  %r48 = alloca i64
+  %r49 = add i64 0, 0
+  store i64 %r49, i64* %r48
   ; End definition of j:int
   br label %cond1
 
 cond1:
   ; Begin relational expr
-  %r39 = load i64, i64* %r37
-  %r40 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
-  %r41 = load i64, i64* %r40
-  %r42 = icmp slt i64 %r39, %r41
+  %r50 = load i64, i64* %r48
+  %r51 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r1, i32 0, i32 1 ; Getting ptr to member
+  %r52 = load i64, i64* %r51
+  %r53 = icmp slt i64 %r50, %r52
   ; End relational expr
-  br i1 %r42, label %body1, label %exit1
+  br i1 %r53, label %body1, label %exit1
 
 body1:
-  %r43 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
-  %r44 = load i64**, i64*** %r43
-  %r45 = load i64, i64* %r31
-  %r46 = getelementptr i64*, i64** %r44, i64 %r45
-  %r47 = load i64*, i64** %r46
-  %r48 = load i64, i64* %r37
-  %r49 = getelementptr i64, i64* %r47, i64 %r48
-  %r50 = load i64, i64* %r49
-  %r51 = alloca [12 x i8] ; Buffer for the string
-  %r52 = bitcast [12 x i8]* %r51 to i8*
-  %r53 = call i32 (i8*, i8*, ...) @sprintf(i8* noundef %r52, i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.internal.sprintf.ld, i64 0, i64 0), i64 noundef %r50)
-  %r54 = call i32 (i8*, ...) bitcast (i32 (...)* @puts to i32 (i8*, ...)*)(i8* noundef %r52)
+  %r54 = getelementptr inbounds %struct.Matrix, %struct.Matrix* %r14, i32 0, i32 0 ; Getting ptr to member
+  %r55 = load i64**, i64*** %r54
+  %r56 = load i64, i64* %r42
+  %r57 = getelementptr i64*, i64** %r55, i64 %r56
+  %r58 = load i64*, i64** %r57
+  %r59 = load i64, i64* %r48
+  %r60 = getelementptr i64, i64* %r58, i64 %r59
+  %r61 = load i64, i64* %r60
+  %r62 = alloca [12 x i8] ; Buffer for the string
+  %r63 = bitcast [12 x i8]* %r62 to i8*
+  %r64 = call i32 (i8*, i8*, ...) @sprintf(i8* noundef %r63, i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.internal.sprintf.ld, i64 0, i64 0), i64 noundef %r61)
+  %r65 = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.internal.printf.s, i64 0, i64 0), i8* noundef %r63)
+  %r66 = load i8*, i8** %r20
+  %r67 = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.internal.printf.s, i64 0, i64 0), i8* noundef %r66)
   ; Begin add expr
-  %r55 = load i64, i64* %r37
-  %r56 = add i64 0, 1
-  %r57 = add i64 %r55, %r56
+  %r68 = load i64, i64* %r48
+  %r69 = add i64 0, 1
+  %r70 = add i64 %r68, %r69
   ; End add expr
-  store i64 %r57, i64* %r37
+  store i64 %r70, i64* %r48
   br label %cond1
 
 exit1:
+  %r71 = load i8*, i8** %r31
+  %r72 = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.internal.printf.s, i64 0, i64 0), i8* noundef %r71)
   ; Begin add expr
-  %r58 = load i64, i64* %r31
-  %r59 = add i64 0, 1
-  %r60 = add i64 %r58, %r59
+  %r73 = load i64, i64* %r42
+  %r74 = add i64 0, 1
+  %r75 = add i64 %r73, %r74
   ; End add expr
-  store i64 %r60, i64* %r31
+  store i64 %r75, i64* %r42
   br label %cond0
 
 exit0:
-  %r61 = add i64 0, 0
-  ret i64 %r61
+  %r76 = add i64 0, 0
+  ret i64 %r76
 }
 
 ; Declarations of llvm intrinsics, may be unused
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)
 declare noalias i8* @malloc(i64 noundef)
 declare void @free(i8* noundef)
-declare i32 @puts(...)
+@.internal.printf.s = private unnamed_addr constant [3 x i8] c"%s\00"
+declare i32 @printf(i8* noundef, ...)
 @.internal.sprintf.ld = private unnamed_addr constant [4 x i8] c"%ld\00"
 declare i32 @sprintf(i8* noundef, i8* noundef, ...)

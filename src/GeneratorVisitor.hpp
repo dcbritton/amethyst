@@ -222,7 +222,9 @@ struct GeneratorVisitor : Visitor {
         out << "declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg)\n";
         out << "declare noalias i8* @malloc(i64 noundef)\n";
         out << "declare void @free(i8* noundef)\n";
-        out << "declare i32 @puts(...)\n";
+
+        out << "@.internal.printf.s = private unnamed_addr constant [3 x i8] c\"%s\\00\"\n";
+        out << "declare i32 @printf(i8* noundef, ...)\n";
 
         out << "@.internal.sprintf.ld = private unnamed_addr constant [4 x i8] c\"%ld\\00\"\n";
         out << "declare i32 @sprintf(i8* noundef, i8* noundef, ...)\n";
@@ -1135,14 +1137,14 @@ struct GeneratorVisitor : Visitor {
 
         // check for pre-defined functions
 
-        // puts
-        if (n->signature == "puts$char.") {
+        // print
+        if (n->signature == "print$char.") {
             
             // process args
             n->args->accept(shared_from_this());
 
             out << "  %r" << currentRegister
-                << " = call i32 (i8*, ...) bitcast (i32 (...)* @puts to i32 (i8*, ...)*)(i8* noundef %r"
+                << " = call i32 (i8*, ...) @printf(i8* noundef getelementptr inbounds ([3 x i8], [3 x i8]* @.internal.printf.s, i64 0, i64 0), i8* noundef %r"
                 << exprStack.back().reg << ")\n";
 
             ++currentRegister;

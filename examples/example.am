@@ -97,14 +97,19 @@ def main():int
     space[0] = ' '
     space[1] = '\0'
 
+    newline:char* = stack [2] char
+    newline[0] = '\n'
+    newline[1] = '\0'
+
     i:int = 0
     while i < m.size do
         j:int = 0
         while j < m.size do
-            puts(toString(p.data[i][j]))
-            # puts(space)
+            print(toString(p.data[i][j]))
+            print(space)
             j = j + 1
         end
+        print(newline)
         i = i + 1
     end
 

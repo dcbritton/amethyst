@@ -255,7 +255,7 @@ struct SemanticAnalyzerVisitor : Visitor {
 
 
         // FUNCTIONS
-        functions.emplace("puts$char.", Procedure("puts", "puts$char.", "nil", {Variable("", "char*")}));
+        functions.emplace("print$char.", Procedure("print", "print$char.", "nil", {Variable("", "char*")}));
         functions.emplace("toString$int", Procedure("toString", "toString$int", "char*", {Variable("", "int")}));
 
         // visit statement

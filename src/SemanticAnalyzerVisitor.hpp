@@ -184,6 +184,8 @@ struct SemanticAnalyzerVisitor : Visitor {
         exit(1);
     }
 
+
+    // PRE-DEFINED TYPES & METHODS
     // add primitive types & their operators to the types map
     void definePrimitiveTypes() { 
         types.emplace("int", Type("int", {}, {}, {
@@ -244,6 +246,11 @@ struct SemanticAnalyzerVisitor : Visitor {
                 types.emplace("nil", Type("nil", {}, {}, {}, {}));
     }
 
+    // add pre-defined functions to the functions map
+    void definePredefinedFunctions() {
+        functions.emplace("print$char.", Procedure("print", "print$char.", "nil", {Variable("", "char*")}));
+        functions.emplace("toString$int", Procedure("toString", "toString$int", "char*", {Variable("", "int")}));
+    }
 
     // VISIT METHODS
     void visit(std::shared_ptr<Node::Node> n) override {}
@@ -251,17 +258,17 @@ struct SemanticAnalyzerVisitor : Visitor {
     // visit program
     void visit(std::shared_ptr<Node::Program> n) override {
         enterScope(global);
-        definePrimitiveTypes();
-    
-        // FUNCTIONS
-        functions.emplace("print$char.", Procedure("print", "print$char.", "nil", {Variable("", "char*")}));
-        functions.emplace("toString$int", Procedure("toString", "toString$int", "char*", {Variable("", "int")}));
 
-        // visit statement
+        // add pre-defined functions and types to their respective maps
+        definePrimitiveTypes();
+        definePredefinedFunctions();
+
+        // visit definitions & declarations in global scope
         for (auto definition : n->definitions) {
             definition->accept(shared_from_this());
         }
 
+        endScope();
         n->types = std::make_unique<std::unordered_map<std::string, Type>>(std::move(types));
     }
 
